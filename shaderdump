@@ -1,0 +1,148 @@
+
+
+float mandel_mm(float cx, float cy, int iterations) {
+    float x_lo = 0.0;
+    float y_lo = 0.0;
+    float x_hi = 0.0;
+    float y_hi = 0.0;
+    for (int i = 0; i < iterations; i++) {
+		float x2_lo = x_lo;
+		float x2_hi = x_hi;
+		float y2_lo = y_lo;
+		float y2_hi = y_hi;
+		mm_mul(x2_lo, x2_hi, x2_lo, x2_hi); // x2 = x * x
+		mm_mul(y2_lo, y2_hi, y2_lo, y2_hi); // y2 = y * y
+		
+		float r_lo = x2_lo;
+		float r_hi = x2_hi;
+		mm_add(r_lo, r_hi, y2_lo, y2_hi); 
+		if (r_lo + r_hi > 4.0) {
+			return 1.0;
+		}
+		
+		mm_add(x2_lo, x2_hi, -y2_lo, -y2_hi); // x2 = x * x - y * y
+		mm_add(x2_lo, x2_hi, 0.0, cx);      // x2 = x * x - y * y + cx
+        
+        mm_mul(y_lo, y_hi, 2.0*x_lo, 2.0*x_hi); //y = 2.0 * x * y
+        mm_add(y_lo, y_hi, 0.0, cy);              //y = 2.0 * x * y + cy;
+        
+        x_lo = x2_lo;
+        x_hi = x2_hi;
+        
+        mm_fix(x_lo, x_hi);
+        mm_fix(y_lo, y_hi);
+        /*
+        x_lo = 0.0;
+        x_hi = cx;
+        y_lo = 0.0;
+        y_hi = cy;
+        mm_mul(x_lo, x_hi, 3.0, 1.0);
+        mm_mul(y_lo, y_hi, 1.0, 3.0);
+        */
+        
+        /*
+        float x = x_lo + x_hi;
+        float y = y_lo + y_hi;
+        if (x*x + y*y > 4.0) {
+            return 1.0;
+		}
+		*/
+    }
+    return 0.0;
+}
+
+
+float mandel_ff2(float cx, float cy, int iterations) {
+    vec2 x = vec2(0.0, 0.0);
+    vec2 y = vec2(0.0, 0.0);
+    for (int i = 0; i < iterations; i++) {
+        vec2 x2 = ff_add(ff_add(ff_mul(x, x), -ff_mul(y, y)), vec2(0, cx));
+        y = ff_add(ff_mul(2.0 * x, y), vec2(0, cy));
+        x = x2;
+        
+        float xv = x[0] + x[1];
+        float yv = y[0] + y[1];
+        if (xv*xv + yv*yv > 4.0) {
+            return 1.0;
+		}
+    }
+    return 0.0;
+}
+
+
+
+void mm_add(inout float lo1, inout float hi1, float lo2, float hi2) {
+	if (abs(hi1) > abs(hi2)) {
+		lo1 = (lo1 + lo2) + hi2;
+	} else {
+		lo1 = (lo1 + lo2) + hi1;
+		hi1 = hi2;
+	}
+	hi2 = hi1 + lo1;
+	lo1 -= hi2 - hi1;
+	hi1 = hi2;
+}
+
+void mm_mul(inout float lo1, inout float hi1, float lo2, float hi2) {
+	lo1 = lo1*lo2 + lo1*hi2 + hi1*lo2;
+	hi1 *= hi2;
+	hi2 = hi1 + lo1;
+	lo1 -= hi2 - hi1;
+	hi1 = hi2;
+}
+
+void mm_fix(inout float lo, inout float hi) {
+	if (hi * lo < 0.0) {
+		float hi2 = hi + lo;
+		lo = lo - one*float(hi2 - hi);
+		hi = hi2;
+		hi += 2.0*lo;
+		lo = -lo;
+	}
+}
+
+
+// precision main
+void main4() {
+	vec2 coord = clipCoord;
+    coord *= scale;
+    coord.x *= screenAspectRatio;
+    coord.x += offsetX[1];
+    coord.y += offsetY[1];
+    
+    float t = coord.x + coord.y;
+    outColor = vec4(0, 0, mod(t*131072.0, 2.0), 1);
+}
+
+// diag precision main
+void main3() {
+	vec2 ffx = vec2(0.0, clipCoord.x);
+    vec2 ffy = vec2(0.0, clipCoord.y);
+    vec2 ffs = vec2(0.0, scale);
+    vec2 ffa = vec2(0.0, screenAspectRatio);
+    vec2 ffox = offsetX;
+    vec2 ffoy = offsetY;
+    //ffox[0] = 0.0;
+    //ffoy[0] = 0.0;
+    ffx = ff_mul(ffs, ffx);
+    ffx = ff_mul(ffa, ffx);
+    ffy = ff_mul(ffs, ffy);
+    ffx = ff_add(ffox, ffx);
+    ffy = ff_add(ffoy, ffy);
+    //ffx = ff_add(ffy, ffx);
+    ffx = ff_mul(vec2(0, 131072.0), ffx);
+    
+    float x = ffx[0] + ffx[1];
+    outColor = vec4(0, 0, mod(x, 2.0), 1);
+}
+
+// float main
+void main2() {
+    vec2 coord = clipCoord;
+    coord *= scale;
+    coord.x *= screenAspectRatio;
+    coord.x += offsetX[1];
+    coord.y += offsetY[1];
+    outColor = vec4(0, 0, mandel(coord.x, coord.y, iterations), 1);
+    //outColor = floatColor(coord.x);
+}

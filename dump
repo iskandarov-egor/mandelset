@@ -1,0 +1,57 @@
+
+c.computeSome = function(timeLimit, callback) {
+	// todo handle lost context
+	var iterationsPerCall = 10000000000;
+	var calls = 0;
+	var callsAhead = Math.min(100, Math.max(1, iterationsPerCall / 100 / 100 / eye.iterations));
+	var waitPeriod = 5;
+	var timeUsed = 0;
+	var sync;
+	var startTime = performance.now();
+	
+	function blast() {
+		console.log(performance.now(), 'blast');
+		//callsTime = performance.now();
+		sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+		for (var i = 0; i < callsAhead && !job.done; i++) {
+			job.iteration();
+			calls++;
+		}
+	
+		setTimeout(timerCb, waitPeriod);
+	}
+	
+	function timerCb() {
+		var status = gl.getSyncParameter(sync, gl.SYNC_STATUS);
+		if (status != gl.SIGNALED) {
+			console.log(performance.now(), 'zzz');
+			setTimeout(timerCb, waitPeriod);
+		} else {
+			gl.deleteSync(sync);
+			var now = performance.now();
+			if (job.done) {
+				console.log(performance.now(), 'done', performance.now() - startTime);
+				callback(true, now);
+				return;
+			}
+			
+			// maybe we have enough time left to make more calls
+			var blastTime = callsAhead * (now - startTime) / calls;
+			if (now + blastTime < timeLimit) {
+				blast();
+				return
+			} else {
+				console.log(performance.now(), 'uvi');
+				callback(false, now);
+			}
+		}
+	}
+	
+	blast();
+}
+
+return c;
+}
+
+
+Thanks gman. I think I'll use the time from this extension if it's available. I also have an onboard Intel GPU any my results are all above 10ms. Also they (and yours) look suspiciously close to multiples of 1/60 (16, 33, 50). Maybe it has to do with the browsers drawing rate.
