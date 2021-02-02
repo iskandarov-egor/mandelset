@@ -58,6 +58,12 @@ void cp_mul(inout float a, inout float b, float c, float d) {
 	a = a2;
 }
 
+void cp_mul_ff(inout vec2 a, inout vec2 b, vec2 c, vec2 d) {
+	vec2 a2 = ff_add(ff_mul(a,c), -ff_mul(b,d)); // todo is -ff_mul same as ff_mul(-1, ...)?
+	b = ff_add(ff_mul(a, d), ff_mul(b,c));
+	a = a2;
+}
+
 float mandel_delta_sim(float cx, float cy, float dx, float dy, int iterations) {
     float x = cx;
     float y = cy;
@@ -99,6 +105,7 @@ float mandel_delta(float dx, float dy, int iterations) {
 	float dx0 = dx;
 	float dy0 = dy;
 	// zx, zy - current orbit
+	
 	float zx;
 	float zy;
 	ivec2 orbiti = ivec2(1, 0);
@@ -154,6 +161,71 @@ float mandel_delta(float dx, float dy, int iterations) {
 		/* reference orbit too short, continue using high precision */
 		vec4 texel = texelFetch(refOrbit, ivec2(1, 0), 0);
 		return float(refOrbitLen - 1) + mandel_ff(vec2(0, zx), vec2(0, zy), vec2(0, texel.x + dx0), vec2(0, texel.y + dy0), iterations - refOrbitLen + 1);
+	}
+    return 0.0;
+}
+// dx, dy - offset from ref orbit after first iteration (assuming all orbits start at (0,0))
+// uses uniforms refOrbit and refOrbitLen
+float mandel_delta_ff(vec2 dx, vec2 dy, int iterations) {
+	vec2 dx0 = dx;
+	vec2 dy0 = dy;
+	// zx, zy - current orbit
+	
+	vec2 zx;
+	vec2 zy;
+	ivec2 orbiti = ivec2(1, 0);
+	ivec2 txtSize = textureSize(refOrbit, 0);
+	
+	// zx, zy - reference orbit
+	vec2 x;
+	vec2 y;
+	vec4 texel1 = texelFetch(refOrbit, ivec2(1, 0), 0);
+    for (int i = 1; i < refOrbitLen; i++) {
+		/* update reference orbit */
+        if ((true)) {
+			vec4 texel = texelFetch(refOrbit, orbiti, 0);
+			x = vec2(0, texel.x);
+			y = vec2(0, texel.y);
+		} else {
+			//float x2 = x*x - y*y + texel1.x;
+			//y = 2.0 * x * y + texel1.y;
+			//x = x2;
+		}
+        
+        zx = ff_add(x, dx);
+        zy = ff_add(y, dy);
+        
+        if (zx[1]*zx[1] + zy[1]*zy[1] > 10000.0) { // todo is it ok to disregard vec2[0] here?
+			float m = zx[1]*zx[1] + zy[1]*zy[1];
+			float s = float(i) - log(log(m))/log(2.0);
+            return s;
+		}
+		
+		/* update dx dy */
+        vec2 ddx = dx;
+        vec2 ddy = dy;
+        //ddy = dy;
+        cp_mul_ff(ddx, ddy, ddx, ddy);
+        cp_mul_ff(dx, dy, x, y);
+        dx = ff_add(ff_add(ff_mul(vec2(0, 2.0), dx), ddx), dx0);
+        dy = ff_add(ff_add(ff_mul(vec2(0, 2.0), dy), ddy), dy0);
+        
+        /* update texture index */
+        orbiti.x++;
+        if (orbiti.x == txtSize.x) {
+			orbiti.x = 0;
+			orbiti.y++;
+		}
+        
+        /* glitch detection */
+        //if ((abs((x + dx)/x) < 0.001) || (abs((y + dy)/y) < 0.001)) {
+		//	return -1.0;
+		//}
+    }
+    if (refOrbitLen < iterations) {
+		/* reference orbit too short, continue using high precision */
+		vec4 texel = texelFetch(refOrbit, ivec2(1, 0), 0);
+		return float(refOrbitLen - 1) + mandel_ff(zx, zy, ff_add(vec2(0.0, texel.x), dx0), ff_add(vec2(0.0, texel.y), dy0), iterations - refOrbitLen + 1);
 	}
     return 0.0;
 }

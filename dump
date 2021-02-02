@@ -54,4 +54,65 @@ return c;
 }
 
 
+
+function glUpdateRefOrbit2(array, orbitLen) {	
+	gl.activeTexture(gl.TEXTURE0);
+	gl.uniform1i(gl.getUniformLocation(program, "refOrbit"), 0);
+	gl.bindTexture(gl.TEXTURE_2D, refOrbitTexture);
+	var t0 = performance.now();
+	gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 512, gl.RG, gl.FLOAT, array);
+	var dt = performance.now() - t0;
+	gl.uniform1i(gl.getUniformLocation(program, "refOrbitLen"), orbitLen);
+	//console.log("perf", orbitLen, dt);
+}
+c.drawDirect = function() {
+	gl.clearColor(1, 0, 1, 1);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+	gl.useProgram(program);
+	
+	if (false) {
+		var orbitLen = mandelOrbit(Game.vars.offsetX, Game.vars.offsetY, Game.vars.iterations, orbitArray);
+		//var orbit = testOrbit();
+		glUpdateRefOrbit(orbitArray, orbitLen);
+	}
+
+	gl.uniform4f(gl.getUniformLocation(program, "viewport"), -bufParam.ratio, -1, 2*bufParam.ratio, 2);
+	var primitiveType = gl.TRIANGLES;
+	var offset = 0;
+	var count = 6;
+	gl.drawArrays(primitiveType, offset, count);
+		c.done = true;
+}
+
+function myclick() {
+	saveLabels();
+	//Game.resizeCanvas();
+	const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+	const query = gl.createQuery();
+	gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+	var t0 = performance.now();
+	
+	//Game.draw();
+	
+	gl.endQuery(ext.TIME_ELAPSED_EXT);
+	var i = 0;
+	function checkFlag() {
+		const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+		if (available) {
+			const dt = gl.getQueryParameter(query, gl.QUERY_RESULT);		
+			var str = 'dt1: ' + dt/1e6;
+			document.getElementById("infolabel").innerText = str;
+			return;
+		} else {
+			i++;
+			if (i >= 100) {
+				document.getElementById("infolabel").innerText = 'too long!';
+				return;
+			}
+			window.setTimeout(checkFlag, 100);
+		}
+	}
+	checkFlag();
+}
+
 Thanks gman. I think I'll use the time from this extension if it's available. I also have an onboard Intel GPU any my results are all above 10ms. Also they (and yours) look suspiciously close to multiples of 1/60 (16, 33, 50). Maybe it has to do with the browsers drawing rate.

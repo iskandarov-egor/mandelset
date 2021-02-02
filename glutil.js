@@ -1,4 +1,67 @@
-function createShader(gl, type, source) {
+M.gl_util = {}
+
+M.gl_util.createRenderPyramid = function (gl, w, h) {
+	var fbuffer = gl.createFramebuffer();
+	var texture0 = gl.createTexture();
+	var texture1 = gl.createTexture();
+	{
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, texture0);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		const level = 0;
+		const internalFormat = gl.RGBA;
+		const border = 0;
+		const format = gl.RGBA;
+		const type = gl.UNSIGNED_BYTE;
+		const data = null;
+		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+					w, h, border,
+					format, type, data);
+		
+		gl.bindTexture(gl.TEXTURE_2D, texture1);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+					Math.floor(w / 3), Math.floor(h / 3), border,
+					format, type, data);
+		
+		gl.bindFramebuffer(gl.FRAMEBUFFER, fbuffer);
+		gl.framebufferTexture2D(
+			gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, level);
+		
+	}
+	return {
+		fbuffer: fbuffer,
+		textureL0: texture0,
+		textureL1: texture1,
+	};
+}
+
+
+
+M.gl_util.createRenderTexture = function (gl, w, h) {
+	var texture = gl.createTexture();
+	{
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		const level = 0;
+		const internalFormat = gl.RGBA;
+		const border = 0;
+		const format = gl.RGBA;
+		const type = gl.UNSIGNED_BYTE;
+		const data = null;
+		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+					w, h, border,
+					format, type, data);
+		
+	}
+	return texture;
+}
+
+M.gl_util.createShader = function (gl, type, source) {
   var shader = gl.createShader(type);
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
@@ -12,7 +75,7 @@ function createShader(gl, type, source) {
 }
 
 
-function createProgram(gl, vertexShader, fragmentShader) {
+M.gl_util.createProgram = function (gl, vertexShader, fragmentShader) {
   var program = gl.createProgram();
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
@@ -27,14 +90,14 @@ function createProgram(gl, vertexShader, fragmentShader) {
 }
 
 
-function resizeCanvas(canvas, scale) {
+M.gl_util.resizeCanvas = function (canvas, scale) {
   // Lookup the size the browser is displaying the canvas.
   var displayWidth  = canvas.clientWidth;
   var displayHeight = canvas.clientHeight;
   
   var targetWidth = displayWidth * scale;
   var targetHeight = displayHeight * scale;
-  targetWidth = 1881;
+  //targetWidth = 1881;
  
   // Check if the canvas is not the same size.
   if (canvas.width  !== targetWidth ||
@@ -46,7 +109,7 @@ function resizeCanvas(canvas, scale) {
   }
 }
 
-function preprocess(source, includes) {
+M.gl_util.preprocess = function (source, includes) {
 	let re = /^([\s\S]*)(#include <[^>]*>)([\s\S]*)$/;
 	let re2 = /^#include <([^>]*)>$/;
 	for (var i = 0; ; i++) {
@@ -71,7 +134,7 @@ function preprocess(source, includes) {
 	return source;
 }
 
-function glUniformD(loc, value) {
+M.gl_util.glUniformD = function (loc, value) {
 	var f32 = new Float32Array(2);
 	splitDouble(value, f32);
 	gl.uniform2fv(loc, f32);

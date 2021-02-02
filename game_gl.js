@@ -1,43 +1,49 @@
+M.game_gl = {};
 
-function createRenderPyramid(gl, w, h) {
-	var fbuffer = gl.createFramebuffer();
-	var texture0 = gl.createTexture();
-	var texture1 = gl.createTexture();
-	{
-		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, texture0);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		const level = 0;
-		const internalFormat = gl.RGBA;
-		const border = 0;
-		const format = gl.RGBA;
-		const type = gl.UNSIGNED_BYTE;
-		const data = null;
-		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-					w, h, border,
-					format, type, data);
-		
-		gl.bindTexture(gl.TEXTURE_2D, texture1);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-					Math.floor(w / 3), Math.floor(h / 3), border,
-					format, type, data);
-		
-		gl.bindFramebuffer(gl.FRAMEBUFFER, fbuffer);
-		gl.framebufferTexture2D(
-			gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, level);
-		
-	}
-	return {
-		fbuffer: fbuffer,
-		textureL0: texture0,
-		textureL1: texture1,
-	};
+var includes = {
+	'ff_math': loadFile('ff_math.glsl'),
+	'mandel': loadFile('mandel.glsl'),
+	'debug': loadFile('debug.glsl'),
+	'fragment_computer': loadFile('fragment_computer.glsl'),
+	'fragment_pyramid': loadFile('fragment_pyramid.glsl'),
+	'fragment_visualizer': loadFile('fragment_visualizer.glsl'),
+}
+var fragmentShaderSource = `#include <fragment_computer>`;
+fragmentShaderSource = M.gl_util.preprocess(fragmentShaderSource, includes);
+
+var fragmentShaderSourcePyramid = `#include <fragment_pyramid>`;
+fragmentShaderSourcePyramid = M.gl_util.preprocess(fragmentShaderSourcePyramid, includes);
+
+var fragmentShaderSourceVisualizer = `#include <fragment_visualizer>`;
+fragmentShaderSourceVisualizer = M.gl_util.preprocess(fragmentShaderSourceVisualizer, includes);
+
+vertexShaderSource = M.gl_util.preprocess(vertexShaderSource, includes);
+
+M.game_gl.createProgram1 = function () {
+	return M.gl_util.createProgram(
+		gl,
+		M.gl_util.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource),
+		M.gl_util.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource)
+	);
 }
 
-function createPositionVAO(gl) {
+M.game_gl.createProgramPyramid = function () {
+	return M.gl_util.createProgram(
+		gl,
+		M.gl_util.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource),
+		M.gl_util.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSourcePyramid)
+	);
+}
+
+M.game_gl.createProgramVisualizer = function () {
+	return M.gl_util.createProgram(
+		gl,
+		M.gl_util.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource2),
+		M.gl_util.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSourceVisualizer)
+	);
+}
+
+M.game_gl.createPositionVAO = function (gl) {
 	var positionLocation = 0; //gl.getAttribLocation(program, "a_position");
 
 	var positionBuffer = gl.createBuffer();
@@ -65,41 +71,7 @@ function createPositionVAO(gl) {
 	return vao;
 }
 
-
-function createRenderTexture(gl, w, h) {
-	var texture = gl.createTexture();
-	{
-		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		const level = 0;
-		const internalFormat = gl.RGBA;
-		const border = 0;
-		const format = gl.RGBA;
-		const type = gl.UNSIGNED_BYTE;
-		const data = null;
-		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-					w, h, border,
-					format, type, data);
-		
-	}
-	return texture;
-}
-
-
-
-var includes = {
-	'ff_math': loadFile('ff_math.glsl'),
-	'mandel': loadFile('mandel.glsl'),
-	'debug': loadFile('debug.glsl'),
-}
-fragmentShaderSource = preprocess(fragmentShaderSource, includes);
-
-function createProgram1() {
-	return createProgram(
-		gl,
-		createShader(gl, gl.VERTEX_SHADER, vertexShaderSource),
-		createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource)
-	);
+M.game_gl.init = function() {
+	gl.enable(gl.BLEND); 
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 }

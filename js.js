@@ -53,41 +53,40 @@ canvas.addEventListener("mousemove", e => {
 
 function myclick() {
 	saveLabels();
-	//Game.resizeCanvas();
-	const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
-	const query = gl.createQuery();
-	gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
-	var t0 = performance.now();
 	
-	//Game.draw();
+	Game.drawDirect();
 	
-	gl.endQuery(ext.TIME_ELAPSED_EXT);
-	var i = 0;
-	function checkFlag() {
-		const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
-		if (available) {
-			const dt = gl.getQueryParameter(query, gl.QUERY_RESULT);		
-			var str = 'dt1: ' + dt/1e6;
-			document.getElementById("infolabel").innerText = str;
-			return;
-		} else {
-			i++;
-			if (i >= 100) {
-				document.getElementById("infolabel").innerText = 'too long!';
-				return;
-			}
-			window.setTimeout(checkFlag, 100);
-		}
-	}
-	checkFlag();
 }
 
-function measureclick() {
-	saveLabels();
-	mainLoop();
+var utexture = M.gl_util.createRenderTexture(gl, renderW, renderH);
+
+function myclick2() {
+	/*
+	var fbuffer1 = gl.createFramebuffer();
+	var fbuffer2 = gl.createFramebuffer();
+	//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbuffer1);
+	gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbuffer2);
+		
+	gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, comp2.getTexture(), 0);
+	gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, utexture, 0);
+	gl.readBuffer(gl.COLOR_ATTACHMENT0);
+	gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+	gl.blitFramebuffer(0, 0, renderW, renderH,
+		renderW/2, renderH/2,renderW, renderH,
+		gl.COLOR_BUFFER_BIT, gl.NEAREST);
+	visualizeBuffer();
+	*/
+	underlay.take(ut.eye, ut.texture);
+	visualizeBuffer(comp2.getTexture());
 }
 loadLabels();
 mainLoop();
+
+setInterval(function() {
+  document.getElementById("lblTiming").innerText = 'Timing: ' + M.Stat.Computer.lastTiming;
+  document.getElementById("lblGLTimer").innerText = 'GL Timer: ' + M.Stat.Computer.GLTimer;
+}, 500);
 
 
 
