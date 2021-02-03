@@ -129,11 +129,12 @@ function visualizeBuffer(texture) {
 		gl.bindTexture(gl.TEXTURE_2D, underlay.texture);
 		console.log('bound', utexture);
 		gl.uniform1f(gl.getUniformLocation(program2, "bgEyeX"), underlay.eye.offsetX);
-		gl.uniform1f(gl.getUniformLocation(program2, "bgEyeX"), underlay.eye.offsetY);
+		gl.uniform1f(gl.getUniformLocation(program2, "bgEyeY"), underlay.eye.offsetY);
 		gl.uniform1f(gl.getUniformLocation(program2, "bgScale"), underlay.eye.scale);
 	} else {
 		// we are required by opengl to bind some texture anyway
 		gl.bindTexture(gl.TEXTURE_2D, texture);
+
 	}
 	
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -151,13 +152,16 @@ class Underlay {
 		this.h = h;
 		this.gl = gl;
 		this.texture = M.gl_util.createRenderTexture(gl, w, h);
+		this.texture2 = M.gl_util.createRenderTexture(gl, w, h);
 		this.eye = null;
 		this.fbuffer1 = gl.createFramebuffer();
 		this.fbuffer2 = gl.createFramebuffer();
+		
 	}
 	
 	take(eye, txt) {
 		this.eye = cloneEye(eye);
+		console.log('take', this.eye);
 		var gl = this.gl;
 		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fbuffer1);
 		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.fbuffer2);
@@ -174,6 +178,47 @@ class Underlay {
 	}
 	
 	combine(eye, texture, w, h) {
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer1);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture2, 0);
+		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.useProgram(program2);
+		gl.clearColor(0, 1, 1, 1);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		console.log(eye, this.eye);
+		gl.uniform1i(gl.getUniformLocation(program2, "fgTexture"), 1);
+		gl.uniform1f(gl.getUniformLocation(program2, "screenAspectRatio"), gl.canvas.width/gl.canvas.height);
+		gl.uniform1f(gl.getUniformLocation(program2, "eyeX"), eye.offsetX);
+		gl.uniform1f(gl.getUniformLocation(program2, "eyeY"), eye.offsetY);
+		gl.uniform1f(gl.getUniformLocation(program2, "scale"), eye.scale);
+		gl.uniform1f(gl.getUniformLocation(program2, "fgEyeX"), eye.offsetX);
+		gl.uniform1f(gl.getUniformLocation(program2, "fgEyeY"), eye.offsetY);
+		gl.uniform1f(gl.getUniformLocation(program2, "fgScale"), eye.scale);
+		
+		gl.activeTexture(gl.TEXTURE2);
+		gl.uniform1i(gl.getUniformLocation(program2, "bgTexture"), 2);
+		if (true){
+			gl.bindTexture(gl.TEXTURE_2D, this.texture);
+			console.log('bound');
+			gl.uniform1f(gl.getUniformLocation(program2, "bgEyeX"), this.eye.offsetX);
+			gl.uniform1f(gl.getUniformLocation(program2, "bgEyeY"), this.eye.offsetY);
+			gl.uniform1f(gl.getUniformLocation(program2, "bgScale"), this.eye.scale);
+		} else {
+			// we are required by opengl to bind some texture anyway
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+		}
+		
+		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+		
+		gl.drawArrays(gl.TRIANGLES, 0, 6);
+		var tmp = this.texture;
+		this.texture = this.texture2;
+		this.texture2 = tmp;
+		this.eye = cloneEye(eye);
+	}
+	
+	combine2(eye, texture, w, h) {
 		// convert coordinate of a pixel in one view to another (either x or y)
 		// e1, e2 - eye offsets of the views
 		// hside1, hside2 - half of the side of the views in

@@ -77,7 +77,13 @@ function myclick2() {
 		gl.COLOR_BUFFER_BIT, gl.NEAREST);
 	visualizeBuffer();
 	*/
-	underlay.take(ut.eye, ut.texture);
+	underlay.take(comp2.getDrawingEye(), comp2.getTexture());
+
+	visualizeBuffer(comp2.getTexture());
+}
+
+function myclick3() {
+	underlay.combine(comp2.getDrawingEye(), comp2.getTexture(), renderW, renderH);
 	visualizeBuffer(comp2.getTexture());
 }
 loadLabels();

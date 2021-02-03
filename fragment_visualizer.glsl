@@ -38,6 +38,9 @@ bool isWithinUnit(vec2 v) {
 }
 
 void main() {
+	//vec2 txtCoord2 = eye2CanvasSpace(eyeX, eyeY, scale, bgEyeX, bgEyeY, bgScale);
+	//outColor = vec4(eyeX - bgEyeX, 0, 0, 1);
+	//return;
 	vec2 txtCoord = eye2CanvasSpace(eyeX, eyeY, scale, fgEyeX, fgEyeY, fgScale);
 
 	if (isWithinUnit(txtCoord)) {
