@@ -54,6 +54,69 @@ return c;
 }
 
 
+	
+	take(eye, txt) {
+		this.eye = cloneEye(eye);
+		console.log('take', this.eye);
+		var gl = this.gl;
+		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fbuffer1);
+		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.fbuffer2);
+			
+		gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, comp2.getTexture(), 0);
+		gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+		gl.readBuffer(gl.COLOR_ATTACHMENT0);
+		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+		gl.blitFramebuffer(
+			0, 0, this.w, this.h,
+			0, 0, this.w, this.h,
+			gl.COLOR_BUFFER_BIT, gl.NEAREST
+		);
+	}
+
+	combine2(eye, texture, w, h) {
+		// convert coordinate of a pixel in one view to another (either x or y)
+		// e1, e2 - eye offsets of the views
+		// hside1, hside2 - half of the side of the views in
+		//                  real space (width or height correspondingly)
+		// ps1, ps2 - the width of one pixel in real space in the views
+		// x2 - the pixel coordinate in the view2
+		// returns the pixel coordinate in the view1
+		function convertPixelCoord(e1, e2, hside1, hside2, ps1, ps2, x2) {
+			// :: 1) 0.5ps + ps*x + e - (hside/S)*S = e + t*s
+			// ::    t*s = ps*(0.5+x) - hside
+			// :: 2) e1 + s1*t1 = e2 + s2*t2
+			// ::    e1 + ps1*(0.5+x1) - hside1 = e2 + ps2*(0.5+x2) - hside2
+			var tmp = e2 - e1 + hside1 - hside2 + ps2*(0.5 + x2);
+			var x1 = tmp/ps1 - 0.5;
+			return Math.floor(x1);
+		}
+		
+		var gl = this.gl;
+		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fbuffer1);
+		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.fbuffer2);
+			
+		gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, comp2.getTexture(), 0);
+		gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+		gl.readBuffer(gl.COLOR_ATTACHMENT0);
+		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+		var hside1 = this.eye.scale * (this.w/this.h);
+		
+		var ps1 = 2*hside1/this.w;
+		var ps2 = 2*hside2/w;
+		var ratio1 = this.w/this.h;
+		var ratio2 = w/h;
+		var hw1 = this.eye.scale*ratio1;
+		var hw2 = eye.scale*ratio2;
+		gl.blitFramebuffer(
+			0, 0, this.w, this.h,
+			convertPixelCoord(this.eye.offsetX, eye.offsetX, hw1, hw2, ps1, ps2, 0), 
+			convertPixelCoord(this.eye.offsetY, eye.offsetY, this.eye.scale, eye.scale, ps1, ps2, 0), 
+			convertPixelCoord(this.eye.offsetX, eye.offsetX, hw1, hw2, eye.scale*ratio2, ps1, ps2, w),
+			convertPixelCoord(this.eye.offsetY, eye.offsetY, this.eye.scale, eye.scale, ps1, ps2, h),
+			gl.COLOR_BUFFER_BIT, gl.NEAREST
+		);
+	}
+
 
 function glUpdateRefOrbit2(array, orbitLen) {	
 	gl.activeTexture(gl.TEXTURE0);

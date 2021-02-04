@@ -77,8 +77,8 @@ function myclick2() {
 		gl.COLOR_BUFFER_BIT, gl.NEAREST);
 	visualizeBuffer();
 	*/
-	underlay.take(comp2.getDrawingEye(), comp2.getTexture());
-
+	//underlay.take(comp2.getDrawingEye(), comp2.getTexture());
+	underlay.combine(comp2.getDrawingEye(), comp2.getTexture(), renderW, renderH);
 	visualizeBuffer(comp2.getTexture());
 }
 

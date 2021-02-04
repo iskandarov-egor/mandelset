@@ -17,6 +17,7 @@ M.Stat = {
 var d = {
 	superSlow: false,
 	oneIter: false,
+	iterLimit: null,
 };
 
 class Computer {
@@ -241,6 +242,7 @@ function newJob(c) {
 		done: false,
 	};
 	var first = true;
+	var iters = 0;
 	function iteration1() {
 		var orbitLen = mandelOrbit(c.eye.offsetX, c.eye.offsetY, c.eye.iterations, c.orbitArray);
 		c.updateRefOrbit(c.orbitArray, orbitLen);
@@ -261,6 +263,11 @@ function newJob(c) {
 			job.done = true;
 			return false;
 		}
+		if (d.iterLimit && d.iterLimit <= iters) {
+			job.done = true;
+			return true;
+		}
+		iters++;
 		gl.useProgram(c.program);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, c.fbuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, c.renderTexture, 0);

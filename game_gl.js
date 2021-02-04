@@ -72,6 +72,6 @@ M.game_gl.createPositionVAO = function (gl) {
 }
 
 M.game_gl.init = function() {
-	gl.enable(gl.BLEND); 
-	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	//gl.enable(gl.BLEND); 
+	//gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 }

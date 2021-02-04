@@ -50,7 +50,7 @@ void main() {
 			if (isWithinUnit(txtCoord)) {
 				outColor = texture(bgTexture, txtCoord);
 			} else {
-				outColor = vec4(1, 0, 0, 1);
+				outColor = vec4(1, 0, 1, 1);
 			}
 		}
 	} else {

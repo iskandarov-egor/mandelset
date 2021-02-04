@@ -85,12 +85,6 @@ var compArg2 = {
 	nLevels: 2,
 }
 
-// contains the eye of the previous drawing and the results so far
-var swap = {
-	eye: null,
-	texture: null,
-};
-
 var comp2 = new M.Computer(compArg2);
 //var comp2 = new M.PyramidComputer(compArg2);
 comp2.init();
@@ -111,7 +105,7 @@ function visualizeBuffer(texture) {
 	gl.activeTexture(gl.TEXTURE1);
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.useProgram(program2);
-	gl.clearColor(0, 1, 1, 1);
+	//gl.clearColor(0, 1, 1, 1);
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	var drawingEye = comp2.getDrawingEye();
 	gl.uniform1i(gl.getUniformLocation(program2, "fgTexture"), 1);
@@ -142,12 +136,13 @@ function visualizeBuffer(texture) {
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
-// underlay is the image that contains the rendering results of the previous view.
+// underlay is the image that contains combined rendering results of the previous views.
 // this image will be used as a background so that the user has something to look at
-// while the new view is being rendered. otherwise the screen will be cleared after
-// each movement.
+// while the current view is being rendered.
 class Underlay {
 	constructor(gl, w, h){
+		//w = Math.floor(w/8);
+		//h = Math.floor(h/8);
 		this.w = w;
 		this.h = h;
 		this.gl = gl;
@@ -159,32 +154,14 @@ class Underlay {
 		
 	}
 	
-	take(eye, txt) {
-		this.eye = cloneEye(eye);
-		console.log('take', this.eye);
-		var gl = this.gl;
-		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fbuffer1);
-		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.fbuffer2);
-			
-		gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, comp2.getTexture(), 0);
-		gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
-		gl.readBuffer(gl.COLOR_ATTACHMENT0);
-		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-		gl.blitFramebuffer(
-			0, 0, this.w, this.h,
-			0, 0, this.w, this.h,
-			gl.COLOR_BUFFER_BIT, gl.NEAREST
-		);
-	}
-	
-	combine(eye, texture, w, h) {
+	combine(eye, texture) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer1);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture2, 0);
 		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 		gl.activeTexture(gl.TEXTURE1);
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 		gl.useProgram(program2);
-		gl.clearColor(0, 1, 1, 1);
+		//gl.clearColor(0, 1, 0, 1);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		console.log(eye, this.eye);
 		gl.uniform1i(gl.getUniformLocation(program2, "fgTexture"), 1);
@@ -198,7 +175,7 @@ class Underlay {
 		
 		gl.activeTexture(gl.TEXTURE2);
 		gl.uniform1i(gl.getUniformLocation(program2, "bgTexture"), 2);
-		if (true){
+		if (this.eye){
 			gl.bindTexture(gl.TEXTURE_2D, this.texture);
 			console.log('bound');
 			gl.uniform1f(gl.getUniformLocation(program2, "bgEyeX"), this.eye.offsetX);
@@ -206,10 +183,10 @@ class Underlay {
 			gl.uniform1f(gl.getUniformLocation(program2, "bgScale"), this.eye.scale);
 		} else {
 			// we are required by opengl to bind some texture anyway
-			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.bindTexture(gl.TEXTURE_2D, null);
 		}
 		
-		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+		gl.viewport(0, 0, this.w, this.h);
 		
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 		var tmp = this.texture;
@@ -218,49 +195,6 @@ class Underlay {
 		this.eye = cloneEye(eye);
 	}
 	
-	combine2(eye, texture, w, h) {
-		// convert coordinate of a pixel in one view to another (either x or y)
-		// e1, e2 - eye offsets of the views
-		// hside1, hside2 - half of the side of the views in
-		//                  real space (width or height correspondingly)
-		// ps1, ps2 - the width of one pixel in real space in the views
-		// x2 - the pixel coordinate in the view2
-		// returns the pixel coordinate in the view1
-		function convertPixelCoord(e1, e2, hside1, hside2, ps1, ps2, x2) {
-			// :: 1) 0.5ps + ps*x + e - (hside/S)*S = e + t*s
-			// ::    t*s = ps*(0.5+x) - hside
-			// :: 2) e1 + s1*t1 = e2 + s2*t2
-			// ::    e1 + ps1*(0.5+x1) - hside1 = e2 + ps2*(0.5+x2) - hside2
-			var tmp = e2 - e1 + hside1 - hside2 + ps2*(0.5 + x2);
-			var x1 = tmp/ps1 - 0.5;
-			return Math.floor(x1);
-		}
-		
-		var gl = this.gl;
-		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.fbuffer1);
-		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.fbuffer2);
-			
-		gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, comp2.getTexture(), 0);
-		gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
-		gl.readBuffer(gl.COLOR_ATTACHMENT0);
-		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-		var hside1 = this.eye.scale * (this.w/this.h);
-		
-		var ps1 = 2*hside1/this.w;
-		var ps2 = 2*hside2/w;
-		var ratio1 = this.w/this.h;
-		var ratio2 = w/h;
-		var hw1 = this.eye.scale*ratio1;
-		var hw2 = eye.scale*ratio2;
-		gl.blitFramebuffer(
-			0, 0, this.w, this.h,
-			convertPixelCoord(this.eye.offsetX, eye.offsetX, hw1, hw2, ps1, ps2, 0), 
-			convertPixelCoord(this.eye.offsetY, eye.offsetY, this.eye.scale, eye.scale, ps1, ps2, 0), 
-			convertPixelCoord(this.eye.offsetX, eye.offsetX, hw1, hw2, eye.scale*ratio2, ps1, ps2, w),
-			convertPixelCoord(this.eye.offsetY, eye.offsetY, this.eye.scale, eye.scale, ps1, ps2, h),
-			gl.COLOR_BUFFER_BIT, gl.NEAREST
-		);
-	}
 };
 
 var underlay = new Underlay(gl, renderW, renderH);
@@ -287,9 +221,6 @@ Game.drawDirect = function() {
 	Game.screenDirty = true;
 }
 
-var ut = {
-};
-
 function mainLoop() {
 	Game.state = { name: 'loop'	};
 	var startTime0 = performance.now();
@@ -299,6 +230,7 @@ function mainLoop() {
 	function timer() {
 		if (Game.eye.dirty) {
 			trace('loop', 'dirty eye2');
+			underlay.combine(comp2.getDrawingEye(), comp2.getTexture());
 			comp2.reset(Game.eye);
 			Game.eye.dirty = false;
 		}
@@ -312,14 +244,8 @@ function mainLoop() {
 		Game.screenDirty = true;
 		if (Game.eye.dirty) {
 			trace('loop', 'dirty eye');
-			if (comp2.isDone()) {
-				console.log('swap');
-				swap.eye = comp2.getDrawingEye();
-				swap.texture = comp2.reset(Game.eye);
-			} else {
-				console.log('no swap');
-				comp2.reset(Game.eye);
-			}
+			underlay.combine(comp2.getDrawingEye(), comp2.getTexture());
+			comp2.reset(Game.eye);
 			
 			done = false;
 			Game.eye.dirty = false;
@@ -329,8 +255,8 @@ function mainLoop() {
 			trace('loop', 'all done', now - startTime0);
 			//visualizeBuffer(pyramid.textureL1);
 			Game.state = { name: 'idle'	};
-			ut.eye = comp2.getDrawingEye();
-			ut.texture = comp2.getTexture();
+			comp2.getDrawingEye();
+			comp2.getTexture();
 		} else {
 			var workTime = now - startTime;
 			trace('loop', 'sleep for', workTime * sleep2workRatio);
