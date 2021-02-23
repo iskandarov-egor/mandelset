@@ -36,13 +36,8 @@ class Computer {
 		
 		this.isPyramidLayer = args.isPyramidLayer;
 		maxSyncTout = gl.getParameter(gl.MAX_CLIENT_WAIT_TIMEOUT_WEBGL);
-		this.eye = {
-			offsetX: args.eye.offsetX,
-			offsetY: args.eye.offsetY,
-			scale: args.eye.scale,
-			iterations: args.eye.iterations,
-		};
-		this.drawingEye = this.eye;
+		this.eye = cloneEye(args.eye);
+		this.drawingEye = cloneEye(this.eye);
 		this.bufParam = {
 			w: args.buffer.w,
 			h: args.buffer.h,
@@ -62,12 +57,7 @@ class Computer {
 	// swapped back.
 	reset(newEye) {
 		var gl = this.gl;
-		this.eye = {
-			offsetX: newEye.offsetX,
-			offsetY: newEye.offsetY,
-			scale: newEye.scale,
-			iterations: newEye.iterations,
-		}
+		this.eye = cloneEye(newEye);
 		
 		var ret = this.renderTexture;
 		//this.renderTexture = this.renderTextureSwap;
@@ -82,7 +72,7 @@ class Computer {
 		gl.clearColor(1, 1, 0, 0.5);
 		
 		gl.clear(gl.COLOR_BUFFER_BIT);
-		this.drawingEye = this.eye;
+		this.drawingEye = cloneEye(this.eye);
 		M.Stat.Computer.lastTimingStart = performance.now()
 		
 		return ret;
@@ -119,8 +109,8 @@ class Computer {
 		gl.uniform1f(gl.getUniformLocation(this.program, "screenAspectRatio"), this.bufParam.w / this.bufParam.h);
 		gl.uniform1f(gl.getUniformLocation(this.program, "scale"), this.eye.scale);
 		gl.uniform1f(gl.getUniformLocation(this.program, "one"), 1.0);
-		M.gl_util.glUniformD(gl.getUniformLocation(this.program, "offsetX"), this.eye.offsetX);
-		M.gl_util.glUniformD(gl.getUniformLocation(this.program, "offsetY"), this.eye.offsetY);
+		M.gl_util.glUniformD(gl.getUniformLocation(this.program, "offsetX"), ns.number(this.eye.offsetX));
+		M.gl_util.glUniformD(gl.getUniformLocation(this.program, "offsetY"), ns.number(this.eye.offsetY));
 		gl.uniform1i(gl.getUniformLocation(this.program, "iterations"), this.eye.iterations);
 	}
 	
@@ -244,7 +234,8 @@ function newJob(c) {
 	var first = true;
 	var iters = 0;
 	function iteration1() {
-		var orbitLen = mandelOrbit(c.eye.offsetX, c.eye.offsetY, c.eye.iterations, c.orbitArray);
+		//var orbitLen = mandelOrbit(ns.number(c.eye.offsetX), ns.number(c.eye.offsetY), c.eye.iterations, c.orbitArray);
+		var orbitLen = mandelOrbitNS(c.eye.offsetX, c.eye.offsetY, c.eye.iterations, c.orbitArray);
 		c.updateRefOrbit(c.orbitArray, orbitLen);
 		
 		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);

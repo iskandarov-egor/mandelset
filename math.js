@@ -7,3 +7,4 @@ function splitDouble(x, dest) {
 	dest[1] = h;
 	dest[0] = x - dest[1];
 }
+

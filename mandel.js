@@ -1,4 +1,10 @@
 
+M.math = {
+	M: 268435455,
+};
+
+var ns = M.ns.ns;
+
 function mandelOrbit(cx, cy, iterations, array) {
     var x = 0.0;
     var y = 0.0;
@@ -12,6 +18,44 @@ function mandelOrbit(cx, cy, iterations, array) {
         array[2*i + 1] = y;
         var x2 = xx - yy + cx;
         y = 2.0 * x * y + cy;
+        x = x2;
+    }
+    return iterations;
+}
+
+function mandelOrbitNS(cx, cy, iterations, array) {
+    var x = ns.init(0.0);
+    var y = ns.init(0.0);
+    for (var i = 0; i < iterations; i++) {
+		var nx = ns.number(x);
+		var ny = ns.number(y);
+		var xx = ns.mul(x, x);
+		var yy = ns.mul(y, y);
+		if (nx*nx + ny*ny > 4) {
+			return i;
+		}
+        array[2*i] = nx;
+        array[2*i + 1] = ny;
+        var x2 = ns.add(ns.sub(xx, yy), cx);
+        y = ns.add(ns.mul(ns.mul(ns.init(2.0), x), y), cy);
+        x = ns.clone(x2);
+    }
+    return iterations;
+}
+
+function mandelOrbitDD(cx, cy, iterations, array) {
+    var x = [0, 0];
+    var y = [0, 0];
+    for (var i = 0; i < iterations; i++) {
+		var xx = dd_mul(x, x);
+		var yy = dd_mul(y, y);
+		if (xx[1] + yy[1] > 4) {
+			return i;
+		}
+        array[2*i] = x[1];
+        array[2*i + 1] = y[1];
+        var x2 = dd_add(dd_add(xx, dd_mul([0, -1], yy)), cx);
+        y = dd_add(dd_mul(dd_mul([0, 2], x),  y), cy);
         x = x2;
     }
     return iterations;
