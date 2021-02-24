@@ -124,4 +124,4 @@ var ns_Number = { // simple js Number
 	},
 };
 
-M.ns.ns = ns_dd;
+M.ns.ns = ns_Number;

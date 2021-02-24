@@ -92,6 +92,7 @@ class PyramidComputer {
 	}
 	
 	parentTransfer(texture, parentTexture) {
+		console.log('trans');
 		var gl = this.gl;
 		gl.useProgram(this.program2);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);

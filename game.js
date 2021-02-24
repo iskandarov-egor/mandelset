@@ -57,9 +57,9 @@ function cloneEye(e) {
 		previewScale: e.previewScale,
 		iterations: e.iterations,
 	};
-}
+};
 
-Game.eye = ddLimitEye;
+Game.eye = zeroEye;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");
@@ -93,7 +93,7 @@ var compArg2 = {
 	},
 	frameBuffer: fbuffer,
 	nLevels: 2,
-}
+};
 
 var comp2 = new M.Computer(compArg2);
 //var comp2 = new M.PyramidComputer(compArg2);
@@ -127,16 +127,18 @@ function visualizeBuffer(texture) {
 	gl.uniform1f(gl.getUniformLocation(program2, "fgEyeY"), ns.number(ns.sub(drawingEye.offsetY, Game.eye.offsetY)));
 	gl.uniform1f(gl.getUniformLocation(program2, "fgScale"), drawingEye.scale);
 	
+	
 	gl.activeTexture(gl.TEXTURE2);
 	gl.uniform1i(gl.getUniformLocation(program2, "bgTexture"), 2);
-	if (underlay.eye){
+	
 		gl.bindTexture(gl.TEXTURE_2D, underlay.texture);
+	if (underlay.eye){ // todo is true ok?
 		gl.uniform1f(gl.getUniformLocation(program2, "bgEyeX"), ns.number(ns.sub(underlay.eye.offsetX, Game.eye.offsetX)));
 		gl.uniform1f(gl.getUniformLocation(program2, "bgEyeY"), ns.number(ns.sub(underlay.eye.offsetY, Game.eye.offsetY)));
 		gl.uniform1f(gl.getUniformLocation(program2, "bgScale"), underlay.eye.scale);
 	} else {
 		// we are required by opengl to bind some texture anyway
-		gl.bindTexture(gl.TEXTURE_2D, texture);
+		//gl.bindTexture(gl.TEXTURE_2D, underlay.texture);
 
 	}
 	
@@ -155,12 +157,11 @@ class Underlay {
 		this.w = w;
 		this.h = h;
 		this.gl = gl;
-		this.texture = M.gl_util.createRenderTexture(gl, w, h);
-		this.texture2 = M.gl_util.createRenderTexture(gl, w, h);
+		this.texture = M.gl_util.createUnderlayTexture(gl, w, h);
+		this.texture2 = M.gl_util.createUnderlayTexture(gl, w, h);
 		this.eye = null;
 		this.fbuffer1 = gl.createFramebuffer();
 		this.fbuffer2 = gl.createFramebuffer();
-		
 	}
 	
 	combine(eye, texture) {
@@ -180,7 +181,7 @@ class Underlay {
 		gl.uniform1f(gl.getUniformLocation(program2, "fgEyeX"), ns.number(eye.offsetX));
 		gl.uniform1f(gl.getUniformLocation(program2, "fgEyeY"), ns.number(eye.offsetY));
 		gl.uniform1f(gl.getUniformLocation(program2, "fgScale"), eye.scale);
-		
+				
 		gl.activeTexture(gl.TEXTURE2);
 		gl.uniform1i(gl.getUniformLocation(program2, "bgTexture"), 2);
 		if (this.eye){
@@ -192,6 +193,7 @@ class Underlay {
 			// we are required by opengl to bind some texture anyway
 			gl.bindTexture(gl.TEXTURE_2D, null);
 		}
+		
 		
 		gl.viewport(0, 0, this.w, this.h);
 		

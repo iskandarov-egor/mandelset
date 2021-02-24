@@ -7,7 +7,9 @@ var includes = {
 	'fragment_computer': loadFile('fragment_computer.glsl'),
 	'fragment_pyramid': loadFile('fragment_pyramid.glsl'),
 	'fragment_visualizer': loadFile('fragment_visualizer.glsl'),
-}
+	'fragment_colorizer': loadFile('fragment_colorizer.glsl'),
+};
+
 var fragmentShaderSource = `#include <fragment_computer>`;
 fragmentShaderSource = M.gl_util.preprocess(fragmentShaderSource, includes);
 

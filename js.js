@@ -40,7 +40,7 @@ canvas.addEventListener("wheel", e => {
 	Game.requestDraw();
 });
 
-
+var acc = 0;
 
 canvas.addEventListener("mousemove", e => {
 	if (e.buttons % 2 == 0) {
@@ -56,8 +56,8 @@ canvas.addEventListener("mousemove", e => {
 		Game.eye.offsetY,
 		ns.mul(ns.init(e.movementY*2/canvas.clientHeight), ns.init(Game.eye.scale)),
 	);
-	//console.log('mov', Game.eye.offsetX, Game.eye.offsetY, Game.eye.scale);
-    loadLabels();
+		
+	loadLabels();
 	Game.setEye(Game.eye);
 	Game.requestDraw();
 });

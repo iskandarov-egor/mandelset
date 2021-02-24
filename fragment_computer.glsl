@@ -1,7 +1,8 @@
 #version 300 es
 precision highp float;
 
-out vec4 outColor;
+//out vec4 outColor;
+out uvec4 outColor;
 in vec2 clipCoord;
 in vec2 clipCoordX;
 in vec2 clipCoordY;
@@ -21,7 +22,7 @@ uniform bool isPyramidLayer;
 #include <mandel>
 #include <debug>
 
-vec4 shade(float iter) {
+vec4 shade2(float iter) {
 	if (iter == -1.0) {
 		return vec4(0, 1, 0, 1);
 	}
@@ -31,6 +32,11 @@ vec4 shade(float iter) {
 	} else {
 		return vec4(0, 0, iter, 1);
 	}
+}
+
+uvec4 shade(float x) {
+	vec4 s = shade2(x);
+	return uvec4(floatBitsToUint(s[0]), floatBitsToUint(s[1]), floatBitsToUint(s[2]), floatBitsToUint(s[3]));
 }
 
 vec4 float_color(float x) {
@@ -98,7 +104,7 @@ void delta_main() {
 }
 
 void texture_test_main() {
-	outColor = texelFetch(refOrbit, ivec2(int(1023.0*((clipCoord.y+1.0)/2.0)), 0), 0);
+	//outColor = texelFetch(refOrbit, ivec2(int(1023.0*((clipCoord.y+1.0)/2.0)), 0), 0);
 }
 
 void texture_main() {
@@ -106,7 +112,7 @@ void texture_main() {
     float dy = scale*clipCoord.y;
 	float m = mandel_delta(dx, dy, iterations);
 	
-    outColor = shade(m);
+    outColor = uvec4(floatBitsToUint(m), 0, 0, 1);
 }
 
 void texture_main_ff() {
@@ -145,8 +151,8 @@ void main() {
 		vec2 pixCoord = (vec2(gl_FragCoord) - vec2(1.5, 1.5));
 		vec2 parentCoord = pixCoord / 3.0;
 		if (vec2(ivec2(parentCoord)) == parentCoord) {
-			outColor = vec4(0, 0, 0, 0);
-			return;
+			//outColor = uvec4(0, 0, 0, 0);
+			discard;
 		}
 	}
 	//ff_main();

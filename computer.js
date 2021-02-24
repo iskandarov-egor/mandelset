@@ -20,6 +20,12 @@ var d = {
 	iterLimit: null,
 };
 
+var clearColor = new Uint32Array(4);
+clearColor[0] = 0;
+clearColor[1] = 0xFFFFFFFF;
+clearColor[2] = 0;
+clearColor[3] = 0;
+
 class Computer {
 	
 	// args:
@@ -69,9 +75,9 @@ class Computer {
 		this.done = false;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.renderTexture, 0);
-		gl.clearColor(1, 1, 0, 0.5);
-		
-		gl.clear(gl.COLOR_BUFFER_BIT);
+
+		//gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+		gl.clearBufferuiv(gl.COLOR, 0, clearColor);
 		this.drawingEye = cloneEye(this.eye);
 		M.Stat.Computer.lastTimingStart = performance.now()
 		
