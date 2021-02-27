@@ -59,7 +59,7 @@ function cloneEye(e) {
 	};
 };
 
-Game.eye = zeroEye;
+Game.eye = immovableEye;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");

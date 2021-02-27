@@ -59,6 +59,53 @@ function dd_mul(x, y) {
 
 var ns; // "number system" used to compute orbits. eg simple Number, double Number, etc
 
+function fraction_split(x, width) {
+  var x = Math.abs(x).toFixed(width);
+  
+  var list = [];
+  var z = '0'.charCodeAt(0);
+  var dot = x.indexOf('.')
+
+  for (var i = x.length - 1; i < width + dot; i++) {
+    list.push(0);
+  }
+  for (var i = x.length - 1; i >= 0; i--) {
+    if (i != dot) {
+      list.push(x.charCodeAt(i) - z);
+    }
+  }
+  
+  return list;
+}
+
+function fractions_add(x) {
+  var w = 30;
+  var hi = fraction_split(x[0], w);
+  var lo = fraction_split(x[1], w);
+  console.log(hi,lo);
+  if (lo.length > hi.length) {
+    alert('todo'); // must not happen
+  }
+  hi.push(0);
+  for (var i = 0; i < lo.length; i++) {
+    var d = lo[i] + hi[i];
+    if (d > 9) {
+      hi[i + 1]++;
+      hi[i] = d - 10;
+    } else {
+      hi[i] = d;
+    }
+  }
+  
+  if (hi[hi.length - 1] == 0) {
+    hi.pop();
+  }
+  
+  hi.reverse();
+  
+  return hi.slice(0, hi.length - w).join('') + '.' + hi.slice(hi.length - w, hi.length).join('');
+}
+
 var ns_dd = { // double double
 	add: dd_add,
 	mul: dd_mul,
@@ -74,6 +121,33 @@ var ns_dd = { // double double
 	number: function(x) {
 		return x[1];
 	},
+  tostring: function(x) {
+		var lo = x[0].toFixed(30);
+    var hi = x[1].toFixed(30);
+    var out = hi;
+    if (lo.includes('e') || hi.includes('e')) {
+      return hi.toFixed(30);
+    }
+    lo = lo.split('')
+    hi = hi.split('')
+    if (lo[0] == '-') {
+      lo.shift()
+    }
+    if (hi[0] == '-') {
+      hi.shift()
+    }
+    if (lo.length() != hi.length()) {
+    }
+    if ((x[0] > 0) == (x[1] > 0)) {
+      // addition
+      
+      if (x[0] < 0) {
+        
+      }
+    } else {
+      // subtraction
+    }
+	}
 };
 
 /*
@@ -122,6 +196,9 @@ var ns_Number = { // simple js Number
 	number: function(x) {
 		return x;
 	},
+  tostring: function(x) {
+		return x.toFixed(30);
+	},
 };
 
-M.ns.ns = ns_Number;
+M.ns.ns = ns_dd;

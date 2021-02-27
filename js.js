@@ -5,18 +5,18 @@ var ns = M.ns.ns;
 // 76619
 
 function loadLabels() {
-	document.getElementById("zoom").value = 1/Game.eye.scale;
-	document.getElementById("x").value = ns.number(Game.eye.offsetX);
-	document.getElementById("y").value = ns.number(Game.eye.offsetY);
-	document.getElementById("iter").value = Game.eye.iterations;
+	document.getElementById("input_scale").value = 1/Game.eye.scale;
+	document.getElementById("input_x").value = ns.number(Game.eye.offsetX).toFixed(30);
+	document.getElementById("input_y").value = ns.number(Game.eye.offsetY).toFixed(30);
+	document.getElementById("input_iter").value = Game.eye.iterations;
 }
 
 function saveLabels() {
-	Game.eye.iterations = parseFloat(document.getElementById("iter").value);
-	Game.eye.previewScale = parseFloat(document.getElementById("preview").value);
-	Game.eye.offsetX = parseFloat(document.getElementById("x").value);
-	Game.eye.offsetY = parseFloat(document.getElementById("y").value);
-	Game.eye.scale = 1/parseFloat(document.getElementById("zoom").value);
+	Game.eye.iterations = parseFloat(document.getElementById("input_iter").value);
+	//Game.eye.previewScale = parseFloat(document.getElementById("preview").value);
+	Game.eye.offsetX = parseFloat(document.getElementById("input_x").value);
+	Game.eye.offsetY = parseFloat(document.getElementById("input_y").value);
+	Game.eye.scale = 1/parseFloat(document.getElementById("input_scale").value);
 	Game.setEye(Game.eye);
 }
 
