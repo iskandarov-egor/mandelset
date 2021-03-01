@@ -7,31 +7,163 @@
   <title>BANANA</title>
   
   <style type="text/css">
-   .label { 
-    margin-left: 4pt; 
-    margin-right: 4pt;
-    background-color: #CCCCCC;
-   }
+    .label { 
+      margin-left: 4pt; 
+      margin-right: 4pt;
+      background-color: #CCCCCC;
+    }
+   
+    .preference_cells {
+      display: flex;
+      margin-bottom: 0.2em;
+    }
+    
+    .preference_cell {
+      display: flex;
+      margin-right: 1em;
+      flex-basis: 14em;
+    }
+    .preference_column {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+    .preference_label {
+      margin-right: 0.2em;
+    }
+    
+    .preference_input {
+      width: 100%;
+    }
+    
+    .long_cell {
+      flex-basis: 18em;
+    }
+    
+    .short_cell {
+      flex-basis: 10em;
+    }
+    
+    label {
+      
+    }
+    
+    .preference_column_grow {
+      flex-grow: 1;
+    }
+    
+    .stack {
+        position:relative;
+    }
+    .stack > canvas {
+        position:absolute;
+        left:0;
+        top:0;
+    }
+    
+    html {
+        height: 100%;
+    }
+    body {
+        height: 100%;
+    }
   </style>
 
 </head>
 
 <body>
-  <button onclick='myclick();'>hello</button>
+  <div class="preference_cells">
+  
+  <div class="preference_cell short_cell">
+    <div class="preference_column">
+      <button onclick='myclick();'>hello</button>
+    </div>
+  </div>
+  
+  <div class="preference_cell long_cell">
+    <div class="preference_column preference_label">
+      <label for="input_x" class="preference_row">x:</label>
+    </div>
+    
+    <div class="preference_column preference_column_grow">
+      <input name="input_x" type="number" id="input_x" value="100" class="preference_input">
+    </div>
+  </div>
+  
+  <div class="preference_cell long_cell">
+    <div class="preference_column preference_label">
+      <label for="input_y" class="preference_row">y:</label>
+    </div>
+    
+    <div class="preference_column preference_column_grow">
+      <input name="input_y" type="number" id="input_y" value="100" class="preference_input">
+    </div>
+  </div>
+  
+  <div class="preference_cell">
+    <div class="preference_column preference_label">
+      <label for="input_scale" class="preference_row">scale:</label>
+    </div>
+    
+    <div class="preference_column preference_column_grow">
+      <input name="input_scale" type="number" id="input_scale" value="100" class="preference_input">
+    </div>
+  </div>
+  
+  <div class="preference_cell">
+    <div class="preference_column preference_label">
+      <label for="input_iter" class="preference_row">iterations:</label>
+    </div>
+    
+    <div class="preference_column preference_column_grow">
+      <input name="input_iter" type="number" id="input_iter" value="100" class="preference_input">
+    </div>
+  </div>
+  
+  <div class="preference_cell short_cell">
+    <div class="preference_column preference_label">
+      <label for="input_width" class="preference_row">width:</label>
+    </div>
+    
+    <div class="preference_column preference_column_grow">
+      <input name="input_width" type="number" id="input_width" value="100" class="preference_input">
+    </div>
+  </div>
+  
+  <div class="preference_cell short_cell">
+    <div class="preference_column preference_label">
+      <label for="input_height class="preference_row">height:</label>
+    </div>
+    
+    <div class="preference_column preference_column_grow">
+      <input name="input_height" type="number" id="input_height" value="100" class="preference_input">
+    </div>
+  </div>
+
+  <span id="lblTiming">O_O</span>
+  <span id="lblGLTimer">O_O</span>  
+  </div>
+  <!--
+  
   <button onclick='myclick2();'>pumba</button>
   <button onclick='myclick3();'>olovo</button>
-  <input type="number" id="iter" value="100">iter</td>
   <input type="number" id="preview" value="1">preview</td>
   <input type="number" id="zoom" value="-1">zoom</td>
   <input type="number" id="x" value="-1">x</td>
   <input type="number" id="y" value="-1">y</td>
   <span id="infolabel">O_O</span>
-  <span id="lblTiming">O_O</span>
-  <span id="lblGLTimer">O_O</span>
-  <canvas id="canvas" style='width: 100%; height: 100%; image-rendering: crisp-edges; image-rendering: pixelated;'></canvas>
-  <canvas id="canvas1" style='width: 100%; height: 100%; image-rendering: crisp-edges; image-rendering: pixelated;'></canvas>
+  -->
+  <div class="stack" style="width:100%; height: 100%">
+  <canvas id="canvas" style='width: 100%; height: 100%; image-rendering: crisp-edges; image-rendering: pixelated; user-select: none;'></canvas>
+  <canvas id="canvas1" style='width: 100%; height: 100%; image-rendering: crisp-edges; image-rendering: pixelated; pointer-events: none; user-select: none;'></canvas>
+  
+  </div>
+  
+  
   <script>var M = {}; </script>
   <script src="tracer.js"></script>
+  <script src="debug.js"></script>
+  <script src="canvas_overlay.js"></script>
   <script src="math.js"></script>
   <script src="number_system.js"></script>
   <script src="mandel.js"></script>

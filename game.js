@@ -59,10 +59,11 @@ function cloneEye(e) {
 	};
 };
 
-Game.eye = immovableEye;
+Game.eye = zeroEye;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");
+document.querySelector("#canvas1");
 var gl = canvas.getContext("webgl2", {antialias: false});
 if (!gl) {
 	alert("no webgl2 for you!");
@@ -70,7 +71,11 @@ if (!gl) {
 
 M.game_gl.init();
 
+//canvas.onselectstart = function () { return false; }
+//canvas1.onselectstart = function () { return false; }
+
 M.gl_util.resizeCanvas(canvas, Game.eye.previewScale);
+M.gl_util.resizeCanvas(canvas1, Game.eye.previewScale);
 
 gl.canvas.width = gl.canvas.width - (gl.canvas.width % 3);
 gl.canvas.height = gl.canvas.height - (gl.canvas.height % 3);
@@ -145,6 +150,12 @@ function visualizeBuffer(texture) {
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 	
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
+    
+    
+    if (comp2.overlay) {
+        comp2.overlay.ctx.clearRect(0, 0, canvas1.width, canvas1.height);
+        comp2.overlay.draw(Game.eye);
+    }
 }
 
 // underlay is the image that contains combined rendering results of the previous views.

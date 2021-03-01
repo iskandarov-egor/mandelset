@@ -16,8 +16,9 @@ M.Stat = {
 
 var d = {
 	superSlow: false,
-	oneIter: false,
+	oneIter: true,
 	iterLimit: null,
+    markers: true,
 };
 
 var clearColor = new Uint32Array(4);
@@ -52,9 +53,10 @@ class Computer {
 		this.fbuffer = args.frameBuffer;
 		this.renderTexture = null;
 		this.program = null;
-		this.refOrbitTexture = null;
-		this.orbitArray = null;
+		this.refOrbitFinder = new M.mandel.OrbitFinder(1);
 		this.job = null;
+        this.overlay = new M.CanvasOverlay(document.getElementById('canvas1'));
+        
 	}
 	
 	// sets a new draw target. abandons the previous one and does not wait for its completion.
@@ -90,17 +92,7 @@ class Computer {
 		this.renderTextureSwap = M.gl_util.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
 		this.program = M.game_gl.createProgram1();
 
-		/* create orbit texture */
-		gl.activeTexture(gl.TEXTURE0);
-		this.refOrbitTexture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, this.refOrbitTexture);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG32F, 1024, 1024, 0, gl.RG, gl.FLOAT, null);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		this.orbitArray = new Float32Array(1024*1024*2);
-
 		gl.useProgram(this.program);
-		gl.uniform1i(gl.getUniformLocation(this.program, "refOrbit"), 0);
 		if (this.isPyramidLayer) {
 			gl.uniform1i(gl.getUniformLocation(this.program, "isPyramidLayer"), 1);
 		} else {
@@ -193,6 +185,7 @@ class Computer {
 				const available = gl.getQueryParameter(timerQ, gl.QUERY_RESULT_AVAILABLE);
 				if (available) {
 					M.Stat.Computer.GLTimer = gl.getQueryParameter(timerQ, gl.QUERY_RESULT) / 1e6;
+                    gl.deleteQuery(timerQ);
 				} else {
 					M.Stat.Computer.GLTimer = 'unavail';
 				}
@@ -214,16 +207,37 @@ class Computer {
 		blast();
 	}
 	
-	updateRefOrbit(array, orbitLen) {
-		var gl = this.gl;
-		gl.activeTexture(gl.TEXTURE0);
+	updateRefOrbit() {
+        var that = this;
+        function eyeWindow(e) {
+            var w = ns.init(that.bufParam.ratio * e.scale);
+            var h = ns.init(e.scale);
+            return [
+                ns.sub(e.offsetX, w),
+                ns.sub(e.offsetY, h),
+                ns.add(e.offsetX, w),
+                ns.add(e.offsetY, h),
+            ];
+        }
+        var gl = this.gl;
+        
+        var window = eyeWindow(this.eye);
+        //console.log(ns.number(window[0]), ns.number(window[1]), ns.number(window[2]), ns.number(window[3]))
+        this.refOrbitFinder.search(window[0], window[1], window[2], window[3], this.eye.iterations);
+        var orbitComputer = this.refOrbitFinder.getBestComputer();
+		var txt = orbitComputer.getTexture(gl);
+        gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, txt);
 		gl.uniform1i(gl.getUniformLocation(this.program, "refOrbit"), 0);
-		gl.bindTexture(gl.TEXTURE_2D, this.refOrbitTexture);
-		var t0 = performance.now();
-		gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 512, gl.RG, gl.FLOAT, array);
-		var dt = performance.now() - t0;
-		gl.uniform1i(gl.getUniformLocation(this.program, "refOrbitLen"), orbitLen);
-		//console.log("perf", orbitLen, dt);
+		gl.uniform1i(gl.getUniformLocation(this.program, "refOrbitLen"), orbitComputer.iterations);
+        gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetX"), ns.number(ns.sub(this.eye.offsetX, orbitComputer.x)));
+        gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetY"), ns.number(ns.sub(this.eye.offsetY, orbitComputer.y)));
+        
+        this.overlay.clear();
+        for (var i = 0; i < this.refOrbitFinder.computers.length; i++) {
+            var c = this.refOrbitFinder.computers[i];
+            this.overlay.addMarker(c.x, c.y, 'yellow');
+        }
 	}
 	
 	isDone() {
@@ -241,8 +255,8 @@ function newJob(c) {
 	var iters = 0;
 	function iteration1() {
 		//var orbitLen = mandelOrbit(ns.number(c.eye.offsetX), ns.number(c.eye.offsetY), c.eye.iterations, c.orbitArray);
-		var orbitLen = mandelOrbitNS(c.eye.offsetX, c.eye.offsetY, c.eye.iterations, c.orbitArray);
-		c.updateRefOrbit(c.orbitArray, orbitLen);
+		//var orbitLen = mandelOrbitNS(c.eye.offsetX, c.eye.offsetY, c.eye.iterations, c.orbitArray);
+		c.updateRefOrbit();
 		
 		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		//gl.clearColor(1, 0, 1, 1);
@@ -274,7 +288,8 @@ function newJob(c) {
 			gl.bindTexture(gl.TEXTURE_2D, c.parentTexture);
 		} else {
 			// we have to bind something that is not null and not renderTexture
-			gl.bindTexture(gl.TEXTURE_2D, c.refOrbitTexture);
+            // todo create a 1x1 texture for this
+			gl.bindTexture(gl.TEXTURE_2D, c.refOrbitFinder.getBestComputer().getTexture(gl));
 		}
 		if (first) {
 			iteration1();

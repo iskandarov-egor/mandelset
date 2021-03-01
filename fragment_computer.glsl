@@ -16,6 +16,8 @@ uniform int iterations;
 uniform sampler2D refOrbit;
 uniform sampler2D parent;
 uniform int refOrbitLen;
+uniform float refOrbitEyeOffsetX;
+uniform float refOrbitEyeOffsetY;
 uniform bool isPyramidLayer;
 
 #include <ff_math>
@@ -108,8 +110,11 @@ void texture_test_main() {
 }
 
 void texture_main() {
-    float dx = scale*clipCoord.x;
-    float dy = scale*clipCoord.y;
+    float x = scale*clipCoord.x;
+    float y = scale*clipCoord.y;
+    
+    float dx = x + refOrbitEyeOffsetX;
+    float dy = y + refOrbitEyeOffsetY;
 	float m = mandel_delta(dx, dy, iterations);
 	
     outColor = uvec4(floatBitsToUint(m), 0, 0, 1);

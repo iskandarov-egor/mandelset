@@ -58,3 +58,7 @@ vec2 ff_mul(vec2 x, vec2 y) {
 	c[0] = c[0] + one*(p1 + p2);
 	return fast2sum(c[1], c[0]);
 }
+
+vec2 ff_sub(vec2 x, vec2 y) {
+    return ff_add(x, ff_mul(vec2(0, -1), y));
+}
