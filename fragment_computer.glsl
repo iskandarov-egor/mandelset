@@ -94,8 +94,7 @@ void f_main() {
     coord.x += offsetX[1];
     coord.y += offsetY[1];
 	//outColor = mantissaColor(coord.x);
-	outColor = shade(mandel(coord.x, coord.y, iterations));
-	
+	outColor = uvec4(floatBitsToUint(mandel(coord.x, coord.y, iterations)), 0, 0, 1);
 }
 
 void delta_main() {

@@ -1,3 +1,70 @@
+class Loader {
+    constructor(gl) {
+        this.gl = args.gl;
+		
+		this.eye = cloneEye(args.eye);
+        
+        this.renderTexture = M.gl_util.createRenderTexture(gl, 10, 10);
+        
+		this.fbuffer = args.frameBuffer;
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.renderTexture, 0);
+        
+		this.program = M.game_gl.createProgram1();
+        var orbiter = new M.mandel.OrbitComputer();
+        orbiter.compute(0, 0, 1); // stub orbit
+        this.orbitTexture = orbiter.getTexture(gl);
+    }
+    
+    doSomeTesting(cb) {
+    }
+    
+    load(iterations) {
+        var gl = this.gl;
+		gl.useProgram(this.program);
+		
+		gl.uniform1f(gl.getUniformLocation(this.program, "screenAspectRatio"), 1);
+		gl.uniform1f(gl.getUniformLocation(this.program, "scale"), blackEye.scale);
+		gl.uniform1f(gl.getUniformLocation(this.program, "one"), 1.0);
+		M.gl_util.glUniformD(gl.getUniformLocation(this.program, "offsetX"), ns.number(blackEye.offsetX));
+		M.gl_util.glUniformD(gl.getUniformLocation(this.program, "offsetY"), ns.number(blackEye.offsetY));
+		gl.uniform1i(gl.getUniformLocation(this.program, "iterations"), iterations);
+        gl.uniform1i(gl.getUniformLocation(this.program, "isPyramidLayer"), 0);
+
+		gl.useProgram(c.program);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, c.fbuffer);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, c.renderTexture, 0);
+        
+        gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, this.orbitTexture);
+		gl.uniform1i(gl.getUniformLocation(this.program, "refOrbit"), 0);
+		gl.uniform1i(gl.getUniformLocation(this.program, "refOrbitLen"), 1);
+        gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetX"), 0);
+        gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetY"), 0);
+		
+		// todo bind something to textures
+        gl.viewport(0, 0, 10, 10);
+        gl.uniform4f(gl.getUniformLocation(c.program, "viewport"), -1, -1, 2, 2);
+        var primitiveType = gl.TRIANGLES;
+		var offset = 0;
+		var count = 6;
+		gl.drawArrays(primitiveType, offset, count);
+    }
+    
+    _debug_overload() {
+        this.eye.iterations = 0xFFFFDEAD;
+        this.computer.reset(this.eye);
+        var now = performance.now();
+        canvas.addEventListener("webglcontextlost", function(event) {
+            var dt = performance.now() - now;
+            console.log('lost context after ms', dt);
+        }, false);
+        this.computer.computeAll();
+    }
+    
+    getIterationsPerMs() {
+    }
+};
 
 c.computeSome = function(timeLimit, callback) {
 	// todo handle lost context

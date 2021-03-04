@@ -49,6 +49,14 @@ var ddLimitEye = {
 	iterations: 1000,
 };
 
+var almostBlackEye = {
+	scale: 1/3.7974983358324126,
+	offsetX: ns.init(-0.224190897277197292991601784706),
+	offsetY: ns.init(0),
+	previewScale: 1,
+	iterations: 100,
+};
+
 function cloneEye(e) {
 	return {
 		offsetX: ns.clone(e.offsetX),
@@ -98,6 +106,7 @@ var compArg2 = {
 	},
 	frameBuffer: fbuffer,
 	nLevels: 2,
+    //_orbitLenLimit: 2,
 };
 
 var comp2 = new M.Computer(compArg2);
@@ -111,6 +120,8 @@ var program2 = M.gl_util.createProgram(
 );
 
 program2 = M.game_gl.createProgramVisualizer();
+
+var lt = new M.LoadTester(gl); // for debugging
 
 function visualizeBuffer(texture) {
 	if (Game.state.name != 'idle') {
@@ -245,7 +256,7 @@ function mainLoop() {
 	Game.state = { name: 'loop'	};
 	var startTime0 = performance.now();
 	var startTime = performance.now();
-	var sleep2workRatio = 0.5;
+	var sleep2workRatio = 0.2;
 	
 	function timer() {
 		if (Game.eye.dirty) {
@@ -284,12 +295,14 @@ function mainLoop() {
 		}
 			//visualizeBuffer(pyramid.textureL1);
 	}
+    
 	comp2.computeSome(cb);
 }
 
 Game.setEye = function(newEye) {
 	Game.eye = newEye;
 	Game.eye.dirty = true;
+    Game.screenDirty = true;
 }
 
 Game.resizeCanvas = function() {

@@ -14,8 +14,8 @@ function loadLabels() {
 function saveLabels() {
 	Game.eye.iterations = parseFloat(document.getElementById("input_iter").value);
 	//Game.eye.previewScale = parseFloat(document.getElementById("preview").value);
-	Game.eye.offsetX = parseFloat(document.getElementById("input_x").value);
-	Game.eye.offsetY = parseFloat(document.getElementById("input_y").value);
+	Game.eye.offsetX = ns.init(parseFloat(document.getElementById("input_x").value));
+	Game.eye.offsetY = ns.init(parseFloat(document.getElementById("input_y").value));
 	Game.eye.scale = 1/parseFloat(document.getElementById("input_scale").value);
 	Game.setEye(Game.eye);
 }
@@ -99,7 +99,7 @@ canvas.addEventListener("mousemove", e => {
 function myclick() {
 	saveLabels();
 	
-	Game.drawDirect();
+	Game.requestDraw();
 	
 }
 

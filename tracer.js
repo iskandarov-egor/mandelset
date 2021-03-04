@@ -1,7 +1,7 @@
 var traceconf = {
 	//'comp': '  ',
 	//'loop': '',
-	//'raf': '',
+	//'raf': '    ',
 }
 
 var traceTime = performance.now();

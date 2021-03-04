@@ -52,7 +52,7 @@ class OrbitComputer {
     compute(x, y, iterLimit) {
         this.iterLimit = iterLimit;
         if (iterLimit > 1024*1024) {
-            alert('todo');
+            alert('todo2');
         }
         this.textureUpdated = false;
         this.x = x;
@@ -101,9 +101,6 @@ class OrbitFinder {
         
         for (var i = 0; i < this.computers.length; i++) {
             var c = this.computers[i];
-            if (c.iterations != null) {
-                console.log('w', within(c));
-            }
             var win = false;
             if (c.iterations != null) {
                 win = within(c);
