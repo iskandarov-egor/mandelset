@@ -62,40 +62,6 @@ canvas.addEventListener("mousemove", e => {
 	Game.requestDraw();
 });
 
-/*
-canvas.addEventListener("wheel", e => {
-    e.preventDefault();
-    const dir = Math.sign(e.deltaY);
-    var ratio = canvas.width/canvas.height;
-    var x = e.offsetX / canvas.clientHeight * 2 - ratio;
-    var y = e.offsetY / canvas.clientHeight * -2 + 1;
-    var factor = Math.pow(1.1, dir);
-    
-    var cx = x * Game.eye.scale + Game.eye.offsetX;
-    var cy = y * Game.eye.scale + Game.eye.offsetY;
-    Game.eye.offsetX = cx + (Game.eye.offsetX - cx) * factor;
-    Game.eye.offsetY = cy + (Game.eye.offsetY - cy) * factor;
-    Game.eye.scale *= factor;
-    loadLabels();
-    Game.setEye(Game.eye);
-	Game.requestDraw();
-});
-
-canvas.addEventListener("mousemove", e => {
-	if (e.buttons % 2 == 0) {
-		return;
-	}
-	// todo test when page is zoomed
-	//var canvasX = 
-	Game.eye.offsetX -= 2 * e.movementX / canvas.clientHeight * Game.eye.scale;
-	Game.eye.offsetY += 2 * e.movementY / canvas.clientHeight * Game.eye.scale;
-	//console.log('mov', Game.eye.offsetX, Game.eye.offsetY, Game.eye.scale);
-    loadLabels();
-	Game.setEye(Game.eye);
-	Game.requestDraw();
-});
-*/
-
 function myclick() {
 	saveLabels();
 	
@@ -106,22 +72,7 @@ function myclick() {
 var utexture = M.gl_util.createRenderTexture(gl, renderW, renderH);
 
 function myclick2() {
-	/*
-	var fbuffer1 = gl.createFramebuffer();
-	var fbuffer2 = gl.createFramebuffer();
-	//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbuffer1);
-	gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbuffer2);
-		
-	gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, comp2.getTexture(), 0);
-	gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, utexture, 0);
-	gl.readBuffer(gl.COLOR_ATTACHMENT0);
-	gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-	gl.blitFramebuffer(0, 0, renderW, renderH,
-		renderW/2, renderH/2,renderW, renderH,
-		gl.COLOR_BUFFER_BIT, gl.NEAREST);
-	visualizeBuffer();
-	*/
+
 	//underlay.take(comp2.getDrawingEye(), comp2.getTexture());
 	underlay.combine(comp2.getDrawingEye(), comp2.getTexture(), renderW, renderH);
 	visualizeBuffer(comp2.getTexture());

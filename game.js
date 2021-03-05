@@ -18,9 +18,9 @@ var zeroEye = {
 var f32eye = {
 	scale: 0.000013051581850936334, //f32 star
 	//scale: 0.000013051581850936334/16,
-	offsetX: -1.6331274114303949, //32 star
+	offsetX: ns.init(-1.6331274114303949), //32 star
 	//offsetX: -1.6331328461523655,
-	offsetY: 0,
+	offsetY: ns.init(0),
 	previewScale: 1,
 	iterations: 100,
 };
@@ -67,7 +67,7 @@ function cloneEye(e) {
 	};
 };
 
-Game.eye = zeroEye;
+Game.eye = immovableEye;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");
@@ -197,19 +197,19 @@ class Underlay {
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.uniform1i(gl.getUniformLocation(program2, "fgTexture"), 1);
 		gl.uniform1f(gl.getUniformLocation(program2, "screenAspectRatio"), gl.canvas.width/gl.canvas.height);
-		gl.uniform1f(gl.getUniformLocation(program2, "eyeX"), ns.number(eye.offsetX));
-		gl.uniform1f(gl.getUniformLocation(program2, "eyeY"), ns.number(eye.offsetY));
+		gl.uniform1f(gl.getUniformLocation(program2, "eyeX"), 0);
+		gl.uniform1f(gl.getUniformLocation(program2, "eyeY"), 0);
 		gl.uniform1f(gl.getUniformLocation(program2, "scale"), eye.scale);
-		gl.uniform1f(gl.getUniformLocation(program2, "fgEyeX"), ns.number(eye.offsetX));
-		gl.uniform1f(gl.getUniformLocation(program2, "fgEyeY"), ns.number(eye.offsetY));
+		gl.uniform1f(gl.getUniformLocation(program2, "fgEyeX"), 0);
+		gl.uniform1f(gl.getUniformLocation(program2, "fgEyeY"), 0);
 		gl.uniform1f(gl.getUniformLocation(program2, "fgScale"), eye.scale);
 				
 		gl.activeTexture(gl.TEXTURE2);
 		gl.uniform1i(gl.getUniformLocation(program2, "bgTexture"), 2);
 		if (this.eye){
 			gl.bindTexture(gl.TEXTURE_2D, this.texture);
-			gl.uniform1f(gl.getUniformLocation(program2, "bgEyeX"), ns.number(this.eye.offsetX));
-			gl.uniform1f(gl.getUniformLocation(program2, "bgEyeY"), ns.number(this.eye.offsetY));
+			gl.uniform1f(gl.getUniformLocation(program2, "bgEyeX"), ns.number(ns.sub(this.eye.offsetX, eye.offsetX)));
+			gl.uniform1f(gl.getUniformLocation(program2, "bgEyeY"), ns.number(ns.sub(this.eye.offsetY, eye.offsetY)));
 			gl.uniform1f(gl.getUniformLocation(program2, "bgScale"), this.eye.scale);
 		} else {
 			// we are required by opengl to bind some texture anyway

@@ -10,7 +10,7 @@ M.Stat = {
 };
 
 var d = {
-	superSlow: false,
+	superSlow: true,
 	oneIter: false,
 	iterLimit: null,
     markers: true,
@@ -94,7 +94,7 @@ class Computer {
 		
 		var waitPeriod = 1;
 		if (d.superSlow) {
-			waitPeriod = 5;
+			waitPeriod = 50;
 		}
 		var sync;
 		var timerQ;
