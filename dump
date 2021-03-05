@@ -1,3 +1,20 @@
+	/*
+	var fbuffer1 = gl.createFramebuffer();
+	var fbuffer2 = gl.createFramebuffer();
+	//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbuffer1);
+	gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbuffer2);
+		
+	gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, comp2.getTexture(), 0);
+	gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, utexture, 0);
+	gl.readBuffer(gl.COLOR_ATTACHMENT0);
+	gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+	gl.blitFramebuffer(0, 0, renderW, renderH,
+		renderW/2, renderH/2,renderW, renderH,
+		gl.COLOR_BUFFER_BIT, gl.NEAREST);
+	visualizeBuffer();
+	*/
+
 class Loader {
     constructor(gl) {
         this.gl = args.gl;

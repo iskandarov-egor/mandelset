@@ -1,9 +1,4 @@
 
-// - internally uses texture unit 0.
-// - requires unit square values in vertex attribute 0.
-// - requires gloval variable 'program' with the main webgl program
-// - must be initialized with a call to init() before use.
-
 var maxSyncTout;
 
 M.Stat = {
@@ -16,7 +11,7 @@ M.Stat = {
 
 var d = {
 	superSlow: false,
-	oneIter: true,
+	oneIter: false,
 	iterLimit: null,
     markers: true,
 };
@@ -96,40 +91,30 @@ class Computer {
 	
 	computeSome(callback) {
 		var gl = this.gl;
-		// todo handle lost context    
-		var superSlowGPUIterationsPerMs = 56216216;//16216216;
-		var maxWorkTime = 1000 / 60 / 2;
-		var worstCaseIterationsPerCall = this.eye.iterations * (scanner_window*scanner_window);
-        var conservativeCallsPerMs = superSlowGPUIterationsPerMs / worstCaseIterationsPerCall;
-		var ncalls = Math.max(1, Math.floor(maxWorkTime*conservativeCallsPerMs));
-        //console.log('ncalls', ncalls, performance.now(), this.eye.iterations);
-		var calls = 0;
+		
 		var waitPeriod = 1;
-		var timeUsed = 0;
+		if (d.superSlow) {
+			waitPeriod = 5;
+		}
 		var sync;
 		var timerQ;
 		var startTime = performance.now();
-		if (d.superSlow) {
-			ncalls = 1;
-			waitPeriod = 5;
-		}
+		var that = this;
 		
 		if (this.job.done) {
 			trace('comp', 'doneq');
 			callback(true);
 			return;
 		}
-		
-		var that = this;
-		
+				
 		function blast() {
-			trace('comp', 'blast', ncalls, that.eye);
+			trace('comp', 'blast');
             
 			const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 			timerQ = gl.createQuery();
             
 			gl.beginQuery(ext.TIME_ELAPSED_EXT, timerQ);
-            calls += that.job.iterate(ncalls);
+            that.job.iterate(1);
 			gl.endQuery(ext.TIME_ELAPSED_EXT);
 			
 			sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -220,10 +205,6 @@ class Job {
         this.orbitComputer = orbitComputer;
         this.eye = cloneEye(eye);
         this.done = false;
-        this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, scanner_window);
-        if (d.oneIter) {
-            this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, 1000000);
-        }
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
         gl.clearBufferuiv(gl.COLOR, 0, clearColor);
         
@@ -244,6 +225,16 @@ class Job {
 		gl.uniform1i(gl.getUniformLocation(this.program, "refOrbitLen"), orbitComputer.iterations);
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetX"), ns.number(ns.sub(this.eye.offsetX, orbitComputer.x)));
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetY"), ns.number(ns.sub(this.eye.offsetY, orbitComputer.y)));
+        
+        var superSlowGPUIterationsPerMs = 10000000; // how many iterations should any gpu be able to execute (with no ref orbit)
+		var maxWorkTime = 1000 / 60 / 2; // how much time can we keep the gpu busy before letting it sleep
+        var conservativePixelsPerMs = superSlowGPUIterationsPerMs / this.eye.iterations; // how many pixels can we draw before sleeping
+        var window_size = Math.max(1, Math.floor(Math.sqrt(maxWorkTime * conservativePixelsPerMs)));
+        this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, window_size);
+        if (d.oneIter) {
+            this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, 1000000);
+        }
+        console.log('wsize', window_size, conservativePixelsPerMs, maxWorkTime * conservativePixelsPerMs);
     }
     
     iterate(n) {
