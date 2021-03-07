@@ -11,7 +11,7 @@ function timoutLoop (interval, f, cb) {
     function timer() {
         var goOn = f();
 		if (goOn) {
-            console.log('goon');
+            trace('ltest', 'goon');
             setTimeout(timer, interval);
         } else {
             cb();
@@ -35,7 +35,7 @@ class LoadTester {
                 h: 100,
             },
             frameBuffer: fbuffer,
-            _orbitLenLimit: 1,
+            //_orbitLenLimit: 1,
         };
         this.computer = new M.Computer(compArg);
         this.computer.init();
@@ -45,7 +45,7 @@ class LoadTester {
     
     load(iterations, cb) {
         var eye = cloneEye(blackEye);
-        eye.iterations = iterations;
+        eye.iterations = iterations / 100 / 100;
         this.computer.reset(eye);
         var gl = this.gl;
         var startTime = performance.now();
@@ -60,6 +60,7 @@ class LoadTester {
         }
         
         function _cb() {
+            gl.deleteSync(sync);
             cb(performance.now() - startTime);
         }
         timoutLoop(1, f, _cb);

@@ -57,6 +57,32 @@ var almostBlackEye = {
 	iterations: 100,
 };
 
+// the derivative's magnitude is so big it messes up calculations
+var error1 = {
+	scale: 1/371727914934102.25,
+	offsetX: ns.init(-0.710631357018485121379569591227),
+	offsetY: ns.init(0.289388796050924990144181947471),
+	previewScale: 1,
+	iterations: 1000,
+};
+
+var error2 = {
+	scale: 1/492565378.95253223,
+	offsetX: ns.init(-0.672719884767477349640785178053),
+	offsetY: ns.init(0.445552821138786914190177412820),
+	previewScale: 1,
+	iterations: 8000,
+};
+
+// here ff_main glitches strongly
+var deep1 = {
+	scale: 1/1342940438193.1177,
+	offsetX: ns.init(-0.672719885909637826948426209128),
+	offsetY: ns.init(0.445552820999778387278666968996),
+	previewScale: 1,
+	iterations: 64000,
+}
+
 function cloneEye(e) {
 	return {
 		offsetX: ns.clone(e.offsetX),
@@ -67,7 +93,7 @@ function cloneEye(e) {
 	};
 };
 
-Game.eye = immovableEye;
+Game.eye = deep1;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");
@@ -109,8 +135,8 @@ var compArg2 = {
     //_orbitLenLimit: 2,
 };
 
-var comp2 = new M.Computer(compArg2);
-//var comp2 = new M.PyramidComputer(compArg2);
+//var comp2 = new M.Computer(compArg2);
+var comp2 = new M.PyramidComputer(compArg2);
 comp2.init();
 
 var program2 = M.gl_util.createProgram(
@@ -174,8 +200,6 @@ function visualizeBuffer(texture) {
 // while the current view is being rendered.
 class Underlay {
 	constructor(gl, w, h){
-		//w = Math.floor(w/8);
-		//h = Math.floor(h/8);
 		this.w = w;
 		this.h = h;
 		this.gl = gl;

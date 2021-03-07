@@ -262,4 +262,11 @@ function myclick() {
 	checkFlag();
 }
 
-Thanks gman. I think I'll use the time from this extension if it's available. I also have an onboard Intel GPU any my results are all above 10ms. Also they (and yours) look suspiciously close to multiples of 1/60 (16, 33, 50). Maybe it has to do with the browsers drawing rate.
+// interesting places
+var error2 = {
+	scale: 1/6818231566116016000,
+	offsetX: ns.init(-0.710631357018489340227063166822),
+	offsetY: ns.init(0.289388796050926433434113960175),
+	previewScale: 1,
+	iterations: 1000,
+};

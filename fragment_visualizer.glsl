@@ -18,17 +18,7 @@ uniform float screenAspectRatio;
 uniform highp usampler2D fgTexture;
 uniform sampler2D bgTexture;
 
-vec4 shade(float iter) {
-	if (iter == -1.0) {
-		return vec4(0, 1, 0, 1);
-	}
-	iter = iter - float(int(iter));
-    if (iter < 0.0) {
-		return vec4(1, 0, iter, 1);
-	} else {
-		return vec4(0, 0, iter, 1);
-	}
-}
+#define PI 3.1415926538
 
 vec2 eye2CanvasSpace(float eyeX, float eyeY, float scale, float canvasEyeX, float canvasEyeY, float canvasScale) {
 	// :: float spaceX = eyeX + scale*clipCoord.x;
@@ -53,6 +43,55 @@ vec4 u4(uvec4 x) {
 	return vec4(uintBitsToFloat(x[0]), uintBitsToFloat(x[1]), uintBitsToFloat(x[2]), uintBitsToFloat(x[3]));
 }
 
+vec4 shade(float iterations, float normal_atan) {
+    if (iterations == -1.0) {
+		return vec4(0, 1, 0, 1);
+	}
+	iterations = iterations - float(int(iterations));
+    if (iterations < 0.0) {
+		return vec4(1, 0, iterations, 1); // todo why?
+	} else {
+        float normal_factor = (PI + normal_atan)/(2.0*PI);
+        normal_factor = 1.0 - abs(normal_factor*2.0 - 1.0);
+        normal_factor = normal_factor/1.5 + 0.333333;
+        normal_factor = 1.0;
+		return vec4(0, 0, iterations*normal_factor, 1);
+	}
+}
+
+vec4 number_inspector(float x) {
+    if (isinf(x)) {
+        if (x > 0.0) {
+            return vec4(1.0, 0, 0, 1);
+        } else {
+            return vec4(0, 0, 0, 1);
+        }
+    }
+    if (isnan(x)) {
+        return vec4(1, 0, 1, 1);
+    }
+    if (x > 0.0) {
+        if (x > 1000000.0) {
+            return vec4(0.0, 0.0, 1.0, 1);
+        }
+        if (x < 0.0001) {
+            return vec4(0, 0.0, 0.25, 1);
+        }
+        return vec4(0.0, 0, 0.5, 1);
+    }
+    if (x == 0.0) {
+        return vec4(1, 1, 1, 1);
+    }
+    if (x < 0.0) {
+        if (x < -1000000.0) {
+            return vec4(0, 1.0, 0.0, 1);
+        }
+        if (x > -0.0001) {
+            return vec4(0, 0.25, 0, 1);
+        }
+        return vec4(0, 0.5, 0, 1);
+    }
+}
 
 void main() {
 	//vec2 txtCoord2 = eye2CanvasSpace(eyeX, eyeY, scale, bgEyeX, bgEyeY, bgScale);
@@ -71,7 +110,10 @@ void main() {
 				outColor = vec4(1, 0, 1, 1);
 			}
 		} else {
-			outColor = shade(uintBitsToFloat(pixel[0]));
+			outColor = shade(uintBitsToFloat(pixel[0]), uintBitsToFloat(pixel[1]));
+            return;
+            float m = uintBitsToFloat(pixel[1]);
+            outColor = number_inspector(m);
 		}
 		
 	} else {

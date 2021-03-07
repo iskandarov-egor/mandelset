@@ -1,5 +1,32 @@
-float mandel_ff(vec2 x, vec2 y, vec2 cx, vec2 cy, int iterations) {
+
+// (a + bi)(c + di)
+void cp_mul(inout float a, inout float b, float c, float d) {
+	float a2 = a*c - b*d;
+	b = a*d + b*c;
+	a = a2;
+}
+// (a + bi)/(c + di)
+void cp_div(inout float a, inout float b, float c, float d) {
+	float del = c*c + d*d;
+    float a2 = (a*c + b*d)/del;
+    b = (b*c - a*d)/del;
+    a = a2;
+}
+
+void cp_mul_ff(inout vec2 a, inout vec2 b, vec2 c, vec2 d) {
+	vec2 a2 = ff_add(ff_mul(a,c), -ff_mul(b,d)); // todo is -ff_mul same as ff_mul(-1, ...)?
+    //vec2 a2 = ff_add(ff_mul(a,c), ff_mul(vec2(0, -1), ff_mul(b,d))); // todo is -ff_mul same as ff_mul(-1, ...)?
+	b = ff_add(ff_mul(a, d), ff_mul(b,c));
+	a = a2;
+}
+
+float mandel_ff(inout vec2 x, inout vec2 y, vec2 cx, vec2 cy, int iterations, inout vec2 derivative_x, inout vec2 derivative_y) {
     for (int i = 0; i < iterations; i++) {
+        derivative_x = ff_mul(vec2(0, 2.0), derivative_x);
+        derivative_y = ff_mul(vec2(0, 2.0), derivative_y);
+        cp_mul_ff(derivative_x, derivative_y, x, y);
+        derivative_x = ff_add(derivative_x, vec2(0, 1.0));
+        
         vec2 x2 = 
 			ff_add(
 				ff_add(
@@ -51,17 +78,35 @@ float mandel(float cx, float cy, int iterations) {
     return 0.0;
 }
 
-// (a + bi)(c + di)
-void cp_mul(inout float a, inout float b, float c, float d) {
-	float a2 = a*c - b*d;
-	b = a*d + b*c;
-	a = a2;
-}
-
-void cp_mul_ff(inout vec2 a, inout vec2 b, vec2 c, vec2 d) {
-	vec2 a2 = ff_add(ff_mul(a,c), -ff_mul(b,d)); // todo is -ff_mul same as ff_mul(-1, ...)?
-	b = ff_add(ff_mul(a, d), ff_mul(b,c));
-	a = a2;
+float mandel_der(float cx, float cy, int iterations, out vec2 der) {
+    float x = 0.0;
+    float y = 0.0;
+    der.x = 1.0;
+    der.y = 0.0;
+    for (int i = 0; i < iterations; i++) {
+        der.x *= 2.0;
+        der.y *= 2.0;
+        cp_mul(der.x, der.y, x, y);
+        der.x += 1.0;
+        
+		float xx = x*x;
+		float yy = y*y;
+        float x2 = xx - yy + cx;
+        y = 2.0 * x * y + cy;
+        x = x2;
+        
+        if (xx + yy > 10000.0) {
+			float m = x*x + y*y;
+			float s = float(i) + 1.0 - log(log(m))/log(2.0);
+            
+            cp_div(x, y, der.x, der.y);
+            float mag = sqrt(x*x + y*y);
+            der = vec2(x/mag, y/mag);
+            return s;
+		}
+        
+    }
+    return 0.0;
 }
 
 float mandel_delta_sim(float cx, float cy, float dx, float dy, int iterations) {
@@ -99,15 +144,28 @@ float mandel_delta_sim(float cx, float cy, float dx, float dy, int iterations) {
     return 0.0;
 }
 
+vec2 compute_normal(float zx, float zy, float derivative_x, float derivative_y) {
+    // sometimes the derivative is so big it messes up calculations. example:
+    // {scale: 1/371727914934102.25, x: -0.710631357018485121379569591227, y: 0.289388796050924990144181947471, iterations: 1000}
+    // let's decrease it's magnitude since we don't care about it anyway.
+    float ds = max(abs(derivative_x), abs(derivative_y));
+    if (ds == 0.0) {
+        ds = 1.0;
+    }
+    
+    cp_div(zx, zy, derivative_x/ds, derivative_y/ds);
+    return vec2(zx, zy);
+}
+
 // dx, dy - offset from ref orbit after first iteration (assuming all orbits start at (0,0))
 // uses uniforms refOrbit and refOrbitLen
-float mandel_delta(float dx, float dy, int iterations) {
+float mandel_delta(float dx, float dy, int iterations, out vec2 normal) {
 	float dx0 = dx;
 	float dy0 = dy;
 	// zx, zy - current orbit
 	
-	float zx;
-	float zy;
+	float zx = 0.0;
+	float zy = 0.0;
 	ivec2 orbiti = ivec2(1, 0);
 	ivec2 txtSize = textureSize(refOrbit, 0);
 	
@@ -115,6 +173,9 @@ float mandel_delta(float dx, float dy, int iterations) {
 	float x;
 	float y;
 	vec4 texel1 = texelFetch(refOrbit, ivec2(1, 0), 0);
+    
+    vec2 derivative_x = vec2(0.0, 1.0); // todo maybe we dont need ff precision
+    vec2 derivative_y = vec2(0.0, 0.0);
     for (int i = 1; i < refOrbitLen; i++) {
 		/* update reference orbit */
         if ((true)) {
@@ -127,12 +188,19 @@ float mandel_delta(float dx, float dy, int iterations) {
 			x = x2;
 		}
         
+        derivative_x = ff_mul(vec2(0, 2.0), derivative_x);
+        derivative_y = ff_mul(vec2(0, 2.0), derivative_y);
+        cp_mul_ff(derivative_x, derivative_y, vec2(0, zx), vec2(0, zy));
+        derivative_x = ff_add(derivative_x, vec2(0, 1.0));
+        
         zx = x + dx;
         zy = y + dy;
-        
+                
         if (zx*zx + zy*zy > 10000.0) {
 			float m = zx*zx + zy*zy;
 			float s = float(i) - log(log(m))/log(2.0);
+            
+            normal = compute_normal(zx, zy, derivative_x[1], derivative_y[1]);
             return s;
 		}
 		
@@ -160,7 +228,11 @@ float mandel_delta(float dx, float dy, int iterations) {
     if (refOrbitLen < iterations) {
 		/* reference orbit too short, continue using high precision */
 		vec4 texel = texelFetch(refOrbit, ivec2(1, 0), 0);
-		return float(refOrbitLen - 1) + mandel_ff(vec2(0, zx), vec2(0, zy), vec2(0, texel.x + dx0), vec2(0, texel.y + dy0), iterations - refOrbitLen + 1);
+        vec2 zx_ff = vec2(0, zx);
+        vec2 zy_ff = vec2(0, zy);
+		float ret = float(refOrbitLen - 1) + mandel_ff(zx_ff, zy_ff, vec2(0, texel.x + dx0), vec2(0, texel.y + dy0), iterations - refOrbitLen + 1, derivative_x, derivative_y);
+        normal = compute_normal(zx_ff[1], zy_ff[1], derivative_x[1], derivative_y[1]);
+        return ret;
 	}
     return 0.0;
 }
@@ -225,7 +297,8 @@ float mandel_delta_ff(vec2 dx, vec2 dy, int iterations) {
     if (refOrbitLen < iterations) {
 		/* reference orbit too short, continue using high precision */
 		vec4 texel = texelFetch(refOrbit, ivec2(1, 0), 0);
-		return float(refOrbitLen - 1) + mandel_ff(zx, zy, ff_add(vec2(0.0, texel.x), dx0), ff_add(vec2(0.0, texel.y), dy0), iterations - refOrbitLen + 1);
+		// todo derivative return float(refOrbitLen - 1) + mandel_ff(zx, zy, ff_add(vec2(0.0, texel.x), dx0), ff_add(vec2(0.0, texel.y), dy0), iterations - refOrbitLen + 1);
+        
 	}
     return 0.0;
 }
@@ -317,7 +390,7 @@ float mandel_delta_err(float dx, float dy, int iterations) {
     if (refOrbitLen < iterations) {
 		/* reference orbit too short, continue using high precision */
 		vec4 texel = texelFetch(refOrbit, ivec2(1, 0), 0);
-		return float(refOrbitLen - 1) + mandel_ff(vec2(0, zx), vec2(0, zy), vec2(0, texel.x + dx0), vec2(0, texel.y + dy0), iterations - refOrbitLen + 1);
+		// todo derivative return float(refOrbitLen - 1) + mandel_ff(vec2(0, zx), vec2(0, zy), vec2(0, texel.x + dx0), vec2(0, texel.y + dy0), iterations - refOrbitLen + 1);
 	}
     return 0.0;
 }

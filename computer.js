@@ -10,10 +10,13 @@ M.Stat = {
 };
 
 var d = {
-	superSlow: true,
+	superSlow: false,
 	oneIter: false,
 	iterLimit: null,
     markers: true,
+    //orbit: [ns.init(-0.7106313570184799), ns.init(0.2893887960509232)],
+    //orbit: [ns.init(-0.7106313570184888), ns.init(0.2893887960509253)],
+    
 };
 
 var scanner_window = 100;
@@ -63,7 +66,11 @@ class Computer {
 		M.Stat.Computer.lastTimingStart = performance.now();
         
         this.updateRefOrbit();
-		this.job.reset(newEye, this.refOrbitFinder.getBestComputer());
+        var orbitComputer = this.refOrbitFinder.getBestComputer();
+        if (d.orbit) {
+            orbitComputer.compute(d.orbit[0], d.orbit[1], newEye.iterations);
+        }
+		this.job.reset(newEye, orbitComputer);
         this.drawingEye = this.eye;
 	}
 	
@@ -226,15 +233,17 @@ class Job {
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetX"), ns.number(ns.sub(this.eye.offsetX, orbitComputer.x)));
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetY"), ns.number(ns.sub(this.eye.offsetY, orbitComputer.y)));
         
-        var superSlowGPUIterationsPerMs = 10000000; // how many iterations should any gpu be able to execute (with no ref orbit)
+        var myGPUIterationsPerMs = 18750000; // how many iterations my gpu is able to execute per ms (with no ref orbit)
+        var slowGPUIterationsPerMs = myGPUIterationsPerMs / 4; // how many iterations should any gpu be able to execute per ms (with no ref orbit)
+        var refOrbitSpeedup = 4; // how many times faster the rendering with a reference orbit is
 		var maxWorkTime = 1000 / 60 / 2; // how much time can we keep the gpu busy before letting it sleep
-        var conservativePixelsPerMs = superSlowGPUIterationsPerMs / this.eye.iterations; // how many pixels can we draw before sleeping
+        var conservativePixelsPerMs = slowGPUIterationsPerMs / this.eye.iterations; // how many pixels can we draw before sleeping
+        conservativePixelsPerMs = conservativePixelsPerMs + conservativePixelsPerMs*(refOrbitSpeedup - 1)*(orbitComputer.iterations/this.eye.iterations);
         var window_size = Math.max(1, Math.floor(Math.sqrt(maxWorkTime * conservativePixelsPerMs)));
         this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, window_size);
         if (d.oneIter) {
             this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, 1000000);
         }
-        console.log('wsize', window_size, conservativePixelsPerMs, maxWorkTime * conservativePixelsPerMs);
     }
     
     iterate(n) {

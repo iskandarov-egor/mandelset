@@ -81,10 +81,15 @@ void ff_main() {
     ffy = ff_mul(ffs, ffy);
     ffx = ff_add(ffox, ffx);
     ffy = ff_add(ffoy, ffy);
-	//outColor = vec4((mantissa(ffx[0])+mantissa(ffx[1])) % 2, 0, 0, 1);
-    outColor = shade(mandel_ff(vec2(0, 0), vec2(0, 0), ffx, ffy, iterations));
-	//outColor = shade(mandel(ffx.y, ffy.y, iterations));
-    //outColor = floatColor(ffx);
+	///outColor = vec4((mantissa(ffx[0])+mantissa(ffx[1])) % 2, 0, 0, 1);
+    vec2 derivative_x = vec2(0, 0);
+    vec2 derivative_y = vec2(0, 0);
+    vec2 zx = vec2(0, 0);
+    vec2 zy = vec2(0, 0);
+    float m = mandel_ff(zx, zy, ffx, ffy, iterations, derivative_x, derivative_y);
+    outColor = uvec4(floatBitsToUint(m), floatBitsToUint(0.0), 0, 1);
+	///outColor = shade(mandel(ffx.y, ffy.y, iterations));
+    ///outColor = floatColor(ffx);
 }
 
 void f_main() {
@@ -94,7 +99,10 @@ void f_main() {
     coord.x += offsetX[1];
     coord.y += offsetY[1];
 	//outColor = mantissaColor(coord.x);
-	outColor = uvec4(floatBitsToUint(mandel(coord.x, coord.y, iterations)), 0, 0, 1);
+    vec2 der;
+    float m = mandel_der(coord.x, coord.y, iterations, der);
+    
+	outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(der.x, der.y)), 0, 1);
 }
 
 void delta_main() {
@@ -114,9 +122,11 @@ void texture_main() {
     
     float dx = x + refOrbitEyeOffsetX;
     float dy = y + refOrbitEyeOffsetY;
-	float m = mandel_delta(dx, dy, iterations);
+    vec2 normal;
+	float m = mandel_delta(dx, dy, iterations, normal);
 	
-    outColor = uvec4(floatBitsToUint(m), 0, 0, 1);
+    outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(normal.x, normal.y)), 0, 1);
+    //outColor = uvec4(floatBitsToUint(m), floatBitsToUint(normal.x), floatBitsToUint(normal.y), 1);
 }
 
 void texture_main_ff() {
@@ -159,9 +169,9 @@ void main() {
 			discard;
 		}
 	}
-	//ff_main();
+	ff_main();
 	//grid_main();
-	texture_main();
+	//texture_main();
 	//f_main();
 }
 
