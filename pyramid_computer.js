@@ -15,6 +15,7 @@ class PyramidComputer {
 		}
 		this.fbuffer = args.frameBuffer;
 		this.program2;
+        this.refOrbitFinder = new M.mandel.OrbitFinder(1);
 	}
 	
 	reset(newEye) {
@@ -41,6 +42,7 @@ class PyramidComputer {
 					h: Math.floor(this.buffer.h / Math.pow(3, level)),
 				},
 				eye: this.eye,
+                refOrbitFinder: this.refOrbitFinder,
 			}
 			if (i > 0) {
 				compArg.isPyramidLayer = true;
@@ -115,6 +117,14 @@ class PyramidComputer {
 		var count = 6;
 		gl.drawArrays(primitiveType, offset, count);
 	}
+    
+    getOverlays() {
+        var list = [];
+        for (var i = 0; i < this.computers.length; i++) {
+            list = list.concat(this.computers[i].getOverlays());
+        }
+        return list;
+    }
 }
 
 M.PyramidComputer = PyramidComputer;

@@ -41,6 +41,31 @@ uvec4 shade(float x) {
 	return uvec4(floatBitsToUint(s[0]), floatBitsToUint(s[1]), floatBitsToUint(s[2]), floatBitsToUint(s[3]));
 }
 
+vec2 compute_normal(float zx, float zy, float derivative_x, float derivative_y) {
+    // sometimes the derivative is so big it messes up calculations. example:
+    // {scale: 1/371727914934102.25, x: -0.710631357018485121379569591227, y: 0.289388796050924990144181947471, iterations: 1000}
+    // let's decrease it's magnitude since we don't care about it anyway.
+    float ds = max(abs(derivative_x), abs(derivative_y));
+    if (ds == 0.0) {
+        ds = 1.0;
+    }
+    
+    cp_div(zx, zy, derivative_x/ds, derivative_y/ds);
+    return vec2(zx, zy);
+}
+
+float compute_distance(float zx, float zy, float derivative_x, float derivative_y) {
+    float zlength = length(vec2(zx, zy));
+    //return 2.0 * (zlength * log(zlength)) / (length(vec2(derivative_x, derivative_y)));
+    float ds = max(abs(derivative_x), abs(derivative_y));
+    if (ds == 0.0) {
+        ds = 1.0;
+    }
+    derivative_x /= ds;
+    derivative_y /= ds;
+    return 2.0 * (zlength * log(zlength) / ds) / (length(vec2(derivative_x, derivative_y)));
+}
+
 vec4 float_color(float x) {
 	return vec4(0, 1, 0, 1);
 	float r, g, b;
@@ -60,6 +85,7 @@ vec4 float_color(float x) {
 	b = float((int(x) / 255) % 255)/255.0;
 	return vec4(r, 1, b, 1);
 }
+
 
 void ff_main() {
     //vec2 ffx = vec2(0.0, clipCoord.x);
@@ -87,7 +113,9 @@ void ff_main() {
     vec2 zx = vec2(0, 0);
     vec2 zy = vec2(0, 0);
     float m = mandel_ff(zx, zy, ffx, ffy, iterations, derivative_x, derivative_y);
-    outColor = uvec4(floatBitsToUint(m), floatBitsToUint(0.0), 0, 1);
+    float distance = compute_distance(zx[1], zy[1], derivative_x[1], derivative_y[1]);
+    vec2 normal = compute_normal(zx[1], zy[1], derivative_x[1], derivative_y[1]);
+    outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(normal.x, normal.y)), floatBitsToUint(distance), 1);
 	///outColor = shade(mandel(ffx.y, ffy.y, iterations));
     ///outColor = floatColor(ffx);
 }
@@ -122,10 +150,13 @@ void texture_main() {
     
     float dx = x + refOrbitEyeOffsetX;
     float dy = y + refOrbitEyeOffsetY;
-    vec2 normal;
-	float m = mandel_delta(dx, dy, iterations, normal);
+    vec2 derivative;
+    vec2 z;
+	float m = mandel_delta(dx, dy, iterations, derivative, z);
 	
-    outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(normal.x, normal.y)), 0, 1);
+    vec2 normal = compute_normal(z.x, z.y, derivative.x, derivative.y);
+    float distance = compute_distance(z.x, z.y, derivative.x, derivative.y);
+    outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(normal.x, normal.y)), floatBitsToUint(distance), 1);
     //outColor = uvec4(floatBitsToUint(m), floatBitsToUint(normal.x), floatBitsToUint(normal.y), 1);
 }
 
@@ -169,9 +200,9 @@ void main() {
 			discard;
 		}
 	}
-	ff_main();
+	//ff_main();
 	//grid_main();
-	//texture_main();
+	texture_main();
 	//f_main();
 }
 

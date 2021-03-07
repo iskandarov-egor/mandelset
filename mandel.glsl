@@ -144,22 +144,10 @@ float mandel_delta_sim(float cx, float cy, float dx, float dy, int iterations) {
     return 0.0;
 }
 
-vec2 compute_normal(float zx, float zy, float derivative_x, float derivative_y) {
-    // sometimes the derivative is so big it messes up calculations. example:
-    // {scale: 1/371727914934102.25, x: -0.710631357018485121379569591227, y: 0.289388796050924990144181947471, iterations: 1000}
-    // let's decrease it's magnitude since we don't care about it anyway.
-    float ds = max(abs(derivative_x), abs(derivative_y));
-    if (ds == 0.0) {
-        ds = 1.0;
-    }
-    
-    cp_div(zx, zy, derivative_x/ds, derivative_y/ds);
-    return vec2(zx, zy);
-}
 
 // dx, dy - offset from ref orbit after first iteration (assuming all orbits start at (0,0))
 // uses uniforms refOrbit and refOrbitLen
-float mandel_delta(float dx, float dy, int iterations, out vec2 normal) {
+float mandel_delta(float dx, float dy, int iterations, out vec2 derivative, out vec2 z) {
 	float dx0 = dx;
 	float dy0 = dy;
 	// zx, zy - current orbit
@@ -200,7 +188,8 @@ float mandel_delta(float dx, float dy, int iterations, out vec2 normal) {
 			float m = zx*zx + zy*zy;
 			float s = float(i) - log(log(m))/log(2.0);
             
-            normal = compute_normal(zx, zy, derivative_x[1], derivative_y[1]);
+            derivative = vec2(derivative_x[1], derivative_y[1]);
+            z = vec2(zx, zy);
             return s;
 		}
 		
@@ -231,7 +220,8 @@ float mandel_delta(float dx, float dy, int iterations, out vec2 normal) {
         vec2 zx_ff = vec2(0, zx);
         vec2 zy_ff = vec2(0, zy);
 		float ret = float(refOrbitLen - 1) + mandel_ff(zx_ff, zy_ff, vec2(0, texel.x + dx0), vec2(0, texel.y + dy0), iterations - refOrbitLen + 1, derivative_x, derivative_y);
-        normal = compute_normal(zx_ff[1], zy_ff[1], derivative_x[1], derivative_y[1]);
+        derivative = vec2(derivative_x[1], derivative_y[1]);
+        z = vec2(zx_ff[1], zy_ff[1]);
         return ret;
 	}
     return 0.0;

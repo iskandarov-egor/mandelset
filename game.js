@@ -83,6 +83,23 @@ var deep1 = {
 	iterations: 64000,
 }
 
+// here the magnitude of the derivative caused the distance estimator to glitch
+var deep2 = {
+    scale: 1/61965827360231.16,
+	offsetX: ns.init(-0.774680610627246024613157260319),
+	offsetY: ns.init(0.137416885603266397675170651382),
+	previewScale: 1,
+	iterations: 4000,
+}
+
+var tante = {	
+    scale: 1/1369130503414.6946,
+	offsetX: ns.init(-0.7746806106269039),
+	offsetY: ns.init(0.1374168856037867),
+	previewScale: 1,
+	iterations: 4000,
+}
+
 function cloneEye(e) {
 	return {
 		offsetX: ns.clone(e.offsetX),
@@ -93,11 +110,12 @@ function cloneEye(e) {
 	};
 };
 
-Game.eye = deep1;
+Game.eye = deep2;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");
 document.querySelector("#canvas1");
+var overlayCtx = canvas1.getContext('2d');
 var gl = canvas.getContext("webgl2", {antialias: false});
 if (!gl) {
 	alert("no webgl2 for you!");
@@ -131,13 +149,14 @@ var compArg2 = {
 		h: renderH,
 	},
 	frameBuffer: fbuffer,
-	nLevels: 2,
+	nLevels: 3,
     //_orbitLenLimit: 2,
 };
 
 //var comp2 = new M.Computer(compArg2);
 var comp2 = new M.PyramidComputer(compArg2);
 comp2.init();
+var compOverlays = comp2.getOverlays();
 
 var program2 = M.gl_util.createProgram(
 	gl,
@@ -188,11 +207,8 @@ function visualizeBuffer(texture) {
 	
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
     
-    
-    if (comp2.overlay) {
-        comp2.overlay.ctx.clearRect(0, 0, canvas1.width, canvas1.height);
-        comp2.overlay.draw(Game.eye);
-    }
+    overlayCtx.clearRect(0, 0, canvas1.width, canvas1.height);
+    compOverlays.forEach(o => o.draw(Game.eye));
 }
 
 // underlay is the image that contains combined rendering results of the previous views.

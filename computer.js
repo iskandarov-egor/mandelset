@@ -34,8 +34,9 @@ class Computer {
 	// isPyramidLayer: for optimization. if true, computer will know that it is part of a pyramid computer and
 	//                 will skip computing the central pixel in each 9x9 block, but will use the existing pixel
 	//                 value in the @framebuffer
-	// eye: -
+	// eye: - the eye
 	// framebuffer: the WebGLFramebuffer object of the destination buffer.
+    // refOrbitFinder: if provided, will use this one.
 	// bufParam:
 	//   w, h: width and height of the @framebuffer
 	constructor(args) {
@@ -50,9 +51,14 @@ class Computer {
 			ratio: args.buffer.w/args.buffer.h,
 		};
 		
-		this.refOrbitFinder = new M.mandel.OrbitFinder(1);
+        if (args.refOrbitFinder) {
+            this.refOrbitFinder = args.refOrbitFinder;
+        } else {
+            this.refOrbitFinder = new M.mandel.OrbitFinder(1);
+        }
 		this.job = new Job(gl, this.bufParam);
         this.overlay = new M.CanvasOverlay(document.getElementById('canvas1'));
+        this.overlay.addLiveCallback(overlay => this.overlayCallback(overlay));
         this._orbitLenLimit = args._orbitLenLimit;
 	}
 	
@@ -178,12 +184,19 @@ class Computer {
         var iterLimit = (this._orbitLenLimit) ? this._orbitLenLimit : this.eye.iterations;
         this.refOrbitFinder.search(window[0], window[1], window[2], window[3], iterLimit);
         
-        this.overlay.clear();
+	}
+    
+    overlayCallback(overlay) {
+        overlay.clear();
         for (var i = 0; i < this.refOrbitFinder.computers.length; i++) {
             var c = this.refOrbitFinder.computers[i];
-            this.overlay.addMarker(c.x, c.y, 'yellow');
+            overlay.addMarker(c.x, c.y, 'yellow');
         }
-	}
+    }
+    
+    getOverlays() {
+        return [this.overlay];
+    }
 	
 	isDone() {
 		return this.job.done;

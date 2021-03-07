@@ -43,7 +43,15 @@ vec4 u4(uvec4 x) {
 	return vec4(uintBitsToFloat(x[0]), uintBitsToFloat(x[1]), uintBitsToFloat(x[2]), uintBitsToFloat(x[3]));
 }
 
-vec4 shade(float iterations, float normal_atan) {
+float seamless(float x) {
+    return abs(x*2.0 - 1.0);
+}
+
+float cycle(float x, float len) {
+    return mod(x, len)/len;
+}
+
+vec4 shade(float iterations, float normal_atan, float distance) {
     if (iterations == -1.0) {
 		return vec4(0, 1, 0, 1);
 	}
@@ -54,8 +62,11 @@ vec4 shade(float iterations, float normal_atan) {
         float normal_factor = (PI + normal_atan)/(2.0*PI);
         normal_factor = 1.0 - abs(normal_factor*2.0 - 1.0);
         normal_factor = normal_factor/1.5 + 0.333333;
-        normal_factor = 1.0;
-		return vec4(0, 0, iterations*normal_factor, 1);
+        
+        float distance_factor = seamless(cycle(-log(distance), 8.0));
+        iterations = 1.0;
+        
+		return vec4(0, 0, distance_factor*iterations*normal_factor, 1);
 	}
 }
 
@@ -110,9 +121,9 @@ void main() {
 				outColor = vec4(1, 0, 1, 1);
 			}
 		} else {
-			outColor = shade(uintBitsToFloat(pixel[0]), uintBitsToFloat(pixel[1]));
+			outColor = shade(uintBitsToFloat(pixel[0]), uintBitsToFloat(pixel[1]), uintBitsToFloat(pixel[2]));
             return;
-            float m = uintBitsToFloat(pixel[1]);
+            float m = uintBitsToFloat(pixel[2]);
             outColor = number_inspector(m);
 		}
 		

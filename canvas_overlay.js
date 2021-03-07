@@ -3,14 +3,20 @@ class CanvasOverlay {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.markers = [];
+        this.liveCallbacks = [];
     }
     
     addMarker(x, y, color) {
         this.markers.push([x, y, color]);
     }
     
+    addLiveCallback(cb) {
+        this.liveCallbacks.push(cb);
+    }
+    
     clear() {
         this.markers = [];
+        this.children = [];
     }
     
     _drawMarker(m, eye) {
@@ -28,6 +34,14 @@ class CanvasOverlay {
     }
     
     draw(eye) {
+        if (this.liveCallbacks.length > 0) {
+            if (!this.liveOverlay) {
+                this.liveOverlay = new CanvasOverlay(this.canvas);
+            }
+            this.liveOverlay.clear();
+            this.liveCallbacks.forEach(cb => cb(this.liveOverlay));
+            this.liveOverlay.draw(eye);
+        }
         for (var i = 0; i < this.markers.length; i++) {
             this._drawMarker(this.markers[i], eye);
         }
