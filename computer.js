@@ -27,6 +27,17 @@ clearColor[1] = 0xFFFFFFFF;
 clearColor[2] = 0;
 clearColor[3] = 0;
 
+var states = {
+    initial: 1,
+    orbit_search: 2,
+    drawing: 3,
+    finished: 4,
+};
+
+var STATE_INITIAL = 1;
+var STATE_ORBIT = 2;
+var STATE_DRAW = 3;
+
 class Computer {
 	
 	// args:
@@ -60,6 +71,8 @@ class Computer {
         this.overlay = new M.CanvasOverlay(document.getElementById('canvas1'));
         this.overlay.addLiveCallback(overlay => this.overlayCallback(overlay));
         this._orbitLenLimit = args._orbitLenLimit;
+        this.jobReset = false;
+        this.state = STATE_INITIAL;
 	}
 	
 	// sets a new draw target. abandons the previous one and does not wait for its completion.
@@ -76,8 +89,7 @@ class Computer {
         if (d.orbit) {
             orbitComputer.compute(d.orbit[0], d.orbit[1], newEye.iterations);
         }
-		this.job.reset(newEye, orbitComputer);
-        this.drawingEye = this.eye;
+        this.state = STATE_ORBIT;
 	}
 	
 	init() {
@@ -97,9 +109,8 @@ class Computer {
 		return this.job.renderTexture;
 	}
 	
-	// todo why not simply getEye?
 	getDrawingEye() {
-		return this.drawingEye;
+		return (this.drawingEye) ? this.drawingEye : this.eye;
 	}
 	
 	computeSome(callback) {
@@ -114,7 +125,7 @@ class Computer {
 		var startTime = performance.now();
 		var that = this;
 		
-		if (this.job.done) {
+		if (this.state >= STATE_DRAW && this.job.done) {
 			trace('comp', 'doneq');
 			callback(true);
 			return;
@@ -158,17 +169,26 @@ class Computer {
 					callback(true);
 					return;
 				}
-				trace('comp', 'uvi', );
+				trace('comp', 'uvi');
 				callback(false);
 			}
 		}
-		
-		blast();
+        
+        if (this.state == STATE_ORBIT && this.refOrbitFinder.searchSome()) {
+            callback(false);
+        } else {
+            if (this.state == STATE_ORBIT) {
+                this.job.reset(this.eye, this.refOrbitFinder.getBestComputer());
+                this.state = STATE_DRAW;
+                this.drawingEye = this.eye;
+            }
+            blast();
+        }
 	}
 	
 	updateRefOrbit() {
         var that = this;
-        function eyeWindow(e) {
+        function eyeWindow(e) { // todo make eye class
             var w = ns.init(that.bufParam.ratio * e.scale);
             var h = ns.init(e.scale);
             return [
@@ -182,14 +202,15 @@ class Computer {
         
         var window = eyeWindow(this.eye);
         var iterLimit = (this._orbitLenLimit) ? this._orbitLenLimit : this.eye.iterations;
-        this.refOrbitFinder.search(window[0], window[1], window[2], window[3], iterLimit);
+        this.refOrbitFinder.setWindow(window[0], window[1], window[2], window[3], iterLimit);
+        this.refOrbitFinder.searchSome();
         
 	}
     
     overlayCallback(overlay) {
         overlay.clear();
-        for (var i = 0; i < this.refOrbitFinder.computers.length; i++) {
-            var c = this.refOrbitFinder.computers[i];
+        var c = this.refOrbitFinder.computer;
+        if (c.isReady()) {
             overlay.addMarker(c.x, c.y, 'yellow');
         }
     }
@@ -199,7 +220,7 @@ class Computer {
     }
 	
 	isDone() {
-		return this.job.done;
+		return this.state == STATE_DRAW && this.job.done;
 	}
 }
 

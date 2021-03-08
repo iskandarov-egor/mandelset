@@ -150,14 +150,12 @@ float mandel_delta_sim(float cx, float cy, float dx, float dy, int iterations) {
 float mandel_delta(float dx, float dy, int iterations, out vec2 derivative, out vec2 z) {
 	float dx0 = dx;
 	float dy0 = dy;
-	// zx, zy - current orbit
 	
 	float zx = 0.0;
 	float zy = 0.0;
 	ivec2 orbiti = ivec2(1, 0);
 	ivec2 txtSize = textureSize(refOrbit, 0);
 	
-	// zx, zy - reference orbit
 	float x;
 	float y;
 	vec4 texel1 = texelFetch(refOrbit, ivec2(1, 0), 0);

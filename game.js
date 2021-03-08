@@ -110,7 +110,7 @@ function cloneEye(e) {
 	};
 };
 
-Game.eye = deep2;
+Game.eye = tante;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");
@@ -136,7 +136,6 @@ var renderH = gl.canvas.height/1;
 
 
 var postitionVao = M.game_gl.createPositionVAO(gl);
-//var pyramid = createRenderPyramid(gl, renderW, renderH);
 var fbuffer = gl.createFramebuffer();
 
 var swapTexture;
@@ -153,8 +152,11 @@ var compArg2 = {
     //_orbitLenLimit: 2,
 };
 
-//var comp2 = new M.Computer(compArg2);
-var comp2 = new M.PyramidComputer(compArg2);
+
+var globalOverlay = new M.CanvasOverlay(canvas1);
+
+var comp2 = new M.Computer(compArg2);
+//var comp2 = new M.PyramidComputer(compArg2);
 comp2.init();
 var compOverlays = comp2.getOverlays();
 
@@ -166,7 +168,7 @@ var program2 = M.gl_util.createProgram(
 
 program2 = M.game_gl.createProgramVisualizer();
 
-var lt = new M.LoadTester(gl); // for debugging
+//var lt = new M.LoadTester(gl); // for debugging
 
 function visualizeBuffer(texture) {
 	if (Game.state.name != 'idle') {
@@ -209,6 +211,7 @@ function visualizeBuffer(texture) {
     
     overlayCtx.clearRect(0, 0, canvas1.width, canvas1.height);
     compOverlays.forEach(o => o.draw(Game.eye));
+    globalOverlay.draw(Game.eye);
 }
 
 // underlay is the image that contains combined rendering results of the previous views.

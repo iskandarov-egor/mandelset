@@ -66,7 +66,7 @@ vec4 shade(float iterations, float normal_atan, float distance) {
         float distance_factor = seamless(cycle(-log(distance), 8.0));
         iterations = 1.0;
         
-		return vec4(0, 0, distance_factor*iterations*normal_factor, 1);
+		return vec4(0, 0, iterations*normal_factor, 1);
 	}
 }
 
