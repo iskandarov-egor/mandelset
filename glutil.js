@@ -1,4 +1,4 @@
-M.gl_util = {}
+M.gl_util = {};
 
 M.gl_util.createRenderPyramid = function (gl, w, h) {
 	var fbuffer = gl.createFramebuffer();
@@ -37,7 +37,6 @@ M.gl_util.createRenderPyramid = function (gl, w, h) {
 		textureL1: texture1,
 	};
 }
-
 
 
 M.gl_util.createRenderTexture = function (gl, w, h) {

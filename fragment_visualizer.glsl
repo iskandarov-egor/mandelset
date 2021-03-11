@@ -59,14 +59,18 @@ vec4 shade(float iterations, float normal_atan, float distance) {
     if (iterations < 0.0) {
 		return vec4(1, 0, iterations, 1); // todo why?
 	} else {
-        float normal_factor = (PI + normal_atan)/(2.0*PI);
-        normal_factor = 1.0 - abs(normal_factor*2.0 - 1.0);
-        normal_factor = normal_factor/1.5 + 0.333333;
+        float normal_factor = fract((PI + normal_atan)/(2.0*PI));
+        //normal_factor = 1.0 - abs(normal_factor*2.0 - 1.0);
+        //normal_factor = normal_factor/1.5 + 0.333333;
         
         float distance_factor = seamless(cycle(-log(distance), 8.0));
         iterations = 1.0;
         
-		return vec4(0, 0, iterations*normal_factor, 1);
+        float v = 1.0;
+        v *= normal_factor;
+        //v *= distance_factor;
+        
+		return vec4(0, 0, v, 1);
 	}
 }
 

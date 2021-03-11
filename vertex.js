@@ -7,7 +7,7 @@ in vec4 a_position;
 uniform vec2 offsetX;
 uniform vec2 offsetY;
 uniform float scale;
-uniform float screenAspectRatio;
+uniform float bufferAspectRatio;
 uniform vec4 viewport;
 uniform float one;
 

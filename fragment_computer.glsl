@@ -11,7 +11,8 @@ uniform float scale;
 uniform float one;
 uniform vec2 offsetX;
 uniform vec2 offsetY;
-uniform float screenAspectRatio;
+uniform float bufferAspectRatio;
+uniform float pixelW;
 uniform int iterations;
 uniform sampler2D refOrbit;
 uniform sampler2D parent;
@@ -19,6 +20,9 @@ uniform int refOrbitLen;
 uniform float refOrbitEyeOffsetX;
 uniform float refOrbitEyeOffsetY;
 uniform bool isPyramidLayer;
+
+uniform int multisampling_pass;
+uniform highp usampler2D multisampling_prev;
 
 #include <ff_math>
 #include <mandel>
@@ -144,7 +148,7 @@ void texture_test_main() {
 	//outColor = texelFetch(refOrbit, ivec2(int(1023.0*((clipCoord.y+1.0)/2.0)), 0), 0);
 }
 
-void texture_main() {
+vec4 computer_texture(vec2 clipCoord) {
     float x = scale*clipCoord.x;
     float y = scale*clipCoord.y;
     
@@ -156,7 +160,7 @@ void texture_main() {
 	
     vec2 normal = compute_normal(z.x, z.y, derivative.x, derivative.y);
     float distance = compute_distance(z.x, z.y, derivative.x, derivative.y);
-    outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(normal.x, normal.y)), floatBitsToUint(distance), 1);
+    return vec4(m, atan(normal.x, normal.y), distance, 1);
     //outColor = uvec4(floatBitsToUint(m), floatBitsToUint(normal.x), floatBitsToUint(normal.y), 1);
 }
 
@@ -191,8 +195,12 @@ void texture_main_ff() {
 	}
 }*/
 
+float rand(vec2 co) {
+  return fract(sin(dot(co.xy,vec2(12.9898,78.233))) * 43758.5453);
+}
+
 void main() {
-	if (isPyramidLayer) {
+	if (isPyramidLayer && multisampling_pass == 1) {
 		vec2 pixCoord = (vec2(gl_FragCoord) - vec2(1.5, 1.5));
 		vec2 parentCoord = pixCoord / 3.0;
 		if (vec2(ivec2(parentCoord)) == parentCoord) {
@@ -200,9 +208,25 @@ void main() {
 			discard;
 		}
 	}
+    
+    vec2 sampleCoord = clipCoord;
+    if (multisampling_pass > 1) {
+        sampleCoord += (rand(clipCoord + vec2(0, float(multisampling_pass))) - vec2(0.5, 0.5)) * vec2(pixelW, pixelW);
+    };
+    
 	//ff_main();
 	//grid_main();
-	texture_main();
+	vec4 result = computer_texture(sampleCoord);
+    if (multisampling_pass > 1) {
+        vec2 prev_pixel = clipCoord;
+        prev_pixel.x /= bufferAspectRatio;
+        prev_pixel = (prev_pixel + vec2(1.0, 1.0)) / 2.0;
+        
+        uvec4 prev_u = texture(multisampling_prev, prev_pixel);
+        vec4 prev = vec4(uintBitsToFloat(prev_u[0]), uintBitsToFloat(prev_u[1]), uintBitsToFloat(prev_u[2]), 1);
+        result = (float(multisampling_pass - 1) * prev + result) / float(multisampling_pass);
+    }
+    outColor = uvec4(floatBitsToUint(result[0]), floatBitsToUint(result[1]), floatBitsToUint(result[2]), 1);
 	//f_main();
 }
 

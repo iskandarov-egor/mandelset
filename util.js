@@ -9,12 +9,8 @@ function loadFile(filePath) {
 
 
 function newBlockScanner(w, h, blockWidth) {
-	var scanner = {
-		xBlocks: Math.ceil(w / blockWidth),
-		yBlocks: Math.ceil(h / blockWidth),
-		xBlock: 0,
-		yBlock: 0,
-	};
+	var scanner = {};
+    
 	scanner.next = function() {
 		var ret = {
 			x: scanner.xBlock * blockWidth,
@@ -33,6 +29,15 @@ function newBlockScanner(w, h, blockWidth) {
 			scanner.xBlock++;
 		}
 		return ret;
-	}
+	};
+    
+    scanner.reset = function() {
+        scanner.xBlocks = Math.ceil(w / blockWidth);
+        scanner.yBlocks = Math.ceil(h / blockWidth);
+        scanner.xBlock = 0;
+        scanner.yBlock = 0;
+    };
+    
+    scanner.reset();
 	return scanner;
 }

@@ -270,3 +270,11 @@ var error2 = {
 	previewScale: 1,
 	iterations: 1000,
 };
+
+var macaroni1 = {	
+    scale: 1/5077091.561327687,
+	offsetX: ns.init(-0.001311564150764691618830659614),
+	offsetY: ns.init(0.757143982512533675333088467596),
+	previewScale: 1,
+	iterations: 8000,
+}

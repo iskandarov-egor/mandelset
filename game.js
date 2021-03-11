@@ -149,6 +149,7 @@ var compArg2 = {
 	},
 	frameBuffer: fbuffer,
 	nLevels: 3,
+    multisampling_passes: 8,
     //_orbitLenLimit: 2,
 };
 
@@ -158,6 +159,8 @@ var globalOverlay = new M.CanvasOverlay(canvas1);
 var comp2 = new M.Computer(compArg2);
 //var comp2 = new M.PyramidComputer(compArg2);
 comp2.init();
+
+var mixer = new M.Mixer(gl, comp2);
 var compOverlays = comp2.getOverlays();
 
 var program2 = M.gl_util.createProgram(
@@ -194,7 +197,7 @@ function visualizeBuffer(texture) {
 	gl.activeTexture(gl.TEXTURE2);
 	gl.uniform1i(gl.getUniformLocation(program2, "bgTexture"), 2);
 	
-		gl.bindTexture(gl.TEXTURE_2D, underlay.texture);
+	gl.bindTexture(gl.TEXTURE_2D, underlay.texture);
 	if (underlay.eye){ // todo is true ok?
 		gl.uniform1f(gl.getUniformLocation(program2, "bgEyeX"), ns.number(ns.sub(underlay.eye.offsetX, Game.eye.offsetX)));
 		gl.uniform1f(gl.getUniformLocation(program2, "bgEyeY"), ns.number(ns.sub(underlay.eye.offsetY, Game.eye.offsetY)));

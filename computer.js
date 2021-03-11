@@ -27,13 +27,6 @@ clearColor[1] = 0xFFFFFFFF;
 clearColor[2] = 0;
 clearColor[3] = 0;
 
-var states = {
-    initial: 1,
-    orbit_search: 2,
-    drawing: 3,
-    finished: 4,
-};
-
 var STATE_INITIAL = 1;
 var STATE_ORBIT = 2;
 var STATE_DRAW = 3;
@@ -50,6 +43,7 @@ class Computer {
     // refOrbitFinder: if provided, will use this one.
 	// bufParam:
 	//   w, h: width and height of the @framebuffer
+    // multisampling_passes: number of passes, default is 1.
 	constructor(args) {
 		this.gl = args.gl;
 		
@@ -67,12 +61,13 @@ class Computer {
         } else {
             this.refOrbitFinder = new M.mandel.OrbitFinder(1);
         }
-		this.job = new Job(gl, this.bufParam);
+		this.job = new Job(gl, this.bufParam, args.multisampling_passes);
         this.overlay = new M.CanvasOverlay(document.getElementById('canvas1'));
         this.overlay.addLiveCallback(overlay => this.overlayCallback(overlay));
         this._orbitLenLimit = args._orbitLenLimit;
         this.jobReset = false;
         this.state = STATE_INITIAL;
+        //
 	}
 	
 	// sets a new draw target. abandons the previous one and does not wait for its completion.
@@ -226,16 +221,22 @@ class Computer {
 
 // a job is a small class that handles iterative drawing in small windows.
 class Job {
-    constructor(gl, bufParam) {
+    constructor(gl, bufParam, multisampling_passes) {
         this.gl = gl;
         this.bufParam = bufParam;
         this.done = false;
         this.program = M.game_gl.createProgram1();
         this.fbuffer = gl.createFramebuffer();
+        this.multisampling_passes = multisampling_passes ? multisampling_passes : 1;
     }
     
     init() {
         this.renderTexture = M.gl_util.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
+        if (this.multisampling_passes > 1) {
+            this.swapTexture = M.gl_util.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
+        } else {
+            this.swapTexture = M.gl_util.createRenderTexture(gl, 1, 1); // dummy
+        }
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.renderTexture, 0);
         gl.clearBufferuiv(gl.COLOR, 0, clearColor);
@@ -250,7 +251,8 @@ class Job {
         gl.clearBufferuiv(gl.COLOR, 0, clearColor);
         
         gl.useProgram(this.program);
-		gl.uniform1f(gl.getUniformLocation(this.program, "screenAspectRatio"), this.bufParam.ratio);
+		gl.uniform1f(gl.getUniformLocation(this.program, "bufferAspectRatio"), this.bufParam.ratio);
+        gl.uniform1f(gl.getUniformLocation(this.program, "pixelW"), 2.0 / this.bufParam.h);
 		gl.uniform1f(gl.getUniformLocation(this.program, "scale"), this.eye.scale);
 		gl.uniform1f(gl.getUniformLocation(this.program, "one"), 1.0);
 		M.gl_util.glUniformD(gl.getUniformLocation(this.program, "offsetX"), ns.number(this.eye.offsetX));
@@ -266,6 +268,10 @@ class Job {
 		gl.uniform1i(gl.getUniformLocation(this.program, "refOrbitLen"), orbitComputer.iterations);
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetX"), ns.number(ns.sub(this.eye.offsetX, orbitComputer.x)));
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetY"), ns.number(ns.sub(this.eye.offsetY, orbitComputer.y)));
+        
+        gl.uniform1i(gl.getUniformLocation(this.program, "multisampling_prev"), 1);
+        gl.uniform1i(gl.getUniformLocation(this.program, "multisampling_pass"), 1);
+        this.multisampling_pass = 1;
         
         var myGPUIterationsPerMs = 18750000; // how many iterations my gpu is able to execute per ms (with no ref orbit)
         var slowGPUIterationsPerMs = myGPUIterationsPerMs / 4; // how many iterations should any gpu be able to execute per ms (with no ref orbit)
@@ -295,14 +301,30 @@ class Job {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
         gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, this.orbitComputer.getTexture(gl));
+        gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D, this.swapTexture);
     }
     
     _iteration() {
         var gl = this.gl;
 		var view = this.scanner.next();
-		if (view == null) {
-			this.done = true;
-			return;
+		while (view == null) {
+            if (this.multisampling_pass >= this.multisampling_passes) {
+                this.done = true;
+                return;
+            }
+            this.multisampling_pass++;
+            
+            gl.uniform1i(gl.getUniformLocation(this.program, "multisampling_pass"), this.multisampling_pass);
+            var t = this.renderTexture;
+            this.renderTexture = this.swapTexture;
+            this.swapTexture = t;
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.renderTexture, 0);
+            this._setup();
+            
+            this.scanner.reset();
+            view = this.scanner.next();
 		}
 		
 		//view = {x: 650, y:300, w:400, h:300};
