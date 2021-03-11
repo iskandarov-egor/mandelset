@@ -1,84 +1,84 @@
 M.gl_util = {};
 
 M.gl_util.createRenderPyramid = function (gl, w, h) {
-	var fbuffer = gl.createFramebuffer();
-	var texture0 = gl.createTexture();
-	var texture1 = gl.createTexture();
-	{
-		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, texture0);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		const level = 0;
-		const internalFormat = gl.RGBA;
-		const border = 0;
-		const format = gl.RGBA;
-		const type = gl.UNSIGNED_BYTE;
-		const data = null;
-		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-					w, h, border,
-					format, type, data);
-		
-		gl.bindTexture(gl.TEXTURE_2D, texture1);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-					Math.floor(w / 3), Math.floor(h / 3), border,
-					format, type, data);
-		
-		gl.bindFramebuffer(gl.FRAMEBUFFER, fbuffer);
-		gl.framebufferTexture2D(
-			gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, level);
-		
-	}
-	return {
-		fbuffer: fbuffer,
-		textureL0: texture0,
-		textureL1: texture1,
-	};
+    var fbuffer = gl.createFramebuffer();
+    var texture0 = gl.createTexture();
+    var texture1 = gl.createTexture();
+    {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, texture0);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const border = 0;
+        const format = gl.RGBA;
+        const type = gl.UNSIGNED_BYTE;
+        const data = null;
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                    w, h, border,
+                    format, type, data);
+        
+        gl.bindTexture(gl.TEXTURE_2D, texture1);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                    Math.floor(w / 3), Math.floor(h / 3), border,
+                    format, type, data);
+        
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbuffer);
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, level);
+        
+    }
+    return {
+        fbuffer: fbuffer,
+        textureL0: texture0,
+        textureL1: texture1,
+    };
 }
 
 
 M.gl_util.createRenderTexture = function (gl, w, h) {
-	var texture = gl.createTexture();
-	{
-		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		const level = 0;
-		const internalFormat = gl.RGBA32UI;
-		const border = 0;
-		const format = gl.RGBA_INTEGER;
-		const type = gl.UNSIGNED_INT;
-		const data = null;
-		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-					w, h, border,
-					format, type, data);
-		
-	}
-	return texture;
+    var texture = gl.createTexture();
+    {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        const level = 0;
+        const internalFormat = gl.RGBA32UI;
+        const border = 0;
+        const format = gl.RGBA_INTEGER;
+        const type = gl.UNSIGNED_INT;
+        const data = null;
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                    w, h, border,
+                    format, type, data);
+        
+    }
+    return texture;
 }
 
 M.gl_util.createUnderlayTexture = function (gl, w, h) {
-	var texture = gl.createTexture();
-	{
-		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		const level = 0;
-		const internalFormat = gl.RGBA;
-		const border = 0;
-		const format = gl.RGBA;
-		const type = gl.UNSIGNED_BYTE;
-		const data = null;
-		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-					w, h, border,
-					format, type, data);
-		
-	}
-	return texture;
+    var texture = gl.createTexture();
+    {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const border = 0;
+        const format = gl.RGBA;
+        const type = gl.UNSIGNED_BYTE;
+        const data = null;
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                    w, h, border,
+                    format, type, data);
+        
+    }
+    return texture;
 }
 
 M.gl_util.createShader = function (gl, type, source) {
@@ -130,32 +130,32 @@ M.gl_util.resizeCanvas = function (canvas, scale) {
 }
 
 M.gl_util.preprocess = function (source, includes) {
-	let re = /^([\s\S]*)(#include <[^>]*>)([\s\S]*)$/;
-	let re2 = /^#include <([^>]*)>$/;
-	for (var i = 0; ; i++) {
-		if (i >= 1e3) {
-			throw new Error("too many includes!");
-		}
-		var match = source.match(re);
-		if (match == null) {
-			break;
-		}
-		var include = match[2];
-		var dep = include.match(re2);
-		if (dep == null) {
-			throw new Error("bad include " + include);
-		}
-		dep = dep[1];
-		if (!includes.hasOwnProperty(dep)) {
-			throw new Error("unknown include " + dep);
-		}
-		source = source.replace(re, `\$1${includes[dep]}\$3`);
-	}
-	return source;
+    let re = /^([\s\S]*)(#include <[^>]*>)([\s\S]*)$/;
+    let re2 = /^#include <([^>]*)>$/;
+    for (var i = 0; ; i++) {
+        if (i >= 1e3) {
+            throw new Error("too many includes!");
+        }
+        var match = source.match(re);
+        if (match == null) {
+            break;
+        }
+        var include = match[2];
+        var dep = include.match(re2);
+        if (dep == null) {
+            throw new Error("bad include " + include);
+        }
+        dep = dep[1];
+        if (!includes.hasOwnProperty(dep)) {
+            throw new Error("unknown include " + dep);
+        }
+        source = source.replace(re, `\$1${includes[dep]}\$3`);
+    }
+    return source;
 }
 
 M.gl_util.glUniformD = function (loc, value) {
-	var f32 = new Float32Array(2);
-	splitDouble(value, f32);
-	gl.uniform2fv(loc, f32);
+    var f32 = new Float32Array(2);
+    splitDouble(value, f32);
+    gl.uniform2fv(loc, f32);
 }

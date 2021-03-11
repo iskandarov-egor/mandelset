@@ -29,20 +29,20 @@ uniform highp usampler2D multisampling_prev;
 #include <debug>
 
 vec4 shade2(float iter) {
-	if (iter == -1.0) {
-		return vec4(0, 1, 0, 1);
-	}
-	iter = iter - float(int(iter));
+    if (iter == -1.0) {
+        return vec4(0, 1, 0, 1);
+    }
+    iter = iter - float(int(iter));
     if (iter < 0.0) {
-		return vec4(1, 0, iter, 1);
-	} else {
-		return vec4(0, 0, iter, 1);
-	}
+        return vec4(1, 0, iter, 1);
+    } else {
+        return vec4(0, 0, iter, 1);
+    }
 }
 
 uvec4 shade(float x) {
-	vec4 s = shade2(x);
-	return uvec4(floatBitsToUint(s[0]), floatBitsToUint(s[1]), floatBitsToUint(s[2]), floatBitsToUint(s[3]));
+    vec4 s = shade2(x);
+    return uvec4(floatBitsToUint(s[0]), floatBitsToUint(s[1]), floatBitsToUint(s[2]), floatBitsToUint(s[3]));
 }
 
 vec2 compute_normal(float zx, float zy, float derivative_x, float derivative_y) {
@@ -71,47 +71,47 @@ float compute_distance(float zx, float zy, float derivative_x, float derivative_
 }
 
 vec4 float_color(float x) {
-	return vec4(0, 1, 0, 1);
-	float r, g, b;
-	if (x < 0.0) {
-		x = -x;
-		r = 0.0;
-	} else {
-		r = 0.0;
-	}
-	while (x > 1.0) {
-		x /= 2.0;
-	}
-	while (float(int(x)) != x) {
-		x *= 2.0;
-	}
-	g = float(int(x) % 255)/255.0;
-	b = float((int(x) / 255) % 255)/255.0;
-	return vec4(r, 1, b, 1);
+    return vec4(0, 1, 0, 1);
+    float r, g, b;
+    if (x < 0.0) {
+        x = -x;
+        r = 0.0;
+    } else {
+        r = 0.0;
+    }
+    while (x > 1.0) {
+        x /= 2.0;
+    }
+    while (float(int(x)) != x) {
+        x *= 2.0;
+    }
+    g = float(int(x) % 255)/255.0;
+    b = float((int(x) / 255) % 255)/255.0;
+    return vec4(r, 1, b, 1);
 }
 
 
 void ff_main() {
     //vec2 ffx = vec2(0.0, clipCoord.x);
     //vec2 ffy = vec2(0.0, clipCoord.y);
-	vec2 ffx = split_ff(clipCoord.x);
+    vec2 ffx = split_ff(clipCoord.x);
     vec2 ffy = split_ff(clipCoord.y);
-	//outColor = mantissaColor(clipCoord.x);
-	//return;
+    //outColor = mantissaColor(clipCoord.x);
+    //return;
     //vec2 ffs = vec2(0.0, scale);
-	vec2 ffs = split_ff(scale);
+    vec2 ffs = split_ff(scale);
     //vec2 ffa = vec2(0.0, screenAspectRatio);
-	
+    
     vec2 ffox = offsetX;
     vec2 ffoy = offsetY;
-	//ffox = vec2(0.0, offsetX[1]);
-	//ffoy = vec2(0.0, offsetY[1]);
+    //ffox = vec2(0.0, offsetX[1]);
+    //ffoy = vec2(0.0, offsetY[1]);
     ffx = ff_mul(ffs, ffx);
     //ffx = ff_mul(ffa, ffx);
     ffy = ff_mul(ffs, ffy);
     ffx = ff_add(ffox, ffx);
     ffy = ff_add(ffoy, ffy);
-	///outColor = vec4((mantissa(ffx[0])+mantissa(ffx[1])) % 2, 0, 0, 1);
+    ///outColor = vec4((mantissa(ffx[0])+mantissa(ffx[1])) % 2, 0, 0, 1);
     vec2 derivative_x = vec2(0, 0);
     vec2 derivative_y = vec2(0, 0);
     vec2 zx = vec2(0, 0);
@@ -120,7 +120,7 @@ void ff_main() {
     float distance = compute_distance(zx[1], zy[1], derivative_x[1], derivative_y[1]);
     vec2 normal = compute_normal(zx[1], zy[1], derivative_x[1], derivative_y[1]);
     outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(normal.x, normal.y)), floatBitsToUint(distance), 1);
-	///outColor = shade(mandel(ffx.y, ffy.y, iterations));
+    ///outColor = shade(mandel(ffx.y, ffy.y, iterations));
     ///outColor = floatColor(ffx);
 }
 
@@ -130,11 +130,11 @@ void f_main() {
     //coord.x *= screenAspectRatio;
     coord.x += offsetX[1];
     coord.y += offsetY[1];
-	//outColor = mantissaColor(coord.x);
+    //outColor = mantissaColor(coord.x);
     vec2 der;
     float m = mandel_der(coord.x, coord.y, iterations, der);
     
-	outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(der.x, der.y)), 0, 1);
+    outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(der.x, der.y)), 0, 1);
 }
 
 void delta_main() {
@@ -145,7 +145,7 @@ void delta_main() {
 }
 
 void texture_test_main() {
-	//outColor = texelFetch(refOrbit, ivec2(int(1023.0*((clipCoord.y+1.0)/2.0)), 0), 0);
+    //outColor = texelFetch(refOrbit, ivec2(int(1023.0*((clipCoord.y+1.0)/2.0)), 0), 0);
 }
 
 vec4 computer_texture(vec2 clipCoord) {
@@ -156,8 +156,8 @@ vec4 computer_texture(vec2 clipCoord) {
     float dy = y + refOrbitEyeOffsetY;
     vec2 derivative;
     vec2 z;
-	float m = mandel_delta(dx, dy, iterations, derivative, z);
-	
+    float m = mandel_delta(dx, dy, iterations, derivative, z);
+    
     vec2 normal = compute_normal(z.x, z.y, derivative.x, derivative.y);
     float distance = compute_distance(z.x, z.y, derivative.x, derivative.y);
     return vec4(m, atan(normal.x, normal.y), distance, 1);
@@ -167,32 +167,32 @@ vec4 computer_texture(vec2 clipCoord) {
 void texture_main_ff() {
     //float dx = scale*clipCoord.x;
     //float dy = scale*clipCoord.y;
-	vec2 dx = split_ff(clipCoord.x);
-	vec2 dy = split_ff(clipCoord.y);
-	vec2 s = split_ff(scale);
-	dx = ff_mul(s, dx);
-	dy = ff_mul(s, dy);
-	//float m = mandel_delta(dx, dy, iterations);
-	float m = mandel_delta_ff(dx, dy, iterations);
+    vec2 dx = split_ff(clipCoord.x);
+    vec2 dy = split_ff(clipCoord.y);
+    vec2 s = split_ff(scale);
+    dx = ff_mul(s, dx);
+    dy = ff_mul(s, dy);
+    //float m = mandel_delta(dx, dy, iterations);
+    float m = mandel_delta_ff(dx, dy, iterations);
     outColor = shade(m);
 }
 
 /*void mip_main() {
-	vec2 pixCoord = (vec2(gl_FragCoord) - vec2(1.5, 1.5));
-	vec2 parentCoord = pixCoord / 3.0;
-	if (onlyTransfer) {
-		outColor = texelFetch(parent, ivec2(parentCoord), 0);
-		//outColor = vec4(0, 1, 0, 1);
-		return;
-	}
-	if (haveParent && vec2(ivec2(parentCoord)) == parentCoord) {
-		//parentCoord.x *= 0.5;
-		outColor = texelFetch(parent, ivec2(parentCoord), 0);
-		//outColor = vec4(0, 1, 0, 1);
-	} else  {
-		f_main();
-		//outColor = vec4(1, 0, 1, 1);
-	}
+    vec2 pixCoord = (vec2(gl_FragCoord) - vec2(1.5, 1.5));
+    vec2 parentCoord = pixCoord / 3.0;
+    if (onlyTransfer) {
+        outColor = texelFetch(parent, ivec2(parentCoord), 0);
+        //outColor = vec4(0, 1, 0, 1);
+        return;
+    }
+    if (haveParent && vec2(ivec2(parentCoord)) == parentCoord) {
+        //parentCoord.x *= 0.5;
+        outColor = texelFetch(parent, ivec2(parentCoord), 0);
+        //outColor = vec4(0, 1, 0, 1);
+    } else  {
+        f_main();
+        //outColor = vec4(1, 0, 1, 1);
+    }
 }*/
 
 float rand(vec2 co) {
@@ -200,23 +200,23 @@ float rand(vec2 co) {
 }
 
 void main() {
-	if (isPyramidLayer && multisampling_pass == 1) {
-		vec2 pixCoord = (vec2(gl_FragCoord) - vec2(1.5, 1.5));
-		vec2 parentCoord = pixCoord / 3.0;
-		if (vec2(ivec2(parentCoord)) == parentCoord) {
-			//outColor = uvec4(0, 0, 0, 0);
-			discard;
-		}
-	}
+    if (isPyramidLayer && multisampling_pass == 1) {
+        vec2 pixCoord = (vec2(gl_FragCoord) - vec2(1.5, 1.5));
+        vec2 parentCoord = pixCoord / 3.0;
+        if (vec2(ivec2(parentCoord)) == parentCoord) {
+            //outColor = uvec4(0, 0, 0, 0);
+            discard;
+        }
+    }
     
     vec2 sampleCoord = clipCoord;
     if (multisampling_pass > 1) {
         sampleCoord += (rand(clipCoord + vec2(0, float(multisampling_pass))) - vec2(0.5, 0.5)) * vec2(pixelW, pixelW);
     };
     
-	//ff_main();
-	//grid_main();
-	vec4 result = computer_texture(sampleCoord);
+    //ff_main();
+    //grid_main();
+    vec4 result = computer_texture(sampleCoord);
     if (multisampling_pass > 1) {
         vec2 prev_pixel = clipCoord;
         prev_pixel.x /= bufferAspectRatio;
@@ -227,6 +227,6 @@ void main() {
         result = (float(multisampling_pass - 1) * prev + result) / float(multisampling_pass);
     }
     outColor = uvec4(floatBitsToUint(result[0]), floatBitsToUint(result[1]), floatBitsToUint(result[2]), 1);
-	//f_main();
+    //f_main();
 }
 

@@ -1,22 +1,22 @@
 
 var blackEye = {
     scale: 1/5.559917313492236,
-	offsetX: ns.init(-0.123880123476094672341218938527),
-	offsetY: ns.init(1),
-	previewScale: 1,
-	iterations: 100,
+    offsetX: ns.init(-0.123880123476094672341218938527),
+    offsetY: ns.init(1),
+    previewScale: 1,
+    iterations: 100,
 };
 
 function timoutLoop (interval, f, cb) {
     function timer() {
         var goOn = f();
-		if (goOn) {
+        if (goOn) {
             trace('ltest', 'goon');
             setTimeout(timer, interval);
         } else {
             cb();
         };
-	};
+    };
     timer();
 };
 
@@ -56,7 +56,7 @@ class LoadTester {
         
         function f() {
             var status = gl.getSyncParameter(sync, gl.SYNC_STATUS);
-			return status != gl.SIGNALED;
+            return status != gl.SIGNALED;
         }
         
         function _cb() {

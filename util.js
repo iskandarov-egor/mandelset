@@ -9,27 +9,27 @@ function loadFile(filePath) {
 
 
 function newBlockScanner(w, h, blockWidth) {
-	var scanner = {};
+    var scanner = {};
     
-	scanner.next = function() {
-		var ret = {
-			x: scanner.xBlock * blockWidth,
-			y: scanner.yBlock * blockWidth,
-			w: Math.min(blockWidth, w - scanner.xBlock * blockWidth),
-			h: Math.min(blockWidth, h - scanner.yBlock * blockWidth),
-		};
-		
-		if (scanner.yBlock == scanner.yBlocks) {
-			return null;
-		}
-		if (scanner.xBlock == scanner.xBlocks - 1) {
-			scanner.yBlock++;
-			scanner.xBlock = 0;
-		} else {
-			scanner.xBlock++;
-		}
-		return ret;
-	};
+    scanner.next = function() {
+        var ret = {
+            x: scanner.xBlock * blockWidth,
+            y: scanner.yBlock * blockWidth,
+            w: Math.min(blockWidth, w - scanner.xBlock * blockWidth),
+            h: Math.min(blockWidth, h - scanner.yBlock * blockWidth),
+        };
+        
+        if (scanner.yBlock == scanner.yBlocks) {
+            return null;
+        }
+        if (scanner.xBlock == scanner.xBlocks - 1) {
+            scanner.yBlock++;
+            scanner.xBlock = 0;
+        } else {
+            scanner.xBlock++;
+        }
+        return ret;
+    };
     
     scanner.reset = function() {
         scanner.xBlocks = Math.ceil(w / blockWidth);
@@ -39,5 +39,5 @@ function newBlockScanner(w, h, blockWidth) {
     };
     
     scanner.reset();
-	return scanner;
+    return scanner;
 }

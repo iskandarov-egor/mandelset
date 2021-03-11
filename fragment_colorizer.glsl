@@ -12,7 +12,7 @@ uniform float screenAspectRatio;
 #define PI 3.1415926538
 
 vec4 u4(uvec4 x) {
-	return vec4(uintBitsToFloat(x[0]), uintBitsToFloat(x[1]), uintBitsToFloat(x[2]), uintBitsToFloat(x[3]));
+    return vec4(uintBitsToFloat(x[0]), uintBitsToFloat(x[1]), uintBitsToFloat(x[2]), uintBitsToFloat(x[3]));
 }
 
 float seamless(float x) {
@@ -25,12 +25,12 @@ float cycle(float x, float len) {
 
 vec4 shade(float iterations, float normal_atan, float distance) {
     if (iterations == -1.0) {
-		return vec4(0, 1, 0, 1);
-	}
-	iterations = iterations - float(int(iterations));
+        return vec4(0, 1, 0, 1);
+    }
+    iterations = iterations - float(int(iterations));
     if (iterations < 0.0) {
-		return vec4(1, 0, iterations, 1); // todo why?
-	} else {
+        return vec4(1, 0, iterations, 1); // todo why?
+    } else {
         float normal_factor = fract((PI + normal_atan)/(2.0*PI));
         //normal_factor = 1.0 - abs(normal_factor*2.0 - 1.0);
         //normal_factor = normal_factor/1.5 + 0.333333;
@@ -42,8 +42,8 @@ vec4 shade(float iterations, float normal_atan, float distance) {
         v *= normal_factor;
         //v *= distance_factor;
         
-		return vec4(0, 0, v, 1);
-	}
+        return vec4(0, 0, v, 1);
+    }
 }
 
 vec4 number_inspector(float x) {
@@ -82,8 +82,8 @@ vec4 number_inspector(float x) {
 
 void main() {
     float canvasX = (clipCoord.x) / (screenAspectRatio * 2.0) + 0.5;
-	float canvasY = (clipCoord.y) / 2.0 + 0.5;
-	vec2 txtCoord = vec2(canvasX, canvasY);
+    float canvasY = (clipCoord.y) / 2.0 + 0.5;
+    vec2 txtCoord = vec2(canvasX, canvasY);
 
     uvec4 pixel = texture(computer, txtCoord);
     
@@ -94,5 +94,5 @@ void main() {
         outColor = shade(uintBitsToFloat(pixel[0]), uintBitsToFloat(pixel[1]), uintBitsToFloat(pixel[2]));
         return;
     }
-		
+        
 }

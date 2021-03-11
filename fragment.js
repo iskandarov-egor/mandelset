@@ -22,15 +22,15 @@ uniform int refOrbitLen;
 #include <debug>
 
 vec4 shade(float iter) {
-	if (iter == -1.0) {
-		return vec4(0, 1, 0, 1);
-	}
-	iter = iter - float(int(iter));
+    if (iter == -1.0) {
+        return vec4(0, 1, 0, 1);
+    }
+    iter = iter - float(int(iter));
     if (iter < 0.0) {
-		return vec4(1, 0, iter, 1);
-	} else {
-		return vec4(0, 0, iter, 1);
-	}
+        return vec4(1, 0, iter, 1);
+    } else {
+        return vec4(0, 0, iter, 1);
+    }
 }
 
 void ff_main() {
@@ -55,7 +55,7 @@ void f_main() {
     //coord.x *= screenAspectRatio;
     coord.x += offsetX[1];
     coord.y += offsetY[1];
-	outColor = shade(mandel(coord.x, coord.y, iterations));
+    outColor = shade(mandel(coord.x, coord.y, iterations));
 }
 
 void delta_main() {
@@ -66,37 +66,37 @@ void delta_main() {
 }
 
 void texture_test_main() {
-	outColor = texelFetch(refOrbit, ivec2(int(1023.0*((clipCoord.y+1.0)/2.0)), 0), 0);
+    outColor = texelFetch(refOrbit, ivec2(int(1023.0*((clipCoord.y+1.0)/2.0)), 0), 0);
 }
 
 void texture_main() {
     float dx = scale*screenAspectRatio*clipCoord.x;
     float dy = scale*clipCoord.y;
-	float m = mandel_delta(dx, dy, iterations);
+    float m = mandel_delta(dx, dy, iterations);
     outColor = shade(m);
 }
 
 void mip_main() {
-	vec2 pixCoord = (vec2(gl_FragCoord) - vec2(1.5, 1.5));
-	vec2 parentCoord = pixCoord / 3.0;
-	if (onlyTransfer) {
-		outColor = texelFetch(parent, ivec2(parentCoord), 0);
-		//outColor = vec4(0, 1, 0, 1);
-		return;
-	}
-	if (haveParent && vec2(ivec2(parentCoord)) == parentCoord) {
-		//parentCoord.x *= 0.5;
-		outColor = texelFetch(parent, ivec2(parentCoord), 0);
-		//outColor = vec4(0, 1, 0, 1);
-	} else  {
-		f_main();
-		//outColor = vec4(1, 0, 1, 1);
-	}
+    vec2 pixCoord = (vec2(gl_FragCoord) - vec2(1.5, 1.5));
+    vec2 parentCoord = pixCoord / 3.0;
+    if (onlyTransfer) {
+        outColor = texelFetch(parent, ivec2(parentCoord), 0);
+        //outColor = vec4(0, 1, 0, 1);
+        return;
+    }
+    if (haveParent && vec2(ivec2(parentCoord)) == parentCoord) {
+        //parentCoord.x *= 0.5;
+        outColor = texelFetch(parent, ivec2(parentCoord), 0);
+        //outColor = vec4(0, 1, 0, 1);
+    } else  {
+        f_main();
+        //outColor = vec4(1, 0, 1, 1);
+    }
 }
 
 void main() {
-	mip_main();
-	
+    mip_main();
+    
 }
 
 `;
