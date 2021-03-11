@@ -113,7 +113,7 @@ class Computer {
 		
 		var waitPeriod = 1;
 		if (d.superSlow) {
-			waitPeriod = 50;
+			waitPeriod = 1000;
 		}
 		var sync;
 		var timerQ;

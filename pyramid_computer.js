@@ -16,6 +16,7 @@ class PyramidComputer {
 		this.fbuffer = args.frameBuffer;
 		this.program2;
         this.refOrbitFinder = new M.mandel.OrbitFinder(1);
+        this.drawingEye = Game.eye; // todo aaa
 	}
 	
 	reset(newEye) {
@@ -62,9 +63,12 @@ class PyramidComputer {
 		function cb(done) {
 			if (done && i != 0) {
 				that.parentTransfer(that.computers[i - 1].getTexture(), that.computers[i].getTexture());
+                //that.computers[i - 1].drawingEye = that.computers[i].getDrawingEye();
 			}
 			
-			callback(done && i == 0);
+			//callback(done);
+            that.drawingEye = that.computers[i].getDrawingEye();
+            callback(done && i == 0);
 		}
 		for (i = this.computers.length - 1; i >= 0; i--) {
 			if (!this.computers[i].isDone()) {
@@ -85,12 +89,7 @@ class PyramidComputer {
 	}
 	
 	getDrawingEye() {
-		for (var i = this.computers.length - 1; i >= 0; i--) {
-			if (!this.computers[i].isDone()) {
-				return this.computers[i].getDrawingEye();
-			}
-		}
-		return this.computers[0].getDrawingEye();
+        return this.drawingEye;
 	}
 	
 	parentTransfer(texture, parentTexture) {

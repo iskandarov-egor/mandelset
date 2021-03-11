@@ -149,7 +149,6 @@ var compArg2 = {
 	},
 	frameBuffer: fbuffer,
 	nLevels: 3,
-    multisampling_passes: 8,
     //_orbitLenLimit: 2,
 };
 
@@ -160,7 +159,7 @@ var comp2 = new M.Computer(compArg2);
 //var comp2 = new M.PyramidComputer(compArg2);
 comp2.init();
 
-var mixer = new M.Mixer(gl, comp2);
+var mixer = new M.Mixer(gl, comp2, compArg2.buffer);
 var compOverlays = comp2.getOverlays();
 
 var program2 = M.gl_util.createProgram(
@@ -183,7 +182,7 @@ function visualizeBuffer(texture) {
 	gl.useProgram(program2);
 	//gl.clearColor(0, 1, 1, 1);
 	gl.clear(gl.COLOR_BUFFER_BIT);
-	var drawingEye = comp2.getDrawingEye();
+	var drawingEye = mixer.getDrawingEye();
 	gl.uniform1i(gl.getUniformLocation(program2, "fgTexture"), 1);
 	gl.uniform1f(gl.getUniformLocation(program2, "screenAspectRatio"), gl.canvas.width/gl.canvas.height);
 	gl.uniform1f(gl.getUniformLocation(program2, "eyeX"), 0);
@@ -278,7 +277,7 @@ var underlay = new Underlay(gl, renderW, renderH);
 
 Game.draw = function() {
 	
-	comp2.reset(eye);
+	mixer.reset(eye);
 	comp2.computeAll();
 	//comp1.computeAll();
 	
@@ -293,7 +292,7 @@ Game.requestDraw = function() {
 }
 
 Game.drawDirect = function() {
-	comp2.reset(Game.eye);
+	mixer.reset(Game.eye);
 	comp2.computeAll();
 	Game.screenDirty = true;
 }
@@ -307,22 +306,22 @@ function mainLoop() {
 	function timer() {
 		if (Game.eye.dirty) {
 			trace('loop', 'dirty eye2');
-			underlay.combine(comp2.getDrawingEye(), comp2.getTexture());
-			comp2.reset(Game.eye);
+			underlay.combine(mixer.getDrawingEye(), mixer.getTexture());
+			mixer.reset(Game.eye);
 			Game.eye.dirty = false;
 		}
 		var now = performance.now();
 		startTime = now;
 		trace('loop', 'timer');
-		comp2.computeSome(cb);
+		mixer.computeSome(cb);
 	}
 	
 	function cb(done) {
 		Game.screenDirty = true;
 		if (Game.eye.dirty) {
 			trace('loop', 'dirty eye');
-			underlay.combine(comp2.getDrawingEye(), comp2.getTexture());
-			comp2.reset(Game.eye);
+			underlay.combine(mixer.getDrawingEye(), mixer.getTexture());
+			mixer.reset(Game.eye);
 			
 			done = false;
 			Game.eye.dirty = false;
@@ -332,8 +331,6 @@ function mainLoop() {
 			trace('loop', 'all done', now - startTime0);
 			//visualizeBuffer(pyramid.textureL1);
 			Game.state = { name: 'idle'	};
-			comp2.getDrawingEye();
-			comp2.getTexture();
 		} else {
 			var workTime = now - startTime;
 			trace('loop', 'sleep for', workTime * sleep2workRatio);
@@ -342,7 +339,7 @@ function mainLoop() {
 			//visualizeBuffer(pyramid.textureL1);
 	}
     
-	comp2.computeSome(cb);
+	mixer.computeSome(cb);
 }
 
 Game.setEye = function(newEye) {
@@ -358,7 +355,7 @@ Game.resizeCanvas = function() {
 function raf() {
 	if (Game.screenDirty) {
 		trace('raf', '<raf>');
-		visualizeBuffer(comp2.getTexture());
+		visualizeBuffer(mixer.getTexture());
 		Game.screenDirty = false;
 	}
 	requestAnimationFrame(raf);
