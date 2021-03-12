@@ -43,7 +43,6 @@ class Computer {
     // refOrbitFinder: if provided, will use this one.
 	// bufParam:
 	//   w, h: width and height of the @framebuffer
-    // multisampling_passes: number of passes, default is 1.
 	constructor(args) {
 		this.gl = args.gl;
 		
@@ -61,7 +60,7 @@ class Computer {
         } else {
             this.refOrbitFinder = new M.mandel.OrbitFinder(1);
         }
-		this.job = new Job(gl, this.bufParam, args.multisampling_passes);
+		this.job = new Job(gl, this.bufParam);
         this.overlay = new M.CanvasOverlay(document.getElementById('canvas1'));
         this.overlay.addLiveCallback(overlay => this.overlayCallback(overlay));
         this._orbitLenLimit = args._orbitLenLimit;
@@ -72,9 +71,10 @@ class Computer {
 	
 	// sets a new draw target. abandons the previous one and does not wait for its completion.
 	// basically a soft version of 'init'. reinitializes itself, except for some heavy non-changing webgl components.
-	// returns the texture with results so far.
-	reset(newEye) {
+    // if samplingSeed is 0, sample pixel centers. otherwise sample random points within the pixel with this seed.
+	reset(newEye, samplingSeed = 0) {
 		var gl = this.gl;
+        this.samplingSeed = samplingSeed;
 		this.eye = cloneEye(newEye);  // todo maybe we only need eye in job
 		
 		M.Stat.Computer.lastTimingStart = performance.now();
@@ -173,7 +173,7 @@ class Computer {
             callback(false);
         } else {
             if (this.state == STATE_ORBIT) {
-                this.job.reset(this.eye, this.refOrbitFinder.getBestComputer());
+                this.job.reset(this.eye, this.refOrbitFinder.getBestComputer(), this.samplingSeed);
                 this.state = STATE_DRAW;
                 this.drawingEye = this.eye;
             }
@@ -217,33 +217,31 @@ class Computer {
 	isDone() {
 		return this.state == STATE_DRAW && this.job.done;
 	}
+    
+    randomizeSampling(seed) {
+        this.job.randomizeSampling(seed);
+    }
 }
 
 // a job is a small class that handles iterative drawing in small windows.
 class Job {
-    constructor(gl, bufParam, multisampling_passes) {
+    constructor(gl, bufParam) {
         this.gl = gl;
         this.bufParam = bufParam;
         this.done = false;
         this.program = M.game_gl.createProgram1();
         this.fbuffer = gl.createFramebuffer();
-        this.multisampling_passes = multisampling_passes ? multisampling_passes : 1;
     }
     
     init() {
         this.renderTexture = M.gl_util.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
-        if (this.multisampling_passes > 1) {
-            this.swapTexture = M.gl_util.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
-        } else {
-            this.swapTexture = M.gl_util.createRenderTexture(gl, 1, 1); // dummy
-        }
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.renderTexture, 0);
         gl.clearBufferuiv(gl.COLOR, 0, clearColor);
     }
     
     // orbitComputer should contain a computed orbit
-    reset(eye, orbitComputer) {
+    reset(eye, orbitComputer, samplingSeed) {
         this.orbitComputer = orbitComputer;
         this.eye = cloneEye(eye);
         this.done = false;
@@ -269,9 +267,7 @@ class Job {
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetX"), ns.number(ns.sub(this.eye.offsetX, orbitComputer.x)));
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetY"), ns.number(ns.sub(this.eye.offsetY, orbitComputer.y)));
         
-        gl.uniform1i(gl.getUniformLocation(this.program, "multisampling_prev"), 1);
-        gl.uniform1i(gl.getUniformLocation(this.program, "multisampling_pass"), 1);
-        this.multisampling_pass = 1;
+        gl.uniform1i(gl.getUniformLocation(this.program, "samplingSeed"), samplingSeed);
         
         var myGPUIterationsPerMs = 18750000; // how many iterations my gpu is able to execute per ms (with no ref orbit)
         var slowGPUIterationsPerMs = myGPUIterationsPerMs / 4; // how many iterations should any gpu be able to execute per ms (with no ref orbit)
@@ -301,32 +297,16 @@ class Job {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
         gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, this.orbitComputer.getTexture(gl));
-        gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, this.swapTexture);
     }
     
     _iteration() {
         var gl = this.gl;
 		var view = this.scanner.next();
-		while (view == null) {
-            if (this.multisampling_pass >= this.multisampling_passes) {
-                this.done = true;
-                return;
-            }
-            this.multisampling_pass++;
+		if (view == null) {
+            this.done = true;
+            return;
+        }
             
-            gl.uniform1i(gl.getUniformLocation(this.program, "multisampling_pass"), this.multisampling_pass);
-            var t = this.renderTexture;
-            this.renderTexture = this.swapTexture;
-            this.swapTexture = t;
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.renderTexture, 0);
-            this._setup();
-            
-            this.scanner.reset();
-            view = this.scanner.next();
-		}
-		
 		//view = {x: 650, y:300, w:400, h:300};
 		// todo GL_MAX_VIEWPORT_DIMS
 		gl.viewport(view.x, view.y, view.w, view.h);

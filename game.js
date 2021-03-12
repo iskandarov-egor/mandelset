@@ -159,7 +159,7 @@ var comp2 = new M.Computer(compArg2);
 //var comp2 = new M.PyramidComputer(compArg2);
 comp2.init();
 
-var mixer = new M.Mixer(gl, comp2, compArg2.buffer);
+var mixer = new M.Mixer(gl, comp2, compArg2.buffer, 2);
 var compOverlays = comp2.getOverlays();
 
 var program2 = M.gl_util.createProgram(
