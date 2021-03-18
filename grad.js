@@ -46,7 +46,7 @@ class Gradient {
         }
         this.ctx.putImageData(pixel, 0, 0);
     }
-};
+};  
 
 var activeController = null;
 var gradientControllersMouseMove = function(e) {
@@ -56,7 +56,6 @@ var gradientControllersMouseMove = function(e) {
     
     var c = activeController;
     if (e.buttons == 1) {
-        console.log('out');
         if (c.grab != null) {
             var location = c._normalizeCanvasCoords(c.ctx, e);
             c.grab.point.x = (location.x - c.grab.x) / c.canvas.width;
@@ -70,13 +69,12 @@ var gradientControllersMouseMove = function(e) {
 var gradientControllersMouseUp = function(e) {
     if (e.buttons % 2 == 0) {
         activeController = null;
-        console.log('up');
     }
 };
 
 //https://codepen.io/andyranged/pen/KyMKEB
 class GradientController {
-    constructor(receiver, insertionAllowed) {
+    constructor(receiver, modificationAllowed) {
         this.points = [];
         this.grab = null; //{
         //    x: null,
@@ -86,8 +84,7 @@ class GradientController {
         this.receiver = receiver;
         this.highlightedPoint = null;
         this.selectedPoint = null;
-        this.insertionAllowed = insertionAllowed;
-        this.pendingInsertion = null;
+        this.modificationAllowed = modificationAllowed;
     }
     
     add_point(x, payload) {
@@ -100,6 +97,8 @@ class GradientController {
     //todo mouse leave event
         canvas.addEventListener("mousemove", e => { this.mousemove(e); });
         canvas.addEventListener("mousedown", e => { this.mousedown(e); });
+        canvas.addEventListener("mouseup", e => { this.mouseup(e); });
+        canvas.addEventListener('contextmenu', function(e) { e.preventDefault(); }, false);
     }
 
     _normalizeCanvasCoords(ctx, e) {
@@ -140,20 +139,20 @@ class GradientController {
         if (e.buttons == 1) {
             return;
         }
-        this.highlightedPoint = this._locate_point(e);
+        this.highlightedPoint = this._locate_point(e, this.modificationAllowed);
         this.paint();
-        console.log('in');
     }
         
     mousedown(e) {
         if (e.buttons != 1) {
             return;
         }
-        var p = this._locate_point(e, this.insertionAllowed);
+        var p = this._locate_point(e, this.modificationAllowed);
+        var pendingInsertion = null;
         
         var location = this._normalizeCanvasCoords(this.ctx, e);
         if (p == null) {
-            if (!this.insertionAllowed) {
+            if (!this.modificationAllowed) {
                 return;
             }
             p = {
@@ -161,28 +160,103 @@ class GradientController {
                 payload: null,
             };
             this.points.push(p);
-            this.pendingInsertion = p;
+            pendingInsertion = p;
             this.paint();
         }
         this.grab = {
-            x: (!this.insertionAllowed) ? 0 : location.x - p.x * this.canvas.width,
+            x: (!this.modificationAllowed) ? 0 : location.x - p.x * this.canvas.width,
             point: p,
         };
         this.selectedPoint = p;
         activeController = this;
-        this.receiver();
+        this.receiver(pendingInsertion);
+    }
+    
+    mouseup(e) {
+        if (e.button == 2 && this.modificationAllowed && this.points.length > 1) {
+            var p = this._locate_point(e, true);
+            if (p) {
+                this.points.splice(this.points.indexOf(p), 1);
+                this.receiver(null, p);
+                this.paint();
+            }
+        }
     }
     
     _paint_point(ctx, p, canvas_width, canvas_height) {
         ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`;
         var x = Math.floor(canvas_width * p.x);
-        ctx.fillRect(x - canvas_height/2, 0, canvas_height, canvas_height);
-        
+                
         var hl = (p == this.highlightedPoint || p == this.selectedPoint);
-        ctx.strokeStyle = (hl) ? `rgb(0,0,0)` : `rgb(255,255,255)`;
-        ctx.strokeRect(x - canvas_height/2 + 1.5, 1.5, canvas_height - 3, canvas_height - 3);
+        
+        if (!this.modificationAllowed) {
+            hl = false;
+        }
         ctx.strokeStyle = (!hl) ? `rgb(0,0,0)` : `rgb(255,255,255)`;
-        ctx.strokeRect(x - canvas_height/2 + 0.5, 0 + 0.5, canvas_height - 1, canvas_height - 1);
+        
+        ctx.lineWidth = 1;
+        
+        var x1 = x - canvas_height/2 + 0.5;
+        var x2 = x1 + canvas_height - 1;
+        var y1 = 0.5;
+        var y2 = canvas_height - 0.5;
+        
+        ctx.fillStyle = `rgb(192,192,192)`;
+        ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+        
+        ctx.strokeStyle = (!hl) ? `rgb(223,223,223)` : `rgb(128,128,128)`;
+        ctx.beginPath();
+        ctx.moveTo(x1+1, y2-1);
+        ctx.lineTo(x1+1, y1+1);
+        ctx.lineTo(x2-1, y1+1);
+        ctx.stroke();
+        
+        ctx.strokeStyle = (!hl) ? `rgb(128,128,128)` : `rgb(223,223,223)`;
+        ctx.beginPath();
+        ctx.moveTo(x2-1, y1+1);
+        ctx.lineTo(x2-1, y2-1);
+        ctx.lineTo(x1+1, y2-1);
+        ctx.stroke();
+        
+        ctx.strokeStyle = (!hl) ? `rgb(255,255,255)` : `rgb(0,0,0)`;
+        ctx.beginPath();
+        ctx.moveTo(x1, y2);
+        ctx.lineTo(x1, y1);
+        ctx.lineTo(x2, y1);
+        ctx.stroke();
+        
+        ctx.strokeStyle = (!hl) ? `rgb(0,0,0)` : `rgb(255,255,255)`;
+        ctx.beginPath();
+        ctx.moveTo(x2, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x1, y2);
+        ctx.stroke();
+        
+        var w = 0.4;
+        ctx.clearRect(x1+(x2-x1)*(1-w)/2, y1+(y2-y1)*(1-w)/2, (x2 - x1)*w, (y2 - y1)*w);
+        
+        //ctx.strokeStyle = (hl) ? `rgb(223,223,223)` : `rgb(0,0,0)`;
+        //ctx.strokeRect(x - canvas_height/2 + 0.5, 0.5, canvas_height - 1, canvas_height - 1);
+        
+        /*
+        ctx.fillStyle = `rgb(192,192,192)`;
+        ctx.beginPath();
+        ctx.arc(x+0.5, canvas_height/2+0.5, canvas_height/2, 0, 2*Math.PI, true);
+        ctx.fill();
+                
+        ctx.strokeStyle = (hl) ? `rgb(128,128,128)` : `rgb(255,255,255)`;
+        ctx.beginPath();
+        ctx.arc(x+0.5, canvas_height/2+0.5, canvas_height/2, Math.PI*0.25, Math.PI * 1.25, true);
+        ctx.stroke();
+        
+        ctx.strokeStyle = (hl) ? `rgb(223,223,223)` : `rgb(0,0,0)`;
+        ctx.beginPath();
+        ctx.arc(x+0.5, canvas_height/2+0.5, canvas_height/2, Math.PI * 1.25, Math.PI * 2.25, true);
+        ctx.stroke();
+        */
+        
+        
+        //ctx.strokeRect(x - canvas_height/2 + 0.5, 0 + 0.5, canvas_height - 1, canvas_height - 1);
     }
     
     paint() {
@@ -219,15 +293,17 @@ class MainGradient {
             this.gradient.points[i].color = M.colors.srgb2lab(this.gradient.points[i].color);
         }
         var that = this;
-        function receiver() {
-            if (that.controller.pendingInsertion) {
+        function receiver(pendingInsertion, pendingDeletion) {
+            if (pendingInsertion) {
                 var p = {
-                    x: that.controller.pendingInsertion.x,
+                    x: pendingInsertion.x,
                     color: M.colors.srgb2lab([0, 1, 0]), //todo
                 };
                 that.gradient.points.push(p);
-                that.controller.pendingInsertion.payload = p;
-                that.controller.pendingInsertion = null;
+                pendingInsertion.payload = p;
+            }
+            if (pendingDeletion) {
+                that.gradient.points.splice(that.gradient.points.indexOf(pendingDeletion.payload), 1);
             }
             for (var i = 0; i < that.controller.points.length; i++) {
                 console.log(i);
