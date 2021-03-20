@@ -1,5 +1,6 @@
+M.palette = {};
 
-function paintGradient(points, width, callback) {
+M.palette.paintGradient = function (points, width, callback) {
     function lerp(x, a, b) {
         return a + x*(b - a);
     };
@@ -47,7 +48,7 @@ class GradientPainter {
             data[i*4 + 2] = Math.floor(255*rgb[2]);
             data[i*4 + 3] = 255;
         }
-        paintGradient(points, this.canvas.width, callback);
+        M.palette.paintGradient(points, this.canvas.width, callback);
         this.ctx.putImageData(pixel, 0, 0);
     }
 };
@@ -75,6 +76,11 @@ var gradientControllersMouseUp = function(e) {
         activeController = null;
     }
 };
+
+function resizeCanvasToDisplaySize(canvas) {
+    canvas.width  = (window.devicePixelRatio * canvas.clientWidth);
+    canvas.height = (window.devicePixelRatio * canvas.clientHeight);
+}
 
 class GradientController {
     constructor(receiver, modificationAllowed) {
@@ -245,8 +251,9 @@ class GradientController {
     }
 };
 
+
 class MainGradient {
-    constructor(displayCanvas, controlCanvas) {
+    constructor(displayCanvas, controlCanvas, updateCallback) {
         this.gradientPainter = new GradientPainter(displayCanvas, M.colors.lab2srgb);
         var points = [
             {
@@ -280,6 +287,7 @@ class MainGradient {
                 palette.l.points[0].x = hsl[2];
                 palette.paint();
             }
+            that.updateCallback();
         }
         this.controller = new GradientController(receiver, true);
         this.controller.init(controlCanvas);
@@ -289,9 +297,11 @@ class MainGradient {
         this.controller.paint();
         
         this.gradientPainter.paint(this.controller.points);
+        this.updateCallback = updateCallback;
     }
     
-    paintGradient() {
+    paint() {
+        this.controller.paint();
         this.gradientPainter.paint(this.controller.points);
     }
 }
@@ -343,32 +353,17 @@ class HSLPalette {
                 this.l.points[0].x,
             ];
             mainGradient.controller.selectedPoint.color = M.colors.hsl2lab(hsl);
-            mainGradient.paintGradient();
+            mainGradient.paint();
+            mainGradient.updateCallback();
         }
     }
 };
 
-function resizeCanvasToDisplaySize(canvas) {
-    canvas.width  = (window.devicePixelRatio * canvas.clientWidth);
-    canvas.height = (window.devicePixelRatio * canvas.clientHeight);
-}
+M.palette.MainGradient = MainGradient;
+M.palette.HSLPalette = HSLPalette;
 
-var canvas = document.getElementById('canvas');
-//var canvas1 = document.getElementById('canvas1');
-var mainGradient = new MainGradient(
-    document.getElementById('canvas'),
-    document.getElementById('canvas1')
-);
 
-var palette = new HSLPalette(
-    document.getElementById('canvas_hsv_h'),
-    document.getElementById('canvas_hsv_h_control'),
-    document.getElementById('canvas_hsv_s'),
-    document.getElementById('canvas_hsv_s_control'),
-    document.getElementById('canvas_hsv_l'),
-    document.getElementById('canvas_hsv_l_control'),
-);
-
+// todo
 document.addEventListener("mousemove", e => gradientControllersMouseMove(e));
 document.addEventListener("mouseup", e => gradientControllersMouseUp(e));
 //g_h.init(canvas_h);

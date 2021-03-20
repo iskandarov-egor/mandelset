@@ -81,6 +81,27 @@ M.gl_util.createUnderlayTexture = function (gl, w, h) {
     return texture;
 }
 
+M.gl_util.createGradientTexture = function (gl, w, h) {
+    var texture = gl.createTexture();
+    {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const border = 0;
+        const format = gl.RGBA;
+        const type = gl.UNSIGNED_BYTE;
+        const data = null;
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                    w, h, border,
+                    format, type, data);
+        
+    }
+    return texture;
+}
+
 M.gl_util.createShader = function (gl, type, source) {
   var shader = gl.createShader(type);
   gl.shaderSource(shader, source);

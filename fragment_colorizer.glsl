@@ -9,6 +9,8 @@ uniform float screenAspectRatio;
 uniform sampler2D prev;
 uniform int multisampling_pass;
 
+uniform sampler2D gradient;
+
 #define PI 3.1415926538
 
 vec4 u4(uvec4 x) {
@@ -23,6 +25,14 @@ float cycle(float x, float len) {
     return mod(x, len)/len;
 }
 
+vec4 split_range(float x, float a, vec4 lt, vec4 gt) {
+    return (a < x) ? lt : gt;
+}
+
+vec4 split_range2(float x, float y, float a, vec4 c1, vec4 c2, vec4 c3) {
+    return split_range(x, a, c1, split_range(y, a, c2, c3));
+}
+
 vec4 shade(float iterations, float normal_atan, float distance) {
     if (iterations == -1.0) {
         return vec4(0, 0, 0, 1);
@@ -31,10 +41,16 @@ vec4 shade(float iterations, float normal_atan, float distance) {
     if (iterations < 0.0) { vec4(1, 0, iterations, 1); // todo why?
     } else {
         float normal_factor = fract((PI + normal_atan)/(2.0*PI));
-        //normal_factor = 1.0 - abs(normal_factor*2.0 - 1.0);
-        //normal_factor = normal_factor/1.5 + 0.333333;
+        
+        normal_factor = seamless(normal_factor);
+        //normal_factor = mix(0.3, 1.0, normal_factor);
+        //return split_range(0.5, normal_factor, mix(vec4(0.114,0.588,0.886), vec4(0, 1, 1, 1), normal_factor*2.0), mix(vec4(0, 1, 1, 1), vec4(0, 0, 1, 1), (normal_factor - 0.5)*2.0));
+        
+        vec4 a = mix(vec4(0.486,0.212,0.054, 2)/2.0, vec4(0.486,0.212,0.054, 1), normal_factor);
+        vec4 b = mix(vec4(0.786,0.412,0.254, 4)/4.0, vec4(0.786,0.412,0.254, 1), normal_factor);
         
         float distance_factor = seamless(cycle(-log(distance), 8.0));
+        return mix(a, b, distance_factor);
         //iterations = 1.0;
         
         float v = 1.0;
@@ -43,6 +59,12 @@ vec4 shade(float iterations, float normal_atan, float distance) {
         
         return vec4(0, 0, v, 1);
     }
+}
+
+vec4 gradientShade(float iterations, float normal_atan, float distance) {
+    float normal_factor = fract((PI + normal_atan)/(2.0*PI));
+    
+    return texture(gradient, vec2(normal_factor, 0.5));
 }
 
 vec4 number_inspector(float x) {
@@ -91,13 +113,13 @@ void main() {
             outColor = vec4(0, 0, 0, 0);
         } else {
             outColor = texture(prev, txtCoord);
-            //outColor = vec4(0, 1, 1, 1);
         }
     } else {
-        outColor = shade(uintBitsToFloat(pixel[0]), uintBitsToFloat(pixel[1]), uintBitsToFloat(pixel[2]));
+        outColor = gradientShade(uintBitsToFloat(pixel[0]), uintBitsToFloat(pixel[1]), uintBitsToFloat(pixel[2]));
         if (multisampling_pass > 1) {
             vec4 prev_color = texture(prev, txtCoord);
             outColor = (float(multisampling_pass - 1) * prev_color + outColor) / float(multisampling_pass);
+        } else {
         }
     }
 }

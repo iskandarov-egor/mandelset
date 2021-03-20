@@ -62,6 +62,19 @@ canvas.addEventListener("mousemove", e => {
     Game.requestDraw();
 });
 
+function preferencesSwitchListener(event) {
+    var colorMode = (event.target.value == 'color');
+    document.getElementById('eye_preferences').style.display = !colorMode ? 'flex' : 'none';
+    document.getElementById('color_preferences').style.display = colorMode ? 'flex' : 'none';
+    if (colorMode) {
+        mainGradient.paint();
+        palette.paint();
+    }
+}
+
+document.getElementById('preference_switch_eye').addEventListener('change', preferencesSwitchListener);
+document.getElementById('preference_switch_color').addEventListener('change', preferencesSwitchListener);
+
 function myclick() {
     saveLabels();
     
@@ -82,8 +95,44 @@ function myclick3() {
     underlay.combine(comp2.getDrawingEye(), comp2.getTexture(), renderW, renderH);
     visualizeBuffer(comp2.getTexture());
 }
+
+var gradientArray = new Uint8Array(1024*1*4);
+//function gradientUpdateCallback() {
+function updateGradientTexture() {
+    function paintCb(i, color) {
+        var rgb = M.colors.clamp1(M.colors.lab2srgb(color));
+        gradientArray[i*4] = 255*rgb[0];
+        gradientArray[i*4 + 1] = 255*rgb[1];
+        gradientArray[i*4 + 2] = 255*rgb[2];
+        gradientArray[i*4 + 3] = 255;
+    }
+    M.palette.paintGradient(mainGradient.controller.points, 1024, paintCb);
+    
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, Game.gradientTexture);
+    
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 1, gl.RGBA, gl.UNSIGNED_BYTE, gradientArray);
+    Game.updateGradient();
+}
+
+var mainGradient = new M.palette.MainGradient(
+    document.getElementById('gradient_canvas'),
+    document.getElementById('gradient_canvas'),
+    updateGradientTexture,
+);
+
+var palette = new M.palette.HSLPalette(
+    document.getElementById('canvas_hsv_h'),
+    document.getElementById('canvas_hsv_h_control'),
+    document.getElementById('canvas_hsv_s'),
+    document.getElementById('canvas_hsv_s_control'),
+    document.getElementById('canvas_hsv_l'),
+    document.getElementById('canvas_hsv_l_control'),
+);
+
+updateGradientTexture();
 loadLabels();
-mainLoop();
+Game.requestDraw();
 
 setInterval(function() {
   document.getElementById("lblTiming").innerText = 'Timing: ' + M.Stat.Computer.lastTiming;

@@ -16,13 +16,32 @@
     .preference_cells {
       display: flex;
       margin-bottom: 0.2em;
+      flex-shrink: 0;
+      flex-grow: 1;
     }
     
     .preference_cell {
       display: flex;
       margin-right: 1em;
-      flex-basis: 14em;
+      align-items: center;
     }
+    
+    .preference_cell_vertical {
+      display: flex;
+      margin-right: 1em;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    
+    .preference_cell_rows {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      min-width: 0;
+      height: 2em;
+      margin-right: 1em;
+    }
+    
     .preference_column {
       display: flex;
       flex-direction: column;
@@ -44,6 +63,10 @@
       flex-basis: 10em;
     }
     
+    .main_gradient_cell {
+      flex-basis: 40em;
+    }
+    
     label {
       
     }
@@ -53,7 +76,8 @@
     }
     
     .stack {
-        position:relative;
+      position:relative;
+      min-width: 0;
     }
     .stack > canvas {
         position:absolute;
@@ -72,76 +96,108 @@
 </head>
 
 <body>
-  <div class="preference_cells">
-  
-  <div class="preference_cell short_cell">
-    <div class="preference_column">
-      <button onclick='myclick();'>hello</button>
+  <div style="display: flex">
+    <div style="display: flex" id="preference_switch">
+      <div class="preference_cell_vertical">
+        <div style="display: flex">
+        <input type="radio" id="preference_switch_eye" name="preference_switch" value="eye" checked>
+        <label for="preference_switch_eye">view settings</label>
+        </div>
+        <div style="display: flex">
+        <input type="radio" id="preference_switch_color" name="preference_switch" value="color">
+        <label for="preference_switch_color">color settings</label>
+        </div>
+      </div>
+    </div>
+  <div class="preference_cells" id="color_preferences" style="display: none">
+    <div class="preference_cell_rows main_gradient_cell">
+      <div class="stack" style="width:100%; height: 100%">
+        <canvas id="gradient_canvas" width=100 height=1 style='width: 100%; height: 1em;  user-select: none;'></canvas> 
+        <!--canvas id="gradient_canvas_control" width=100 height=1 style='width: 100%; height: 1em;  user-select: none;'></canvas-->
+      </div>
+    </div>
+    <div class="preference_cell_rows long_cell">
+      <div class="stack" style="width:100%; flex-basis: 0.6em;">
+        <canvas id="canvas_hsv_h" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas> 
+        <canvas id="canvas_hsv_h_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
+      </div>
+      <div class="stack" style="width:100%; flex-basis: 0.6em">
+        <canvas id="canvas_hsv_s" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas> 
+        <canvas id="canvas_hsv_s_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
+      </div>
+      <div class="stack" style="width:100%; flex-basis: 0.6em">
+        <canvas id="canvas_hsv_l" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas> 
+        <canvas id="canvas_hsv_l_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
+      </div>
     </div>
   </div>
+  <div class="preference_cells" id="eye_preferences">
   
-  <div class="preference_cell long_cell">
-    <div class="preference_column preference_label">
+    <div class="preference_cell">
+    <button onclick='myclick();'>hello</button>
+    </div>
+
+    <div class="preference_cell long_cell">
+    <div style="margin-right: 0.2em">
       <label for="input_x" class="preference_row">x:</label>
     </div>
-    
-    <div class="preference_column preference_column_grow">
+
       <input name="input_x" type="number" id="input_x" value="100" class="preference_input">
     </div>
-  </div>
-  
-  <div class="preference_cell long_cell">
+
+    <div class="preference_cell long_cell">
     <div class="preference_column preference_label">
       <label for="input_y" class="preference_row">y:</label>
     </div>
-    
+
     <div class="preference_column preference_column_grow">
       <input name="input_y" type="number" id="input_y" value="100" class="preference_input">
     </div>
-  </div>
-  
-  <div class="preference_cell">
+    </div>
+
+    <div class="preference_cell">
     <div class="preference_column preference_label">
       <label for="input_scale" class="preference_row">scale:</label>
     </div>
-    
+
     <div class="preference_column preference_column_grow">
       <input name="input_scale" type="number" id="input_scale" value="100" class="preference_input">
     </div>
-  </div>
-  
-  <div class="preference_cell">
+    </div>
+
+    <div class="preference_cell">
     <div class="preference_column preference_label">
       <label for="input_iter" class="preference_row">iterations:</label>
     </div>
-    
+
     <div class="preference_column preference_column_grow">
       <input name="input_iter" type="number" id="input_iter" value="100" class="preference_input">
     </div>
-  </div>
-  
-  <div class="preference_cell short_cell">
+    </div>
+
+    <div class="preference_cell short_cell">
     <div class="preference_column preference_label">
       <label for="input_width" class="preference_row">width:</label>
     </div>
-    
+
     <div class="preference_column preference_column_grow">
       <input name="input_width" type="number" id="input_width" value="100" class="preference_input">
     </div>
-  </div>
-  
-  <div class="preference_cell short_cell">
+    </div>
+
+    <div class="preference_cell short_cell">
     <div class="preference_column preference_label">
       <label for="input_height class="preference_row">height:</label>
     </div>
-    
+
     <div class="preference_column preference_column_grow">
       <input name="input_height" type="number" id="input_height" value="100" class="preference_input">
     </div>
-  </div>
+    </div>
 
-  <span id="lblTiming">O_O</span>
-  <span id="lblGLTimer">O_O</span>  
+    <span id="lblTiming">O_O</span>
+    <span id="lblGLTimer">O_O</span>  
+    </div>
   </div>
   <!--
   
@@ -154,8 +210,8 @@
   <span id="infolabel">O_O</span>
   -->
   <div class="stack" style="width:100%; height: 100%">
-  <canvas id="canvas" style='width: 100%; height: 100%; image-rendering: crisp-edges; image-rendering: pixelated; user-select: none;'></canvas>
-  <canvas id="canvas1" style='width: 100%; height: 100%; image-rendering: crisp-edges; image-rendering: pixelated; pointer-events: none; user-select: none;'></canvas>
+  <canvas id="canvas" style='width: 100%; height: 100%;  user-select: none;'></canvas>
+  <canvas id="canvas1" style='width: 100%; height: 100%;  pointer-events: none; user-select: none;'></canvas>
   
   </div>
   
@@ -179,6 +235,8 @@
   <script src="game_gl.js"></script>
   <script src="mixer.js"></script>
   <script src="game.js"></script>
+  <script src="colors.js"></script>
+  <script src="palette.js"></script>
   <script src="js.js"></script>
 </body>
 </html>

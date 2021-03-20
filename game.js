@@ -138,6 +138,9 @@ var renderH = gl.canvas.height/1;
 var postitionVao = M.game_gl.createPositionVAO(gl);
 var fbuffer = gl.createFramebuffer();
 
+
+Game.gradientTexture = M.gl_util.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
+
 var swapTexture;
 
 var compArg2 = {
@@ -159,7 +162,7 @@ var comp2 = new M.Computer(compArg2);
 //var comp2 = new M.PyramidComputer(compArg2);
 comp2.init();
 
-var mixer = new M.Mixer(gl, comp2, compArg2.buffer, 2);
+var mixer = new M.Mixer(gl, comp2, compArg2.buffer, 2, Game.gradientTexture);
 var compOverlays = comp2.getOverlays();
 
 var program2 = M.gl_util.createProgram(
@@ -290,6 +293,11 @@ Game.requestDraw = function() {
     } else {
     }
 }
+
+Game.updateGradient = function() {
+    mixer.gradientReset();
+    Game.requestDraw();
+};
 
 Game.drawDirect = function() {
     mixer.reset(Game.eye);

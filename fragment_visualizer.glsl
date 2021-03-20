@@ -43,40 +43,6 @@ vec4 u4(uvec4 x) {
     return vec4(uintBitsToFloat(x[0]), uintBitsToFloat(x[1]), uintBitsToFloat(x[2]), uintBitsToFloat(x[3]));
 }
 
-vec4 number_inspector(float x) {
-    if (isinf(x)) {
-        if (x > 0.0) {
-            return vec4(1.0, 0, 0, 1);
-        } else {
-            return vec4(0, 0, 0, 1);
-        }
-    }
-    if (isnan(x)) {
-        return vec4(1, 0, 1, 1);
-    }
-    if (x > 0.0) {
-        if (x > 1000000.0) {
-            return vec4(0.0, 0.0, 1.0, 1);
-        }
-        if (x < 0.0001) {
-            return vec4(0, 0.0, 0.25, 1);
-        }
-        return vec4(0.0, 0, 0.5, 1);
-    }
-    if (x == 0.0) {
-        return vec4(1, 1, 1, 1);
-    }
-    if (x < 0.0) {
-        if (x < -1000000.0) {
-            return vec4(0, 1.0, 0.0, 1);
-        }
-        if (x > -0.0001) {
-            return vec4(0, 0.25, 0, 1);
-        }
-        return vec4(0, 0.5, 0, 1);
-    }
-}
-
 void main() {
     //vec2 txtCoord2 = eye2CanvasSpace(eyeX, eyeY, scale, bgEyeX, bgEyeY, bgScale);
     //outColor = vec4(eyeX - bgEyeX, 0, 0, 1);

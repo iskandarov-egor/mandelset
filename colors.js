@@ -1,4 +1,3 @@
-var M = {};
 
 M.colors = {};
 

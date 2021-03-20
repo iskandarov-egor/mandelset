@@ -1,5 +1,6 @@
 class Mixer {
-    constructor(gl, computer1, bufParam, multisampling_passes) {
+    constructor(gl, computer1, bufParam, multisampling_passes, gradientTexture) {
+        this.gradientTexture = gradientTexture;
         this.computer1 = computer1;
         this.bufParam = bufParam;
         this.mixTexture = M.gl_util.createUnderlayTexture(gl, bufParam.w, bufParam.h);
@@ -24,9 +25,8 @@ class Mixer {
         this.resultTexture = null;
     }
     
-    reset(newEye) {
-        this.computer1.reset(newEye);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
+    _clear() {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.mixTexture, 0);
 		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 		gl.clearColor(0, 1, 0, 0);
@@ -35,9 +35,25 @@ class Mixer {
 		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
 		gl.clearColor(0, 1, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+    
+    reset(newEye) {
+        this.computer1.reset(newEye);
+		this._clear();
         this.drawingEye = this.computer1.getDrawingEye();
         this._update(this.computer1.getTexture());
         this.multisampling_pass = 1;
+    }
+    
+    gradientReset() {
+        if (this.multisampling_pass > 1) {
+            this._clear();
+            this.multisampling_pass = 1;
+            this._update(this.computer1.getTexture());
+            this._swap();
+            this.multisampling_pass = 2;
+            this.computer2.reset(this.drawingEye, 1);
+        }
     }
     
     _update(texture) {
@@ -48,11 +64,14 @@ class Mixer {
 		gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.activeTexture(gl.TEXTURE2);
 		gl.bindTexture(gl.TEXTURE_2D, this.mixTextureSwap);
+        gl.activeTexture(gl.TEXTURE3);
+		gl.bindTexture(gl.TEXTURE_2D, this.gradientTexture);
 		gl.useProgram(this.program);
 		//gl.clearColor(0, 1, 0, 1);
         //gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.uniform1i(gl.getUniformLocation(this.program, "computer"), 1);
         gl.uniform1i(gl.getUniformLocation(this.program, "prev"), 2);
+        gl.uniform1i(gl.getUniformLocation(this.program, "gradient"), 3);
         gl.uniform1i(gl.getUniformLocation(this.program, "multisampling_pass"), this.multisampling_pass);
         gl.uniform1f(gl.getUniformLocation(this.program, "screenAspectRatio"), this.bufParam.w/this.bufParam.h);
         //gl.uniform1i(gl.getUniformLocation(this.program, "prev"), 2);
