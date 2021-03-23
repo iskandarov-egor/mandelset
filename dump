@@ -278,3 +278,11 @@ var macaroni1 = {
 	previewScale: 1,
 	iterations: 8000,
 }
+
+var vitki1 = {
+    scale: 1/1336956.8890712315,
+	offsetX: ns.init(-1.623478581296714073900488983782),
+	offsetY: ns.init(-0.000341081451639758709455663155),
+	previewScale: 1,
+	iterations: 1000,
+}

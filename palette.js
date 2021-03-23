@@ -133,7 +133,7 @@ class GradientController {
                 min.p = p;
             }
         }
-        if (strict && min.distance*w > h/2) {
+        if (strict && min.distance*w > h/2 + 1) {
             return null;
         } else {
             return min.p;
@@ -254,40 +254,23 @@ class GradientController {
 
 class MainGradient {
     constructor(displayCanvas, controlCanvas, updateCallback) {
-        this.gradientPainter = new GradientPainter(displayCanvas, M.colors.lab2srgb);
+        this.gradientPainter = new GradientPainter(displayCanvas, function(x) { return x; });
         var points = [
             {
-                x: 0.3,
-                color: [1, 0, 0],
-            }, {
-                x: 0.6,
-                color: [0, 0, 1],
+                x: 0,
+                color: [0, 0, 0],
             }, {
                 x: 1,
-                color: [1, 1, 0],
+                color: [0, 0, 1],
             }
         ];
         for (var i = 0; i < points.length; i++) {
-            points[i].color = M.colors.srgb2lab(points[i].color);
+            //points[i].color = M.colors.srgb2lab(points[i].color);
         }
         var that = this;
         function receiver(pendingInsertion, pendingDeletion) {
-            if (pendingInsertion) {
-                pendingInsertion.color = M.colors.srgb2lab([0, 1, 0]); //todo
-            }
-            for (var i = 0; i < that.controller.points.length; i++) {
-                that.controller.points[i].color.x = that.controller.points[i].x;
-            }
+            that.updateCallback(that, pendingInsertion);
             that.gradientPainter.paint(that.controller.points);
-            if (that.controller.selectedPoint) {
-                var hsl = M.colors.lab2hsl(that.controller.selectedPoint.color);
-                hsl = M.colors.clamp1(hsl);
-                palette.h.points[0].x = hsl[0];
-                palette.s.points[0].x = hsl[1];
-                palette.l.points[0].x = hsl[2];
-                palette.paint();
-            }
-            that.updateCallback();
         }
         this.controller = new GradientController(receiver, true);
         this.controller.init(controlCanvas);
@@ -303,18 +286,22 @@ class MainGradient {
     paint() {
         this.controller.paint();
         this.gradientPainter.paint(this.controller.points);
+        //var ratio = this.controller.canvas.height/this.controller.canvas.width;
+        //this.gradientPainter.canvas.style.width = 100*(1 - ratio) + '%';
+        //this.gradientPainter.canvas.style.left = 100*ratio/2 + '%';
     }
 }
 
 class HSLPalette {
-    constructor(displayCanvasH, controlCanvasH, displayCanvasS, controlCanvasS, displayCanvasL, controlCanvasL) {
+    constructor(displayCanvasH, controlCanvasH, displayCanvasS, controlCanvasS, displayCanvasL, controlCanvasL, updateCallback) {
         this.gh = new GradientPainter(displayCanvasH, M.colors.hsl2srgb);
         this.gs = new GradientPainter(displayCanvasS, M.colors.hsl2srgb);
         this.gl = new GradientPainter(displayCanvasL, M.colors.hsl2srgb);
         
         var that = this;
         function receiver() {
-            that._control_receiver();
+            updateCallback(that);
+            that.paint();
         }
         this.h = new GradientController(receiver);
         this.s = new GradientController(receiver);
@@ -344,23 +331,35 @@ class HSLPalette {
         this.gs.paint(pointsS);
         this.gl.paint(pointsL);
     }
-    
-    _control_receiver() {
-        if (mainGradient.controller.selectedPoint) {
-            var hsl = [
-                this.h.points[0].x,
-                this.s.points[0].x,
-                this.l.points[0].x,
-            ];
-            mainGradient.controller.selectedPoint.color = M.colors.hsl2lab(hsl);
-            mainGradient.paint();
-            mainGradient.updateCallback();
+};
+
+class GrayPalette {
+    constructor(displayCanvas, controlCanvas, initialValue, updateCallback) {
+        this.g = new GradientPainter(displayCanvas, function(x) { return x; });
+        
+        var that = this;
+        function receiver() {
+            updateCallback(that);
         }
+        this.c = new GradientController(receiver);
+        this.c.init(controlCanvas);
+        this.c.add_point({x: initialValue, color: [0, 0, 0]});
+        this.paint();
+    }
+    
+    paint() {
+        this.g.paint([{x: 0, color: [.1, .1, .1]}, {x: 1, color: [.2, .2, .2]}]);
+        this.c.paint();
+    }
+    
+    get() {
+        return this.c.points[0].x;
     }
 };
 
 M.palette.MainGradient = MainGradient;
 M.palette.HSLPalette = HSLPalette;
+M.palette.GrayPalette = GrayPalette;
 
 
 // todo

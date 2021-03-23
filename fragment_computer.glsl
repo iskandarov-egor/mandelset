@@ -90,7 +90,7 @@ vec4 float_color(float x) {
 }
 
 
-void ff_main() {
+vec4 computer_ff(vec2 clipCoord) {
     //vec2 ffx = vec2(0.0, clipCoord.x);
     //vec2 ffy = vec2(0.0, clipCoord.y);
     vec2 ffx = split_ff(clipCoord.x);
@@ -118,7 +118,7 @@ void ff_main() {
     float m = mandel_ff(zx, zy, ffx, ffy, iterations, derivative_x, derivative_y);
     float distance = compute_distance(zx[1], zy[1], derivative_x[1], derivative_y[1]);
     vec2 normal = compute_normal(zx[1], zy[1], derivative_x[1], derivative_y[1]);
-    outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(normal.x, normal.y)), floatBitsToUint(distance), 1);
+    return vec4(m, atan(normal.x, normal.y), distance, 1);
     ///outColor = shade(mandel(ffx.y, ffy.y, iterations));
     ///outColor = floatColor(ffx);
 }

@@ -110,7 +110,8 @@ function cloneEye(e) {
     };
 };
 
-Game.eye = tante;
+Game.eye = zeroEye;
+//Game.eye = tante;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");
@@ -139,7 +140,19 @@ var postitionVao = M.game_gl.createPositionVAO(gl);
 var fbuffer = gl.createFramebuffer();
 
 
-Game.gradientTexture = M.gl_util.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
+Game.theme = {
+    gradientTexture: M.gl_util.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
+    gradientTexture2: M.gl_util.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
+    offset: 0,
+    scale: 0.0,
+    repeat: false,
+    mirror: false,
+    offset2: 0,
+    scale2: 0.0,
+    repeat2: false,
+    mirror2: false,
+    mode: 0,
+};
 
 var swapTexture;
 
@@ -162,7 +175,7 @@ var comp2 = new M.Computer(compArg2);
 //var comp2 = new M.PyramidComputer(compArg2);
 comp2.init();
 
-var mixer = new M.Mixer(gl, comp2, compArg2.buffer, 2, Game.gradientTexture);
+var mixer = new M.Mixer(gl, comp2, compArg2.buffer, 2, Game.theme);
 var compOverlays = comp2.getOverlays();
 
 var program2 = M.gl_util.createProgram(

@@ -21,7 +21,7 @@ void cp_mul_ff(inout vec2 a, inout vec2 b, vec2 c, vec2 d) {
 }
 
 float mandel_ff(inout vec2 x, inout vec2 y, vec2 cx, vec2 cy, int iterations, inout vec2 derivative_x, inout vec2 derivative_y) {
-    for (int i = 0; i < iterations; i++) {
+    for (int i = 1; i < iterations; i++) {
         derivative_x = ff_mul(vec2(0, 2.0), derivative_x);
         derivative_y = ff_mul(vec2(0, 2.0), derivative_y);
         cp_mul_ff(derivative_x, derivative_y, x, y);
@@ -160,7 +160,7 @@ float mandel_delta(float dx, float dy, int iterations, out vec2 derivative, out 
     float y;
     vec4 texel1 = texelFetch(refOrbit, ivec2(1, 0), 0);
     
-    vec2 derivative_x = vec2(0.0, 1.0); // todo maybe we dont need ff precision
+    vec2 derivative_x = vec2(0.0, 0.0); // todo maybe we dont need ff precision
     vec2 derivative_y = vec2(0.0, 0.0);
     for (int i = 1; i < refOrbitLen; i++) {
         /* update reference orbit */
@@ -178,7 +178,7 @@ float mandel_delta(float dx, float dy, int iterations, out vec2 derivative, out 
         derivative_y = ff_mul(vec2(0, 2.0), derivative_y);
         cp_mul_ff(derivative_x, derivative_y, vec2(0, zx), vec2(0, zy));
         derivative_x = ff_add(derivative_x, vec2(0, 1.0));
-        
+                
         zx = x + dx;
         zy = y + dy;
                 

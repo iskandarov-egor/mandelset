@@ -69,11 +69,41 @@ function preferencesSwitchListener(event) {
     if (colorMode) {
         mainGradient.paint();
         palette.paint();
+        offsetControl.paint();
+        scaleControl.paint();
     }
 }
 
+function getPaintMode() {
+    return document.querySelector('input[name="paint_mode"]:checked').value;
+}
+
+function updateElementVisibility() {
+    var mode = getPaintMode();
+    
+    document.getElementById('gradient_mode_cells').style.display = (mode == 'gradient' || mode == '2_gradients') ? 'flex' : 'none';
+    
+    document.getElementById('second_gradient').style.display = (mode == '2_gradients') ? 'flex' : 'none';
+    for (const element of document.getElementsByClassName('distance_factor_modifier')) {
+        element.style.display = (mode != 'gradient' || Game.theme.mode == 0) ? 'flex' : 'none';
+        console.log('1', mode != 'gradient' || Game.theme.mode == 0);
+    }
+    for (const element of document.getElementsByClassName('normal_factor_modifier')) {
+        element.style.display = (mode != 'gradient' || Game.theme.mode == 1) ? 'flex' : 'none';
+        console.log('2', mode != 'gradient' || Game.theme.mode == 1);
+    }
+}
+
+function toggleModeListener() {
+    Game.theme.mode = (Game.theme.mode == 0) ? 1 : 0;
+    updateElementVisibility();
+    updateGradientTexture();
+};
+
 document.getElementById('preference_switch_eye').addEventListener('change', preferencesSwitchListener);
 document.getElementById('preference_switch_color').addEventListener('change', preferencesSwitchListener);
+document.getElementsByName('paint_mode').forEach((x) => { x.addEventListener('change', updateElementVisibility); });
+document.getElementById('button_mode').addEventListener('click', toggleModeListener);
 
 function myclick() {
     saveLabels();
@@ -97,28 +127,104 @@ function myclick3() {
 }
 
 var gradientArray = new Uint8Array(1024*1*4);
-//function gradientUpdateCallback() {
 function updateGradientTexture() {
     function paintCb(i, color) {
-        var rgb = M.colors.clamp1(M.colors.lab2srgb(color));
+        var rgb = M.colors.clamp1(color);
         gradientArray[i*4] = 255*rgb[0];
         gradientArray[i*4 + 1] = 255*rgb[1];
         gradientArray[i*4 + 2] = 255*rgb[2];
         gradientArray[i*4 + 3] = 255;
     }
     M.palette.paintGradient(mainGradient.controller.points, 1024, paintCb);
-    
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, Game.gradientTexture);
-    
+    gl.bindTexture(gl.TEXTURE_2D, Game.theme.gradientTexture);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 1, gl.RGBA, gl.UNSIGNED_BYTE, gradientArray);
+    
+    if (getPaintMode() == '2_gradients') {
+        M.palette.paintGradient(mainGradient2.controller.points, 1024, paintCb);
+    }
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, Game.theme.gradientTexture2);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 1, gl.RGBA, gl.UNSIGNED_BYTE, gradientArray);
+    
+    Game.theme.offset = offsetControl.get();
+    Game.theme.scale = scaleControl.get();
+    
+    Game.theme.mirror = document.getElementById('checkbox_mirror').checked;
+    Game.theme.repeat = document.getElementById('checkbox_repeat').checked;
+    
+    Game.theme.offset2 = offsetControl2.get();
+    Game.theme.scale2 = scaleControl2.get();
+    
+    Game.theme.mirror2 = document.getElementById('checkbox_mirror2').checked;
+    Game.theme.repeat2 = document.getElementById('checkbox_repeat2').checked;
+    
     Game.updateGradient();
+}
+
+var customImage = new Image();
+customImage.onload = function () {
+    updateGradientTexture();
+}
+
+document.getElementById('file_input').onchange = function (evt) {
+    var tgt = evt.target;
+    var files = tgt.files;
+
+    if (files && files.length) {
+        var fr = new FileReader();
+        fr.onload = function () {
+            customImage.src = fr.result;
+        }
+        fr.readAsDataURL(files[0]);
+    }
+}
+
+var lastSelectedGradientPoint = null;
+function gradientUpdateCallback(gradient, pendingInsertion) {
+    if (pendingInsertion) {
+        pendingInsertion.color = (lastSelectedGradientPoint) ? lastSelectedGradientPoint.color : [1, 0, 0];
+    }
+    if (gradient.controller.selectedPoint) {
+        var hsl = M.colors.srgb2hsl(gradient.controller.selectedPoint.color);
+        hsl = M.colors.clamp1(hsl);
+        palette.h.points[0].x = hsl[0];
+        palette.s.points[0].x = hsl[1];
+        palette.l.points[0].x = hsl[2];
+        palette.paint();
+        
+        var other = (gradient != mainGradient) ? mainGradient : mainGradient2;
+        other.controller.selectedPoint = null;
+        other.paint();
+        lastSelectedGradientPoint = gradient.controller.selectedPoint;
+    }
+    updateGradientTexture();
+}
+
+function paletteUpdateCallback(palette) {
+    var gradient = (mainGradient.controller.selectedPoint) ? mainGradient : mainGradient2;
+    if (gradient.controller.selectedPoint) {
+        var hsl = [
+            palette.h.points[0].x,
+            palette.s.points[0].x,
+            palette.l.points[0].x,
+        ];
+        gradient.controller.selectedPoint.color = M.colors.hsl2srgb(hsl);
+        gradient.paint();
+        updateGradientTexture();
+    }
 }
 
 var mainGradient = new M.palette.MainGradient(
     document.getElementById('gradient_canvas'),
-    document.getElementById('gradient_canvas'),
-    updateGradientTexture,
+    document.getElementById('gradient_canvas_control'),
+    gradientUpdateCallback,
+);
+
+var mainGradient2 = new M.palette.MainGradient(
+    document.getElementById('gradient_canvas2'),
+    document.getElementById('gradient_canvas2_control'),
+    gradientUpdateCallback,
 );
 
 var palette = new M.palette.HSLPalette(
@@ -128,7 +234,41 @@ var palette = new M.palette.HSLPalette(
     document.getElementById('canvas_hsv_s_control'),
     document.getElementById('canvas_hsv_l'),
     document.getElementById('canvas_hsv_l_control'),
+    paletteUpdateCallback
 );
+
+var offsetControl = new M.palette.GrayPalette(
+    document.getElementById('canvas_offset'),
+    document.getElementById('canvas_offset_control'),
+    0,
+    updateGradientTexture,
+);
+
+var scaleControl = new M.palette.GrayPalette(
+    document.getElementById('canvas_scale'),
+    document.getElementById('canvas_scale_control'),
+    0,
+    updateGradientTexture,
+);
+
+var offsetControl2 = new M.palette.GrayPalette(
+    document.getElementById('canvas_offset2'),
+    document.getElementById('canvas_offset2_control'),
+    0,
+    updateGradientTexture,
+);
+
+var scaleControl2 = new M.palette.GrayPalette(
+    document.getElementById('canvas_scale2'),
+    document.getElementById('canvas_scale2_control'),
+    0,
+    updateGradientTexture,
+);
+
+document.getElementById('checkbox_mirror').addEventListener('change', updateGradientTexture);
+document.getElementById('checkbox_repeat').addEventListener('change', updateGradientTexture);
+document.getElementById('checkbox_mirror2').addEventListener('change', updateGradientTexture);
+document.getElementById('checkbox_repeat2').addEventListener('change', updateGradientTexture);
 
 updateGradientTexture();
 loadLabels();

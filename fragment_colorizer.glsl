@@ -9,9 +9,22 @@ uniform float screenAspectRatio;
 uniform sampler2D prev;
 uniform int multisampling_pass;
 
+uniform float scale;
+uniform float offset;
+uniform float scale2;
+uniform float offset2;
+
+uniform int mirror; // 0-1
+uniform int repeat; // 0-1
+uniform int mirror2; // 0-1
+uniform int repeat2; // 0-1
+uniform int mode; // 0-1
+
 uniform sampler2D gradient;
+uniform sampler2D gradient2;
 
 #define PI 3.1415926538
+#define E 2.71828182845904523536028747135
 
 vec4 u4(uvec4 x) {
     return vec4(uintBitsToFloat(x[0]), uintBitsToFloat(x[1]), uintBitsToFloat(x[2]), uintBitsToFloat(x[3]));
@@ -61,10 +74,53 @@ vec4 shade(float iterations, float normal_atan, float distance) {
     }
 }
 
+float unmix(float a1, float b1, float mix1) {
+    return (mix1 - a1)/(b1 - a1);
+}
+
 vec4 gradientShade(float iterations, float normal_atan, float distance) {
-    float normal_factor = fract((PI + normal_atan)/(2.0*PI));
+    if (iterations == -1.0) {
+        return vec4(0, 0, 0, 1);
+    }
+    float scale2_factor = pow(10.0, scale2);
+    if (abs(scale2_factor - round(scale2_factor)) < 0.1) {
+        scale2_factor = round(scale2_factor);
+    }
+    float normal_factor = fract(scale2_factor*(PI + normal_atan)/(2.0*PI)); // todo fract needed?
+    float base = 1.0+(1000.0*E-1.0)*pow(10000.0, 2.0*(0.5-scale));
+    //float x = ceil(log(distance)/log(base));
+    //float distance_factor = unmix(pow(base, x - 1.0), pow(base, x), distance);
+    float distance_factor = fract(-log(distance)/log(base));
     
-    return texture(gradient, vec2(normal_factor, 0.5));
+    if (repeat2 == 1) {
+        normal_factor = abs(1.0 - 2.0*fract(normal_factor + 0.5 + offset2)); // /\/\/
+    } else {
+        normal_factor = fract(normal_factor + offset2);
+    }
+    
+    if (repeat == 1) {
+        distance_factor = abs(1.0 - 2.0*fract(distance_factor + 0.5 + offset));
+    } else {
+        distance_factor = fract(distance_factor + 0.5 + offset);
+    }
+    
+    if (mirror2 == 1) {
+        normal_factor = 1.0 - normal_factor;
+    }
+    
+    if (mirror == 1) {
+        distance_factor = 1.0 - distance_factor;
+    }
+    
+    if (mode == 1) {
+        float t = normal_factor;
+        normal_factor = distance_factor;
+        distance_factor = t;
+    }
+    
+    vec4 color1 = texture(gradient, vec2(distance_factor, 0.5));
+    vec4 color2 = texture(gradient2, vec2(distance_factor, 0.5));
+    return mix(color1, color2, clamp(normal_factor, 0.0, 1.0));
 }
 
 vec4 number_inspector(float x) {

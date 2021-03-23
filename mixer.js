@@ -1,6 +1,6 @@
 class Mixer {
-    constructor(gl, computer1, bufParam, multisampling_passes, gradientTexture) {
-        this.gradientTexture = gradientTexture;
+    constructor(gl, computer1, bufParam, multisampling_passes, theme) {
+        this.theme = theme;
         this.computer1 = computer1;
         this.bufParam = bufParam;
         this.mixTexture = M.gl_util.createUnderlayTexture(gl, bufParam.w, bufParam.h);
@@ -65,15 +65,27 @@ class Mixer {
         gl.activeTexture(gl.TEXTURE2);
 		gl.bindTexture(gl.TEXTURE_2D, this.mixTextureSwap);
         gl.activeTexture(gl.TEXTURE3);
-		gl.bindTexture(gl.TEXTURE_2D, this.gradientTexture);
+		gl.bindTexture(gl.TEXTURE_2D, this.theme.gradientTexture);
+        gl.activeTexture(gl.TEXTURE4);
+		gl.bindTexture(gl.TEXTURE_2D, this.theme.gradientTexture2);
 		gl.useProgram(this.program);
 		//gl.clearColor(0, 1, 0, 1);
         //gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.uniform1i(gl.getUniformLocation(this.program, "computer"), 1);
         gl.uniform1i(gl.getUniformLocation(this.program, "prev"), 2);
         gl.uniform1i(gl.getUniformLocation(this.program, "gradient"), 3);
+        gl.uniform1i(gl.getUniformLocation(this.program, "gradient2"), 4);
         gl.uniform1i(gl.getUniformLocation(this.program, "multisampling_pass"), this.multisampling_pass);
         gl.uniform1f(gl.getUniformLocation(this.program, "screenAspectRatio"), this.bufParam.w/this.bufParam.h);
+        gl.uniform1f(gl.getUniformLocation(this.program, "offset"), this.theme.offset);
+        gl.uniform1f(gl.getUniformLocation(this.program, "scale"), this.theme.scale);
+        gl.uniform1i(gl.getUniformLocation(this.program, "mirror"), this.theme.mirror ? 1 : 0);
+        gl.uniform1i(gl.getUniformLocation(this.program, "repeat"), this.theme.repeat ? 1 : 0);
+        gl.uniform1f(gl.getUniformLocation(this.program, "offset2"), this.theme.offset2);
+        gl.uniform1f(gl.getUniformLocation(this.program, "scale2"), this.theme.scale2);
+        gl.uniform1i(gl.getUniformLocation(this.program, "mirror2"), this.theme.mirror2 ? 1 : 0);
+        gl.uniform1i(gl.getUniformLocation(this.program, "repeat2"), this.theme.repeat2 ? 1 : 0);
+        gl.uniform1i(gl.getUniformLocation(this.program, "mode"), this.theme.mode);
         //gl.uniform1i(gl.getUniformLocation(this.program, "prev"), 2);
 		
 		gl.viewport(0, 0, this.bufParam.w, this.bufParam.h);
