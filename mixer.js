@@ -68,6 +68,8 @@ class Mixer {
 		gl.bindTexture(gl.TEXTURE_2D, this.theme.gradientTexture);
         gl.activeTexture(gl.TEXTURE4);
 		gl.bindTexture(gl.TEXTURE_2D, this.theme.gradientTexture2);
+        gl.activeTexture(gl.TEXTURE5);
+		gl.bindTexture(gl.TEXTURE_2D, this.theme.customImageTexture);
 		gl.useProgram(this.program);
 		//gl.clearColor(0, 1, 0, 1);
         //gl.clear(gl.COLOR_BUFFER_BIT);
@@ -75,6 +77,7 @@ class Mixer {
         gl.uniform1i(gl.getUniformLocation(this.program, "prev"), 2);
         gl.uniform1i(gl.getUniformLocation(this.program, "gradient"), 3);
         gl.uniform1i(gl.getUniformLocation(this.program, "gradient2"), 4);
+        gl.uniform1i(gl.getUniformLocation(this.program, "image"), 5);
         gl.uniform1i(gl.getUniformLocation(this.program, "multisampling_pass"), this.multisampling_pass);
         gl.uniform1f(gl.getUniformLocation(this.program, "screenAspectRatio"), this.bufParam.w/this.bufParam.h);
         gl.uniform1f(gl.getUniformLocation(this.program, "offset"), this.theme.offset);
@@ -85,6 +88,7 @@ class Mixer {
         gl.uniform1f(gl.getUniformLocation(this.program, "scale2"), this.theme.scale2);
         gl.uniform1i(gl.getUniformLocation(this.program, "mirror2"), this.theme.mirror2 ? 1 : 0);
         gl.uniform1i(gl.getUniformLocation(this.program, "repeat2"), this.theme.repeat2 ? 1 : 0);
+        gl.uniform1i(gl.getUniformLocation(this.program, "direction"), this.theme.direction);
         gl.uniform1i(gl.getUniformLocation(this.program, "mode"), this.theme.mode);
         //gl.uniform1i(gl.getUniformLocation(this.program, "prev"), 2);
 		

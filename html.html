@@ -120,7 +120,7 @@
     </div>
   <div class="preference_cells" id="color_preferences" style="display: flex">
     <div class="preference_cell">
-      <button id="button_mode">toggle<br/>direction</button>
+      <button id="button_direction">toggle<br/>direction</button>
     </div>
     <div class="preference_cell">
       <div style="display: flex; flex-direction: column">
@@ -143,8 +143,8 @@
              id="file_input" name="file_input"
              accept="image/png, image/jpeg">
     </div>
-    <div class="preference_cell" id="gradient_mode_cells" style="display: flex; flex-grow: 1;">
-      <div class="preference_cell_rows main_gradient_cell">
+    <div class="preference_cell" style="display: flex; flex-grow: 1;">
+      <div class="preference_cell_rows main_gradient_cell gradient_mode_cell">
         <div class="stack gradient_stack" style="width:100%; height: 100%">
           <canvas id="gradient_canvas" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas> 
           <canvas id="gradient_canvas_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
@@ -154,7 +154,7 @@
           <canvas id="gradient_canvas2_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
         </div>
       </div>
-      <div class="preference_cell_rows long_cell">
+      <div class="preference_cell_rows long_cell gradient_mode_cell">
         <div class="stack" style="width:100%; flex-basis: 0.6em;">
           <canvas id="canvas_hsv_h" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas> 
           <canvas id="canvas_hsv_h_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>

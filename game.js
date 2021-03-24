@@ -111,7 +111,7 @@ function cloneEye(e) {
 };
 
 Game.eye = zeroEye;
-//Game.eye = tante;
+Game.eye = tante;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");
@@ -141,6 +141,7 @@ var fbuffer = gl.createFramebuffer();
 
 
 Game.theme = {
+    customImageTexture: gl.createTexture(),
     gradientTexture: M.gl_util.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
     gradientTexture2: M.gl_util.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
     offset: 0,
@@ -151,7 +152,8 @@ Game.theme = {
     scale2: 0.0,
     repeat2: false,
     mirror2: false,
-    mode: 0,
+    direction: 0,
+    mode: 0, // 0 - gradients, 1 - image texture
 };
 
 var swapTexture;
@@ -183,6 +185,10 @@ var program2 = M.gl_util.createProgram(
     M.gl_util.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource2),
     M.gl_util.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource2)
 );
+
+Game.gl = function() {
+    return gl;
+}
 
 program2 = M.game_gl.createProgramVisualizer();
 

@@ -18,10 +18,12 @@ uniform int mirror; // 0-1
 uniform int repeat; // 0-1
 uniform int mirror2; // 0-1
 uniform int repeat2; // 0-1
+uniform int direction; // 0-1
 uniform int mode; // 0-1
 
 uniform sampler2D gradient;
 uniform sampler2D gradient2;
+uniform sampler2D image;
 
 #define PI 3.1415926538
 #define E 2.71828182845904523536028747135
@@ -82,7 +84,7 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
     if (iterations == -1.0) {
         return vec4(0, 0, 0, 1);
     }
-    float scale2_factor = pow(10.0, scale2);
+    float scale2_factor = pow(100.0, scale2);
     if (abs(scale2_factor - round(scale2_factor)) < 0.1) {
         scale2_factor = round(scale2_factor);
     }
@@ -112,15 +114,19 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
         distance_factor = 1.0 - distance_factor;
     }
     
-    if (mode == 1) {
+    if (direction == 1) {
         float t = normal_factor;
         normal_factor = distance_factor;
         distance_factor = t;
     }
     
-    vec4 color1 = texture(gradient, vec2(distance_factor, 0.5));
-    vec4 color2 = texture(gradient2, vec2(distance_factor, 0.5));
-    return mix(color1, color2, clamp(normal_factor, 0.0, 1.0));
+    if (mode == 0) {    
+        vec4 color1 = texture(gradient, vec2(distance_factor, 0.5));
+        vec4 color2 = texture(gradient2, vec2(distance_factor, 0.5));
+        return mix(color1, color2, clamp(normal_factor, 0.0, 1.0));
+    } else {
+        return texture(image, vec2(distance_factor, normal_factor));
+    }
 }
 
 vec4 number_inspector(float x) {
@@ -172,6 +178,7 @@ void main() {
         }
     } else {
         outColor = gradientShade(uintBitsToFloat(pixel[0]), uintBitsToFloat(pixel[1]), uintBitsToFloat(pixel[2]));
+        
         if (multisampling_pass > 1) {
             vec4 prev_color = texture(prev, txtCoord);
             outColor = (float(multisampling_pass - 1) * prev_color + outColor) / float(multisampling_pass);

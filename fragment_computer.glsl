@@ -158,7 +158,7 @@ vec4 computer_texture(vec2 clipCoord) {
     float m = mandel_delta(dx, dy, iterations, derivative, z);
     
     vec2 normal = compute_normal(z.x, z.y, derivative.x, derivative.y);
-    float distance = compute_distance(z.x, z.y, derivative.x, derivative.y);
+    float distance = compute_distance(z.x, z.y, derivative.x, derivative.y)/scale;
     return vec4(m, atan(normal.x, normal.y), distance, 1);
     //outColor = uvec4(floatBitsToUint(m), floatBitsToUint(normal.x), floatBitsToUint(normal.y), 1);
 }

@@ -81,29 +81,35 @@ function getPaintMode() {
 function updateElementVisibility() {
     var mode = getPaintMode();
     
-    document.getElementById('gradient_mode_cells').style.display = (mode == 'gradient' || mode == '2_gradients') ? 'flex' : 'none';
+    for (const element of document.getElementsByClassName('gradient_mode_cell')) {
+        element.style.display = (mode == 'gradient' || mode == '2_gradients') ? 'flex' : 'none';
+    }
     
     document.getElementById('second_gradient').style.display = (mode == '2_gradients') ? 'flex' : 'none';
+    
     for (const element of document.getElementsByClassName('distance_factor_modifier')) {
-        element.style.display = (mode != 'gradient' || Game.theme.mode == 0) ? 'flex' : 'none';
-        console.log('1', mode != 'gradient' || Game.theme.mode == 0);
+        element.style.display = (mode != 'gradient' || Game.theme.direction == 0) ? 'flex' : 'none';
     }
     for (const element of document.getElementsByClassName('normal_factor_modifier')) {
-        element.style.display = (mode != 'gradient' || Game.theme.mode == 1) ? 'flex' : 'none';
-        console.log('2', mode != 'gradient' || Game.theme.mode == 1);
+        element.style.display = (mode != 'gradient' || Game.theme.direction == 1) ? 'flex' : 'none';
     }
 }
 
-function toggleModeListener() {
-    Game.theme.mode = (Game.theme.mode == 0) ? 1 : 0;
+function paintModeListener() {
+    updateElementVisibility();
+    updateGradientTexture();
+}
+
+function toggleDirectionListener() {
+    Game.theme.direction = (Game.theme.direction == 0) ? 1 : 0;
     updateElementVisibility();
     updateGradientTexture();
 };
 
 document.getElementById('preference_switch_eye').addEventListener('change', preferencesSwitchListener);
 document.getElementById('preference_switch_color').addEventListener('change', preferencesSwitchListener);
-document.getElementsByName('paint_mode').forEach((x) => { x.addEventListener('change', updateElementVisibility); });
-document.getElementById('button_mode').addEventListener('click', toggleModeListener);
+document.getElementsByName('paint_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
+document.getElementById('button_direction').addEventListener('click', toggleDirectionListener);
 
 function myclick() {
     saveLabels();
@@ -159,11 +165,15 @@ function updateGradientTexture() {
     Game.theme.mirror2 = document.getElementById('checkbox_mirror2').checked;
     Game.theme.repeat2 = document.getElementById('checkbox_repeat2').checked;
     
+    Game.theme.mode = (getPaintMode() == 'custom_image') ? 1 : 0;
+    
     Game.updateGradient();
 }
 
 var customImage = new Image();
 customImage.onload = function () {
+    console.log('onload');
+    M.gl_util.loadHTMLImage2Texture(Game.gl(), customImage, Game.theme.customImageTexture);
     updateGradientTexture();
 }
 
