@@ -25,7 +25,7 @@ function timoutLoop (interval, f, cb) {
 class LoadTester {
     constructor(gl) {
         var fbuffer = gl.createFramebuffer();
-        this.eye = cloneEye(blackEye);
+        this.eye = blackEye.clone();
         this.gl = gl;
         var compArg = {
             gl: gl,
@@ -44,7 +44,7 @@ class LoadTester {
     }
     
     load(iterations, cb) {
-        var eye = cloneEye(blackEye);
+        var eye = blackEye.clone();
         eye.iterations = iterations / 100 / 100;
         this.computer.reset(eye);
         var gl = this.gl;

@@ -7,108 +7,20 @@ var Game = {
     screenDirty: true,
 };
 
-var zeroEye = {
+
+var zeroEye = new M.mandel.Eye({
     scale: 1,
     offsetX: ns.init(0),
     offsetY: ns.init(0),
-    previewScale: 1,
     iterations: 100,
-};
+});
 
-var f32eye = {
-    scale: 0.000013051581850936334, //f32 star
-    //scale: 0.000013051581850936334/16,
-    offsetX: ns.init(-1.6331274114303949), //32 star
-    //offsetX: -1.6331328461523655,
-    offsetY: ns.init(0),
-    previewScale: 1,
-    iterations: 100,
-};
-
-var mystEye = {
-    offsetX: -1.6331463553828895,
-    offsetY: 5.843362841437326e-7,
-    scale: 1/117916235.51574515,
-    previewScale: 1,
-    iterations: 100,
-};
-
-var immovableEye = {
-    offsetX: ns.init(-1.6331395811715201),
-    offsetY: ns.init(0),
-    scale: 1/173413815746731,
-    previewScale: 1,
-    iterations: 1000,
-};
-
-var ddLimitEye = {
-    offsetX: ns.init(-1.6331395811715201),
-    offsetY: ns.init(0),
-    scale: 1/1.361052241705286e+30,
-    previewScale: 1,
-    iterations: 1000,
-};
-
-var almostBlackEye = {
-    scale: 1/3.7974983358324126,
-    offsetX: ns.init(-0.224190897277197292991601784706),
-    offsetY: ns.init(0),
-    previewScale: 1,
-    iterations: 100,
-};
-
-// the derivative's magnitude is so big it messes up calculations
-var error1 = {
-    scale: 1/371727914934102.25,
-    offsetX: ns.init(-0.710631357018485121379569591227),
-    offsetY: ns.init(0.289388796050924990144181947471),
-    previewScale: 1,
-    iterations: 1000,
-};
-
-var error2 = {
-    scale: 1/492565378.95253223,
-    offsetX: ns.init(-0.672719884767477349640785178053),
-    offsetY: ns.init(0.445552821138786914190177412820),
-    previewScale: 1,
-    iterations: 8000,
-};
-
-// here ff_main glitches strongly
-var deep1 = {
-    scale: 1/1342940438193.1177,
-    offsetX: ns.init(-0.672719885909637826948426209128),
-    offsetY: ns.init(0.445552820999778387278666968996),
-    previewScale: 1,
-    iterations: 64000,
-}
-
-// here the magnitude of the derivative caused the distance estimator to glitch
-var deep2 = {
-    scale: 1/61965827360231.16,
-    offsetX: ns.init(-0.774680610627246024613157260319),
-    offsetY: ns.init(0.137416885603266397675170651382),
-    previewScale: 1,
-    iterations: 4000,
-}
-
-var tante = {    
+var tante = new M.mandel.Eye({    
     scale: 1/1244664094013.3586,
     offsetX: ns.init(-0.774680610626900745252498836635),
     offsetY: ns.init(0.137416885603736660392826252064),
-    previewScale: 1,
     iterations: 4000,
-}
-
-function cloneEye(e) {
-    return {
-        offsetX: ns.clone(e.offsetX),
-        offsetY: ns.clone(e.offsetY),
-        scale: e.scale,
-        previewScale: e.previewScale,
-        iterations: e.iterations,
-    };
-};
+});
 
 Game.eye = zeroEye;
 //Game.eye = tante;
@@ -127,8 +39,8 @@ M.game_gl.init();
 //canvas.onselectstart = function () { return false; }
 //canvas1.onselectstart = function () { return false; }
 
-M.gl_util.resizeCanvas(canvas, Game.eye.previewScale);
-M.gl_util.resizeCanvas(canvas1, Game.eye.previewScale);
+M.gl_util.resizeCanvas(canvas, 1);
+M.gl_util.resizeCanvas(canvas1, 1);
 
 gl.canvas.width = gl.canvas.width - (gl.canvas.width % 3);
 gl.canvas.height = gl.canvas.height - (gl.canvas.height % 3);
@@ -293,7 +205,7 @@ class Underlay {
         var tmp = this.texture;
         this.texture = this.texture2;
         this.texture2 = tmp;
-        this.eye = cloneEye(eye);
+        this.eye = eye.clone();
     }
     
 };

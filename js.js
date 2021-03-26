@@ -4,20 +4,32 @@ var ns = M.ns.ns;
 // 2162819005114
 // 76619
 
-function loadLabels() {
+function updateEyeControlElements() {
     document.getElementById("input_scale").value = 1/Game.eye.scale;
     document.getElementById("input_x").value = ns.number(Game.eye.offsetX).toFixed(30);
     document.getElementById("input_y").value = ns.number(Game.eye.offsetY).toFixed(30);
     document.getElementById("input_iter").value = Game.eye.iterations;
 }
 
-function saveLabels() {
-    Game.eye.iterations = parseFloat(document.getElementById("input_iter").value);
-    //Game.eye.previewScale = parseFloat(document.getElementById("preview").value);
-    Game.eye.offsetX = ns.init(parseFloat(document.getElementById("input_x").value));
-    Game.eye.offsetY = ns.init(parseFloat(document.getElementById("input_y").value));
-    Game.eye.scale = 1/parseFloat(document.getElementById("input_scale").value);
-    Game.setEye(Game.eye);
+function loadFromEyeControlElements() {
+    var values = {
+        iterations: parseFloat(document.getElementById("input_iter").value),
+        offsetX: parseFloat(document.getElementById("input_x").value),
+        offsetY: parseFloat(document.getElementById("input_y").value),
+        scale: parseFloat(document.getElementById("input_scale").value),
+    };
+    
+    if (isNaN(values.iterations) || isNaN(values.offsetX) || isNaN(values.offsetY) || isNaN(values.scale)) {
+        return;
+    }
+    var eye = new M.mandel.Eye({
+        iterations: values.iterations,
+        offsetX: ns.init(values.offsetX),
+        offsetY: ns.init(values.offsetY),
+        scale: 1/values.scale,
+    });
+    Game.setEye(eye);
+    Game.requestDraw();
 }
 
 canvas.addEventListener("wheel", e => {
@@ -35,7 +47,7 @@ canvas.addEventListener("wheel", e => {
     Game.eye.offsetX = ns.add(ns.init(x * Game.eye.scale*(1 - factor)), Game.eye.offsetX);
     Game.eye.offsetY = ns.add(ns.init(y * Game.eye.scale*(1 - factor)), Game.eye.offsetY);
     Game.eye.scale *= factor;
-    loadLabels();
+    updateEyeControlElements();
     Game.setEye(Game.eye);
     Game.requestDraw();
 });
@@ -57,7 +69,7 @@ canvas.addEventListener("mousemove", e => {
         ns.mul(ns.init(e.movementY*2/canvas.clientHeight), ns.init(Game.eye.scale)),
     );
         
-    loadLabels();
+    updateEyeControlElements();
     Game.setEye(Game.eye);
     Game.requestDraw();
 });
@@ -119,7 +131,7 @@ function toggleDirectionListener() {
 };
 
 function myclick() {
-    saveLabels();
+    loadFromEyeControlElements();
     
     Game.requestDraw();
     
@@ -307,11 +319,19 @@ document.getElementById('preference_switch_color').addEventListener('change', up
 document.getElementsByName('paint_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
 document.getElementsByName('distance_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
 document.getElementById('button_direction').addEventListener('click', toggleDirectionListener);
-
+for (const element of document.getElementById('eye_preferences').getElementsByTagName('input')) {
+    element.addEventListener("keydown", (e) => {
+        if (e.key == "Enter") {
+            loadFromEyeControlElements();
+        }
+    });
+}
 
 updateElementVisibility();
 updateGradientTexture();
-loadLabels();
+mainGradient.controller.selectedPoint = mainGradient.controller.points[0];
+gradientUpdateCallback(mainGradient);
+updateEyeControlElements();
 Game.requestDraw();
 
 setInterval(function() {

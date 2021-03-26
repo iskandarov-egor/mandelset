@@ -1,6 +1,26 @@
 
 M.mandel = {};
 
+class Eye {
+    constructor(args) {
+        this.scale = args.scale;
+        this.offsetX = args.offsetX;
+        this.offsetY = args.offsetY;
+        this.iterations = args.iterations;
+    }
+    
+    clone() {
+        return new Eye({
+            offsetX: ns.clone(this.offsetX),
+            offsetY: ns.clone(this.offsetY),
+            scale: this.scale,
+            iterations: this.iterations,
+        });
+    }
+};
+
+M.mandel.Eye = Eye;
+
 var ns = M.ns.ns;
 
 function mandelOrbit(cx, cy, iterations, array) {
@@ -91,7 +111,6 @@ class OrbitComputer {
         this.y = y;
         var startTime = performance.now();
         this.iterations = mandelOrbitNS(x, y, this.iterLimit, this.array);
-        console.log('dt', performance.now() - startTime);
         return this.iterations;
     }
     

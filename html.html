@@ -7,6 +7,14 @@
   <title>BANANA</title>
   
   <style type="text/css">
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
     .label { 
       margin-left: 4pt; 
       margin-right: 4pt;
@@ -185,7 +193,7 @@
       <div class="preference_cell_rows normal_factor_modifier" style="flex-shrink: 0">
         <div style="display: flex">
           <input type="checkbox" id="checkbox_mirror2">
-          <label for="chechkbox_mirror2">mirror</label>
+          <label for="checkbox_mirror2">mirror</label>
         </div>
         <div style="display: flex">
           <input type="checkbox" id="checkbox_repeat2" checked>
@@ -284,24 +292,24 @@
     </div>
     </div>
 
-    <div class="preference_cell short_cell">
-    <div class="preference_column preference_label">
-      <label for="input_width" class="preference_row">width:</label>
+    <div class="preference_cell" style="flex-basis: 7em">
+      <div class="preference_column preference_label">
+        <label for="input_width" class="preference_row">width:</label>
+      </div>
+     
+      <div class="preference_column preference_column_grow">
+        <input name="input_width" type="number" id="input_width" value="100" class="preference_input">
+      </div>
     </div>
 
-    <div class="preference_column preference_column_grow">
-      <input name="input_width" type="number" id="input_width" value="100" class="preference_input">
-    </div>
-    </div>
-
-    <div class="preference_cell short_cell">
-    <div class="preference_column preference_label">
-      <label for="input_height class="preference_row">height:</label>
-    </div>
-
-    <div class="preference_column preference_column_grow">
-      <input name="input_height" type="number" id="input_height" value="100" class="preference_input">
-    </div>
+    <div class="preference_cell" style="flex-basis: 7em">
+      <div class="preference_column preference_label">
+        <label for="input_height class="preference_row">height:</label>
+      </div>
+     
+      <div class="preference_column preference_column_grow">
+        <input name="input_height" type="number" id="input_height" value="100" class="preference_input">
+      </div>
     </div>
 
     <span id="lblTiming">O_O</span>

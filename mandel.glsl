@@ -162,7 +162,8 @@ float mandel_delta(float dx, float dy, int iterations, out vec2 derivative, out 
     
     vec2 derivative_x = vec2(0.0, 0.0); // todo maybe we dont need ff precision
     vec2 derivative_y = vec2(0.0, 0.0);
-    for (int i = 1; i < refOrbitLen; i++) {
+    int orbitIterations = min(refOrbitLen, iterations);
+    for (int i = 1; i < orbitIterations; i++) {
         /* update reference orbit */
         if ((true)) {
             vec4 texel = texelFetch(refOrbit, orbiti, 0);
@@ -244,7 +245,8 @@ float mandel_delta_ff(vec2 dx, vec2 dy, int iterations) {
     vec2 x;
     vec2 y;
     vec4 texel1 = texelFetch(refOrbit, ivec2(1, 0), 0);
-    for (int i = 1; i < refOrbitLen; i++) {
+    int orbitIterations = min(refOrbitLen, iterations);
+    for (int i = 1; i < orbitIterations; i++) {
         /* update reference orbit */
         if ((true)) {
             vec4 texel = texelFetch(refOrbit, orbiti, 0);

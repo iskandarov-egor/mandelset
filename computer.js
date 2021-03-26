@@ -48,7 +48,7 @@ class Computer {
         
         this.isPyramidLayer = args.isPyramidLayer;
         maxSyncTout = gl.getParameter(gl.MAX_CLIENT_WAIT_TIMEOUT_WEBGL);
-        this.eye = cloneEye(args.eye);
+        this.eye = args.eye.clone();
         this.bufParam = {
             w: args.buffer.w,
             h: args.buffer.h,
@@ -75,7 +75,7 @@ class Computer {
     reset(newEye, samplingSeed = 0) {
         var gl = this.gl;
         this.samplingSeed = samplingSeed;
-        this.eye = cloneEye(newEye);  // todo maybe we only need eye in job
+        this.eye = newEye.clone();  // todo maybe we only need eye in job
         
         M.Stat.Computer.lastTimingStart = performance.now();
         
@@ -243,7 +243,7 @@ class Job {
     // orbitComputer should contain a computed orbit
     reset(eye, orbitComputer, samplingSeed) {
         this.orbitComputer = orbitComputer;
-        this.eye = cloneEye(eye);
+        this.eye = eye.clone();
         this.done = false;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
         gl.clearBufferuiv(gl.COLOR, 0, clearColor);

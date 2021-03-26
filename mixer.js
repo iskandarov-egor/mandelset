@@ -129,7 +129,7 @@ class Mixer {
                 }
             }
             if (done && that.multisampling_pass < that.multisampling_passes) {
-                var eye = cloneEye(that.computer1.getDrawingEye());
+                var eye = that.computer1.getDrawingEye().clone();
                 //eye.offsetY = ns.mul(ns.init(-1), eye.offsetY);
                 that.computer2.reset(eye, that.multisampling_pass);
                 that.multisampling_pass++;
