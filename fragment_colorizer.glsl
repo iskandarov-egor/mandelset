@@ -13,6 +13,7 @@ uniform float scale;
 uniform float offset;
 uniform float scale2;
 uniform float offset2;
+uniform float eye_scale;
 
 uniform int mirror; // 0-1
 uniform int repeat; // 0-1
@@ -20,6 +21,8 @@ uniform int mirror2; // 0-1
 uniform int repeat2; // 0-1
 uniform int direction; // 0-1
 uniform int mode; // 0-1
+uniform int shade3d; // 0-1
+uniform int distance_mode; // 0-1
 
 uniform sampler2D gradient;
 uniform sampler2D gradient2;
@@ -80,6 +83,30 @@ float unmix(float a1, float b1, float mix1) {
     return (mix1 - a1)/(b1 - a1);
 }
 
+float srgb_gamma(float x) {
+    if (x <= 0.0031308) {
+        return 12.92*x;
+    } else {
+        return 1.055*pow(x, 1.0/2.4) - 0.055;
+    }
+}
+
+float srgb_gamma_inv(float x) {
+    if (x <= 0.04045) {
+        return x/12.92;
+    } else {
+        return pow((x + 0.055)/1.055, 2.4);
+    }
+}
+
+vec3 srgb2rgb(vec3 x) {
+    return vec3(srgb_gamma_inv(x.x), srgb_gamma_inv(x.y), srgb_gamma_inv(x.z));
+}
+
+vec3 rgb2srgb(vec3 x) {
+    return vec3(srgb_gamma(x.x), srgb_gamma(x.y), srgb_gamma(x.z));
+}
+
 vec4 gradientShade(float iterations, float normal_atan, float distance) {
     if (iterations == -1.0) {
         return vec4(0, 0, 0, 1);
@@ -88,11 +115,15 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
     if (abs(scale2_factor - round(scale2_factor)) < 0.1) {
         scale2_factor = round(scale2_factor);
     }
+    
+    distance /= eye_scale;
+    
     float normal_factor = fract(scale2_factor*(PI + normal_atan)/(2.0*PI)); // todo fract needed?
     float base = 1.0+(1000.0*E-1.0)*pow(10000.0, 2.0*(0.5-scale));
     //float x = ceil(log(distance)/log(base));
     //float distance_factor = unmix(pow(base, x - 1.0), pow(base, x), distance);
     float distance_factor = fract(-log(distance)/log(base));
+    float iter_factor = fract(iterations/(pow(2000.0, mix(0.0, 1.0, scale))));
     
     if (repeat2 == 1) {
         normal_factor = abs(1.0 - 2.0*fract(normal_factor + 0.5 + offset2)); // /\/\/
@@ -102,8 +133,10 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
     
     if (repeat == 1) {
         distance_factor = abs(1.0 - 2.0*fract(distance_factor + 0.5 + offset));
+        iter_factor = abs(1.0 - 2.0*fract(iter_factor + offset));
     } else {
         distance_factor = fract(distance_factor + 0.5 + offset);
+        iter_factor = fract(iter_factor + offset);
     }
     
     if (mirror2 == 1) {
@@ -112,6 +145,11 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
     
     if (mirror == 1) {
         distance_factor = 1.0 - distance_factor;
+        iter_factor = 1.0 - iter_factor;
+    }
+    
+    if (distance_mode == 0) {
+        distance_factor = iter_factor;
     }
     
     if (direction == 1) {
@@ -120,13 +158,24 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
         distance_factor = t;
     }
     
+    vec3 result;
     if (mode == 0) {    
         vec4 color1 = texture(gradient, vec2(distance_factor, 0.5));
         vec4 color2 = texture(gradient2, vec2(distance_factor, 0.5));
-        return mix(color1, color2, clamp(normal_factor, 0.0, 1.0));
+        result = mix(color1, color2, clamp(normal_factor, 0.0, 1.0)).xyz;
     } else {
-        return texture(image, vec2(distance_factor, normal_factor));
+        result = texture(image, vec2(distance_factor, normal_factor)).xyz;
     }
+    
+    float shading_factor = 1.0;
+    if (shade3d == 1) {
+        vec3 light = vec3(1, 1, 1);
+        vec3 normal = vec3(cos(normal_atan), sin(normal_atan), 2.0);
+        shading_factor = clamp(0.1, 1.0, 0.1 + abs(dot(light, normal))/sqrt(3.0*(1.0+2.0*2.0)));
+        result = (shading_factor*(result));
+    }
+    
+    return vec4(result.xyz, 1);
 }
 
 vec4 number_inspector(float x) {

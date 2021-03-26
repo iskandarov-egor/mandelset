@@ -127,34 +127,22 @@
         <div style="display: flex">
           <input type="radio" id="paint_mode_3" name="paint_mode" value="gradient" checked>
           <label for="paint_mode_3">gradient</label>
+        </div>
+        <div style="display: flex">
           <input type="radio" id="paint_mode_4" name="paint_mode" value="custom_image">
           <label for="paint_mode_4">custom image</label>
         </div>
-        <div style="display: flex">
-          <input type="radio" id="paint_mode_2" name="paint_mode" value="2_gradients">
-          <label for="paint_mode_2">2 gradients</label>
-        </div>
       </div>
     </div>
-    <div class="preference_cell_rows" style="display: flex;">
-      <label for="file_input">Choose a custom picture:</label>
+    <div class="preference_cell" id="custom_image_cell">
+      <!--label for="file_input">Choose a custom picture:</label-->
 
       <input type="file"
              id="file_input" name="file_input"
              accept="image/png, image/jpeg">
     </div>
     <div class="preference_cell" style="display: flex; flex-grow: 1;">
-      <div class="preference_cell_rows main_gradient_cell gradient_mode_cell">
-        <div class="stack gradient_stack" style="width:100%; height: 100%">
-          <canvas id="gradient_canvas" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas> 
-          <canvas id="gradient_canvas_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
-        </div>
-        <div id="second_gradient" class="stack gradient_stack" style="width:100%; height: 100%">
-          <canvas id="gradient_canvas2" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas> 
-          <canvas id="gradient_canvas2_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
-        </div>
-      </div>
-      <div class="preference_cell_rows long_cell gradient_mode_cell">
+      <div class="preference_cell_rows long_cell gradient_mode_cell" id="palette_cell">
         <div class="stack" style="width:100%; flex-basis: 0.6em;">
           <canvas id="canvas_hsv_h" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas> 
           <canvas id="canvas_hsv_h_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
@@ -168,30 +156,14 @@
           <canvas id="canvas_hsv_l_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
         </div>
       </div>
-      <div class="preference_cell short_cell distance_factor_modifier">
-        <div style="flex-grow: 0; display: flex; flex-direction: column; height: 2em; margin-right: 0.5em;">
-          <div>offset:</div>
-          <div>scale:</div>
+      <div class="preference_cell_rows main_gradient_cell">
+        <div class="stack gradient_stack" style="width:100%; height: 100%">
+          <canvas id="gradient_canvas" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas> 
+          <canvas id="gradient_canvas_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
         </div>
-        <div style="flex-grow: 1; display: flex; flex-direction: column; height: 2em; justify-content: space-around">
-          <div class="stack gradient_stack" style="flex-basis: 0.95em">
-            <canvas id="canvas_offset" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
-            <canvas id="canvas_offset_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
-          </div>
-          <div class="stack gradient_stack" style="flex-basis: 0.95em;">
-            <canvas id="canvas_scale" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
-            <canvas id="canvas_scale_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
-          </div>
-        </div>
-      </div>
-      <div class="preference_cell_rows distance_factor_modifier">
-        <div style="display: flex">
-          <input type="checkbox" id="checkbox_mirror">
-          <label for="chechkbox_mirror">mirror</label>
-        </div>
-        <div style="display: flex">
-          <input type="checkbox" id="checkbox_repeat">
-          <label for="chechkbox_repeat">seamless</label>
+        <div id="second_gradient" class="stack gradient_stack" style="width:100%; height: 100%; display: none">
+          <canvas id="gradient_canvas2" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas> 
+          <canvas id="gradient_canvas2_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
         </div>
       </div>
       <div class="preference_cell short_cell normal_factor_modifier">
@@ -210,14 +182,60 @@
           </div>
         </div>
       </div>
-      <div class="preference_cell_rows normal_factor_modifier">
+      <div class="preference_cell_rows normal_factor_modifier" style="flex-shrink: 0">
         <div style="display: flex">
           <input type="checkbox" id="checkbox_mirror2">
           <label for="chechkbox_mirror2">mirror</label>
         </div>
         <div style="display: flex">
-          <input type="checkbox" id="checkbox_repeat2">
-          <label for="chechkbox_repeat2">seamless</label>
+          <input type="checkbox" id="checkbox_repeat2" checked>
+          <label for="checkbox_repeat2">seamless</label>
+        </div>
+      </div>
+      <div class="preference_cell short_cell distance_factor_modifier">
+        <div style="flex-grow: 0; display: flex; flex-direction: column; height: 2em; margin-right: 0.5em;">
+          <div>offset:</div>
+          <div>scale:</div>
+        </div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; height: 2em; justify-content: space-around">
+          <div class="stack gradient_stack" style="flex-basis: 0.95em">
+            <canvas id="canvas_offset" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
+            <canvas id="canvas_offset_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
+          </div>
+          <div class="stack gradient_stack" style="flex-basis: 0.95em;">
+            <canvas id="canvas_scale" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
+            <canvas id="canvas_scale_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="preference_cell_rows distance_factor_modifier" style="flex-shrink: 0">
+        <div style="display: flex">
+          <input type="checkbox" id="checkbox_mirror">
+          <label for="chechkbox_mirror">mirror</label>
+        </div>
+        <div style="display: flex">
+          <input type="checkbox" id="checkbox_repeat" checked>
+          <label for="checkbox_repeat">seamless</label>
+        </div>
+      </div>
+      <div class="preference_cell_rows" id="distance_mode" style="flex-shrink: 0">
+        <div style="display: flex">
+          <input type="radio" id="distance_mode_1" name="distance_mode" value="iterations" checked>
+          <label for="distance_mode_1">use iteration count</label>
+        </div>
+        <div style="display: flex">
+          <input type="radio" id="distance_mode_2" name="distance_mode" value="distance">
+          <label for="distance_mode_2">use distance</label>
+        </div>
+      </div>
+      <div class="preference_cell_rows distance_factor_modifier" style="flex-shrink: 0">
+        <div style="display: flex">
+          <input type="checkbox" id="checkbox_3d">
+          <label for="checkbox_3d">3d effect</label>
+        </div>
+        <div style="display: flex" id="scale_invariance_control">
+          <input type="checkbox" id="checkbox_scale_invariant">
+          <label for="checkbox_scale_invariant">scale-invariant</label>
         </div>
       </div>
     </div>
@@ -301,8 +319,8 @@
   <span id="infolabel">O_O</span>
   -->
   <div class="stack" style="width:100%; height: 100%">
-  <canvas id="canvas" style='width: 100%; height: 100%;  user-select: none;'></canvas>
-  <canvas id="canvas1" style='width: 100%; height: 100%;  pointer-events: none; user-select: none;'></canvas>
+  <canvas id="canvas" style='height: 100%;  user-select: none;'></canvas>
+  <canvas id="canvas1" style='height: 100%;  pointer-events: none; user-select: none;'></canvas>
   
   </div>
   

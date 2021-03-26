@@ -93,9 +93,9 @@ var deep2 = {
 }
 
 var tante = {    
-    scale: 1/1369130503414.6946,
-    offsetX: ns.init(-0.7746806106269039),
-    offsetY: ns.init(0.1374168856037867),
+    scale: 1/1244664094013.3586,
+    offsetX: ns.init(-0.774680610626900745252498836635),
+    offsetY: ns.init(0.137416885603736660392826252064),
     previewScale: 1,
     iterations: 4000,
 }
@@ -111,7 +111,7 @@ function cloneEye(e) {
 };
 
 Game.eye = zeroEye;
-Game.eye = tante;
+//Game.eye = tante;
 Game.eye.dirty = false;
 
 document.querySelector("#canvas");
@@ -152,8 +152,11 @@ Game.theme = {
     scale2: 0.0,
     repeat2: false,
     mirror2: false,
+    shade3d: false,
+    scale_invariant: false,
     direction: 0,
     mode: 0, // 0 - gradients, 1 - image texture
+    distance_mode: 0, // 0 - iteration count, 1 - distance estimation
 };
 
 var swapTexture;

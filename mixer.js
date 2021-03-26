@@ -89,8 +89,10 @@ class Mixer {
         gl.uniform1i(gl.getUniformLocation(this.program, "mirror2"), this.theme.mirror2 ? 1 : 0);
         gl.uniform1i(gl.getUniformLocation(this.program, "repeat2"), this.theme.repeat2 ? 1 : 0);
         gl.uniform1i(gl.getUniformLocation(this.program, "direction"), this.theme.direction);
+        gl.uniform1i(gl.getUniformLocation(this.program, "shade3d"), this.theme.shade3d);
         gl.uniform1i(gl.getUniformLocation(this.program, "mode"), this.theme.mode);
-        //gl.uniform1i(gl.getUniformLocation(this.program, "prev"), 2);
+        gl.uniform1f(gl.getUniformLocation(this.program, "eye_scale"), this.theme.scale_invariant ? this.drawingEye.scale : 1);
+        gl.uniform1i(gl.getUniformLocation(this.program, "distance_mode"), this.theme.distance_mode);
 		
 		gl.viewport(0, 0, this.bufParam.w, this.bufParam.h);
 		

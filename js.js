@@ -62,8 +62,22 @@ canvas.addEventListener("mousemove", e => {
     Game.requestDraw();
 });
 
-function preferencesSwitchListener(event) {
-    var colorMode = (event.target.value == 'color');
+function getPaintMode() {
+    return document.querySelector('input[name="paint_mode"]:checked').value;
+}
+
+function getDistanceMode() {
+    return document.querySelector('input[name="distance_mode"]:checked').value;
+}
+
+function getPreferencesMode() {
+    return document.querySelector('input[name="preference_switch"]:checked').value;
+}
+
+function updateElementVisibility() {
+    var mode = getPaintMode();
+    
+    var colorMode = (getPreferencesMode() == 'color');
     document.getElementById('eye_preferences').style.display = !colorMode ? 'flex' : 'none';
     document.getElementById('color_preferences').style.display = colorMode ? 'flex' : 'none';
     if (colorMode) {
@@ -72,20 +86,16 @@ function preferencesSwitchListener(event) {
         offsetControl.paint();
         scaleControl.paint();
     }
-}
-
-function getPaintMode() {
-    return document.querySelector('input[name="paint_mode"]:checked').value;
-}
-
-function updateElementVisibility() {
-    var mode = getPaintMode();
     
-    for (const element of document.getElementsByClassName('gradient_mode_cell')) {
+    for (const element of document.getElementsByClassName('main_gradient_cell')) {
         element.style.display = (mode == 'gradient' || mode == '2_gradients') ? 'flex' : 'none';
     }
     
-    document.getElementById('second_gradient').style.display = (mode == '2_gradients') ? 'flex' : 'none';
+    document.getElementById('palette_cell').style.display = (mode == 'gradient' || mode == '2_gradients') ? 'flex' : 'none';
+    //document.getElementById('second_gradient').style.display = (mode == '2_gradients') ? 'flex' : 'none';
+    document.getElementById('custom_image_cell').style.display = (mode == 'custom_image') ? 'flex' : 'none';
+    document.getElementById('distance_mode').style.display = (Game.theme.direction == 0) ? 'flex' : 'none';
+    document.getElementById('scale_invariance_control').style.visibility = (getDistanceMode() == 'distance') ? 'visible' : 'hidden';
     
     for (const element of document.getElementsByClassName('distance_factor_modifier')) {
         element.style.display = (mode != 'gradient' || Game.theme.direction == 0) ? 'flex' : 'none';
@@ -93,6 +103,8 @@ function updateElementVisibility() {
     for (const element of document.getElementsByClassName('normal_factor_modifier')) {
         element.style.display = (mode != 'gradient' || Game.theme.direction == 1) ? 'flex' : 'none';
     }
+    
+    paintControls();
 }
 
 function paintModeListener() {
@@ -105,11 +117,6 @@ function toggleDirectionListener() {
     updateElementVisibility();
     updateGradientTexture();
 };
-
-document.getElementById('preference_switch_eye').addEventListener('change', preferencesSwitchListener);
-document.getElementById('preference_switch_color').addEventListener('change', preferencesSwitchListener);
-document.getElementsByName('paint_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
-document.getElementById('button_direction').addEventListener('click', toggleDirectionListener);
 
 function myclick() {
     saveLabels();
@@ -165,7 +172,11 @@ function updateGradientTexture() {
     Game.theme.mirror2 = document.getElementById('checkbox_mirror2').checked;
     Game.theme.repeat2 = document.getElementById('checkbox_repeat2').checked;
     
+    Game.theme.shade3d = document.getElementById('checkbox_3d').checked && Game.theme.direction == 0;
+    Game.theme.scale_invariant = document.getElementById('checkbox_scale_invariant').checked;
+    
     Game.theme.mode = (getPaintMode() == 'custom_image') ? 1 : 0;
+    Game.theme.distance_mode = (getPaintMode() == 'custom_image' || getDistanceMode() == 'distance') ? 1 : 0;
     
     Game.updateGradient();
 }
@@ -257,7 +268,7 @@ var offsetControl = new M.palette.GrayPalette(
 var scaleControl = new M.palette.GrayPalette(
     document.getElementById('canvas_scale'),
     document.getElementById('canvas_scale_control'),
-    0,
+    0.5,
     updateGradientTexture,
 );
 
@@ -275,11 +286,30 @@ var scaleControl2 = new M.palette.GrayPalette(
     updateGradientTexture,
 );
 
+function paintControls() {
+    mainGradient.paint();
+    mainGradient2.paint();
+    palette.paint();
+    offsetControl.paint();
+    scaleControl.paint();
+    offsetControl2.paint();
+    scaleControl2.paint();
+}
+
 document.getElementById('checkbox_mirror').addEventListener('change', updateGradientTexture);
 document.getElementById('checkbox_repeat').addEventListener('change', updateGradientTexture);
 document.getElementById('checkbox_mirror2').addEventListener('change', updateGradientTexture);
 document.getElementById('checkbox_repeat2').addEventListener('change', updateGradientTexture);
+document.getElementById('checkbox_3d').addEventListener('change', updateGradientTexture);
+document.getElementById('checkbox_scale_invariant').addEventListener('change', updateGradientTexture);
+document.getElementById('preference_switch_eye').addEventListener('change', updateElementVisibility);
+document.getElementById('preference_switch_color').addEventListener('change', updateElementVisibility);
+document.getElementsByName('paint_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
+document.getElementsByName('distance_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
+document.getElementById('button_direction').addEventListener('click', toggleDirectionListener);
 
+
+updateElementVisibility();
 updateGradientTexture();
 loadLabels();
 Game.requestDraw();

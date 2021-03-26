@@ -175,6 +175,7 @@ class GradientController {
         this.selectedPoint = p;
         activeController = this;
         this.receiver(pendingInsertion);
+        gradientControllersMouseMove(e);
     }
     
     mouseup(e) {
@@ -186,6 +187,36 @@ class GradientController {
                 this.paint();
             }
         }
+    }
+    
+    _draw_win98_border(ctx, x1, y1, x2, y2, direction) {
+        ctx.strokeStyle = (direction) ? `rgb(223,223,223)` : `rgb(128,128,128)`;
+        ctx.beginPath();
+        ctx.moveTo(x1+1, y2-1);
+        ctx.lineTo(x1+1, y1+1);
+        ctx.lineTo(x2-1, y1+1);
+        ctx.stroke();
+        
+        ctx.strokeStyle = (direction) ? `rgb(128,128,128)` : `rgb(223,223,223)`;
+        ctx.beginPath();
+        ctx.moveTo(x2-1, y1+1);
+        ctx.lineTo(x2-1, y2-1);
+        ctx.lineTo(x1+1, y2-1);
+        ctx.stroke();
+        
+        ctx.strokeStyle = (direction) ? `rgb(255,255,255)` : `rgb(0,0,0)`;
+        ctx.beginPath();
+        ctx.moveTo(x1, y2);
+        ctx.lineTo(x1, y1);
+        ctx.lineTo(x2, y1);
+        ctx.stroke();
+        
+        ctx.strokeStyle = (direction) ? `rgb(0,0,0)` : `rgb(255,255,255)`;
+        ctx.beginPath();
+        ctx.moveTo(x2, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x1, y2);
+        ctx.stroke();
     }
     
     _paint_point(ctx, p, canvas_width, canvas_height) {
@@ -206,33 +237,7 @@ class GradientController {
         ctx.fillStyle = `rgb(192,192,192)`;
         ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
         
-        ctx.strokeStyle = (!hl) ? `rgb(223,223,223)` : `rgb(128,128,128)`;
-        ctx.beginPath();
-        ctx.moveTo(x1+1, y2-1);
-        ctx.lineTo(x1+1, y1+1);
-        ctx.lineTo(x2-1, y1+1);
-        ctx.stroke();
-        
-        ctx.strokeStyle = (!hl) ? `rgb(128,128,128)` : `rgb(223,223,223)`;
-        ctx.beginPath();
-        ctx.moveTo(x2-1, y1+1);
-        ctx.lineTo(x2-1, y2-1);
-        ctx.lineTo(x1+1, y2-1);
-        ctx.stroke();
-        
-        ctx.strokeStyle = (!hl) ? `rgb(255,255,255)` : `rgb(0,0,0)`;
-        ctx.beginPath();
-        ctx.moveTo(x1, y2);
-        ctx.lineTo(x1, y1);
-        ctx.lineTo(x2, y1);
-        ctx.stroke();
-        
-        ctx.strokeStyle = (!hl) ? `rgb(0,0,0)` : `rgb(255,255,255)`;
-        ctx.beginPath();
-        ctx.moveTo(x2, y1);
-        ctx.lineTo(x2, y2);
-        ctx.lineTo(x1, y2);
-        ctx.stroke();
+        this._draw_win98_border(ctx, x1, y1, x2, y2, !hl);
         
         var w = 0.4;
         ctx.clearRect(x1+(x2-x1)*(1-w)/2, y1+(y2-y1)*(1-w)/2, (x2 - x1)*w, (y2 - y1)*w);
@@ -244,6 +249,12 @@ class GradientController {
         var ctx = this.ctx;
         ctx.lineWidth = 1;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        //this._draw_win98_border(ctx, 0.5, 0.5, canvas.width-0.5, canvas.height-0.5, true);
+        ctx.fillStyle = `rgb(192,192,192)`;
+        var h4 = Math.max(0, Math.round(canvas.height/4));
+        //ctx.fillRect(1.5, 1.5, canvas.width - 3.0, h4);
+        //ctx.fillRect(1.5, canvas.height - h4 - 1.5, canvas.width - 1.5, h4);
+        
         for (var i = 0; i < this.points.length; i++) {
             var p = this.points[i];
             this._paint_point(ctx, p, canvas.width, canvas.height);
