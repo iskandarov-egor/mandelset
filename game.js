@@ -185,7 +185,7 @@ class Game {
     }
 };
 
-M.game.Game = Game1;
+M.game.Game = Game;
 
 ///var renderW = gl.canvas.width/1;
 ///var renderH = gl.canvas.height/1;
