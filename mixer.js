@@ -1,17 +1,18 @@
 class Mixer {
     constructor(gl, computer1, bufParam, multisampling_passes, theme) {
+        this.gl = gl;
         this.theme = theme;
         this.computer1 = computer1;
         this.bufParam = bufParam;
         this.mixTexture = M.gl_util.createUnderlayTexture(gl, bufParam.w, bufParam.h);
         this.mixTextureSwap = M.gl_util.createUnderlayTexture(gl, bufParam.w, bufParam.h);
         this.fbuffer = gl.createFramebuffer();
-        this.program = M.game_gl.createProgramColorizer();
-        this.drawingEye = Game.eye; //todo aaa
+        this.program = M.game_gl.createProgramColorizer(gl);
+        this.drawingEye = game.eye; //todo aaa
         
         var compArg = {
             gl: gl,
-            eye: Game.eye, //todo aaa
+            eye: game.eye, //todo aaa
             buffer: {
                 w: bufParam.w,
                 h: bufParam.h,
@@ -26,6 +27,7 @@ class Mixer {
     }
     
     _clear() {
+        var gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.mixTexture, 0);
 		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
@@ -45,7 +47,7 @@ class Mixer {
         this.multisampling_pass = 1;
     }
     
-    gradientReset() {
+    themeReset() {
         if (this.multisampling_pass > 1) {
             this._clear();
             this.multisampling_pass = 1;
@@ -57,6 +59,7 @@ class Mixer {
     }
     
     _update(texture) {
+        var gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.mixTexture, 0);
 		gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
@@ -96,6 +99,7 @@ class Mixer {
 		
 		gl.viewport(0, 0, this.bufParam.w, this.bufParam.h);
 		
+        trace('b', '    mix');
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
         this.resultTexture = this.mixTexture;
     }
@@ -118,10 +122,10 @@ class Mixer {
         var that = this;
         function _cb(done) {
             if (that.multisampling_pass == 1) {
-                if (that.computer1.state >= 3) {
+                //if (that.computer1.state >= 3) {
                     that._update(that.computer1.getTexture());
                     that.drawingEye = that.computer1.getDrawingEye();
-                }
+                //}
             } else {
                 if (that.computer2.state >= 3) {
                     that._update(that.computer2.getTexture());

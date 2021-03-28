@@ -176,7 +176,7 @@ M.gl_util.preprocess = function (source, includes) {
     return source;
 }
 
-M.gl_util.glUniformD = function (loc, value) {
+M.gl_util.glUniformD = function (gl, loc, value) {
     var f32 = new Float32Array(2);
     splitDouble(value, f32);
     gl.uniform2fv(loc, f32);

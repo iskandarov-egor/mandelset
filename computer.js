@@ -45,6 +45,7 @@ class Computer {
     //   w, h: width and height of the @framebuffer
     constructor(args) {
         this.gl = args.gl;
+        var gl = this.gl;
         
         this.isPyramidLayer = args.isPyramidLayer;
         maxSyncTout = gl.getParameter(gl.MAX_CLIENT_WAIT_TIMEOUT_WEBGL);
@@ -173,6 +174,9 @@ class Computer {
             callback(false);
         } else {
             if (this.state == STATE_ORBIT) {
+                if (!this.isPyramidLayer) {
+                    this.job.clear();
+                }
                 this.job.reset(this.eye, this.refOrbitFinder.getBestComputer(), this.samplingSeed);
                 this.state = STATE_DRAW;
                 this.drawingEye = this.eye;
@@ -229,32 +233,38 @@ class Job {
         this.gl = gl;
         this.bufParam = bufParam;
         this.done = false;
-        this.program = M.game_gl.createProgram1();
+        this.program = M.game_gl.createProgram1(gl);
         this.fbuffer = gl.createFramebuffer();
     }
     
     init() {
+        var gl = this.gl;
         this.renderTexture = M.gl_util.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.renderTexture, 0);
         gl.clearBufferuiv(gl.COLOR, 0, clearColor);
     }
     
+    clear() {
+        var gl = this.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
+        gl.clearBufferuiv(gl.COLOR, 0, clearColor);
+    }
+    
     // orbitComputer should contain a computed orbit
     reset(eye, orbitComputer, samplingSeed) {
+        var gl = this.gl;
         this.orbitComputer = orbitComputer;
         this.eye = eye.clone();
         this.done = false;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
-        gl.clearBufferuiv(gl.COLOR, 0, clearColor);
         
         gl.useProgram(this.program);
         gl.uniform1f(gl.getUniformLocation(this.program, "bufferAspectRatio"), this.bufParam.ratio);
         gl.uniform1f(gl.getUniformLocation(this.program, "pixelW"), 2.0 / this.bufParam.h);
         gl.uniform1f(gl.getUniformLocation(this.program, "scale"), this.eye.scale);
         gl.uniform1f(gl.getUniformLocation(this.program, "one"), 1.0);
-        M.gl_util.glUniformD(gl.getUniformLocation(this.program, "offsetX"), ns.number(this.eye.offsetX));
-        M.gl_util.glUniformD(gl.getUniformLocation(this.program, "offsetY"), ns.number(this.eye.offsetY));
+        M.gl_util.glUniformD(gl, gl.getUniformLocation(this.program, "offsetX"), ns.number(this.eye.offsetX));
+        M.gl_util.glUniformD(gl, gl.getUniformLocation(this.program, "offsetY"), ns.number(this.eye.offsetY));
         gl.uniform1i(gl.getUniformLocation(this.program, "iterations"), this.eye.iterations);
         if (this.isPyramidLayer) {
             gl.uniform1i(gl.getUniformLocation(this.program, "isPyramidLayer"), 1);
@@ -318,6 +328,7 @@ class Job {
             2*(view.h)/this.bufParam.h
         );
 
+        trace('b', 'dr', this.bufParam.w, ns.number(this.eye.offsetX));
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         return true;
     }

@@ -44,9 +44,6 @@ vec4 u4(uvec4 x) {
 }
 
 void main() {
-    //vec2 txtCoord2 = eye2CanvasSpace(eyeX, eyeY, scale, bgEyeX, bgEyeY, bgScale);
-    //outColor = vec4(eyeX - bgEyeX, 0, 0, 1);
-    //return;
     vec2 txtCoord = eye2CanvasSpace(eyeX, eyeY, scale, fgEyeX, fgEyeY, fgScale);
 
     if (isWithinUnit(txtCoord)) {
@@ -55,8 +52,8 @@ void main() {
         if (pixel[3] < 1.0) {
             txtCoord = eye2CanvasSpace(eyeX, eyeY, scale, bgEyeX, bgEyeY, bgScale);
             if (isWithinUnit(txtCoord)) {
-                outColor = texture(bgTexture, txtCoord);
-                //outColor = vec4(1, 1, 1, 1);
+                //outColor = texture(bgTexture, txtCoord);
+                outColor = vec4(0, 1, 1, 1);
             } else {
                 outColor = vec4(1, 0, 1, 1);
             }

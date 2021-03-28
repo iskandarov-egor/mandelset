@@ -1,14 +1,12 @@
-var canvas = document.querySelector("#canvas");
-
 var ns = M.ns.ns;
 // 2162819005114
 // 76619
 
 function updateEyeControlElements() {
-    document.getElementById("input_scale").value = 1/Game.eye.scale;
-    document.getElementById("input_x").value = ns.number(Game.eye.offsetX).toFixed(30);
-    document.getElementById("input_y").value = ns.number(Game.eye.offsetY).toFixed(30);
-    document.getElementById("input_iter").value = Game.eye.iterations;
+    document.getElementById("input_scale").value = 1/game.eye.scale;
+    document.getElementById("input_x").value = ns.number(game.eye.offsetX).toFixed(30);
+    document.getElementById("input_y").value = ns.number(game.eye.offsetY).toFixed(30);
+    document.getElementById("input_iter").value = game.eye.iterations;
 }
 
 function loadFromEyeControlElements() {
@@ -28,8 +26,8 @@ function loadFromEyeControlElements() {
         offsetY: ns.init(values.offsetY),
         scale: 1/values.scale,
     });
-    Game.setEye(eye);
-    Game.requestDraw();
+    game.setEye(eye);
+    game.requestDraw();
 }
 
 canvas.addEventListener("wheel", e => {
@@ -40,16 +38,16 @@ canvas.addEventListener("wheel", e => {
     var y = e.offsetY / canvas.clientHeight * -2 + 1;
     var factor = Math.pow(1.1, dir);
     
-    // :: var cx = x * Game.eye.scale + Game.eye.offsetX;
-    // :: Game.eye.offsetX = cx + (Game.eye.offsetX - cx) * factor;
-    // :: Game.eye.offsetX = x * Game.eye.scale + Game.eye.offsetX + (-x * Game.eye.scale) * factor;
-    // :: Game.eye.offsetX = x * Game.eye.scale*(1 - factor) + Game.eye.offsetX;
-    Game.eye.offsetX = ns.add(ns.init(x * Game.eye.scale*(1 - factor)), Game.eye.offsetX);
-    Game.eye.offsetY = ns.add(ns.init(y * Game.eye.scale*(1 - factor)), Game.eye.offsetY);
-    Game.eye.scale *= factor;
+    // :: var cx = x * game.eye.scale + game.eye.offsetX;
+    // :: game.eye.offsetX = cx + (game.eye.offsetX - cx) * factor;
+    // :: game.eye.offsetX = x * game.eye.scale + game.eye.offsetX + (-x * game.eye.scale) * factor;
+    // :: game.eye.offsetX = x * game.eye.scale*(1 - factor) + game.eye.offsetX;
+    game.eye.offsetX = ns.add(ns.init(x * game.eye.scale*(1 - factor)), game.eye.offsetX);
+    game.eye.offsetY = ns.add(ns.init(y * game.eye.scale*(1 - factor)), game.eye.offsetY);
+    game.eye.scale *= factor;
     updateEyeControlElements();
-    Game.setEye(Game.eye);
-    Game.requestDraw();
+    game.setEye(game.eye);
+    game.requestDraw();
 });
 
 var acc = 0;
@@ -60,18 +58,18 @@ canvas.addEventListener("mousemove", e => {
     }
     // todo test when page is zoomed
     //var canvasX = 
-    Game.eye.offsetX = ns.sub(
-        Game.eye.offsetX,
-        ns.mul(ns.init(e.movementX*2/canvas.clientHeight), ns.init(Game.eye.scale)),
+    game.eye.offsetX = ns.sub(
+        game.eye.offsetX,
+        ns.mul(ns.init(e.movementX*2/canvas.clientHeight), ns.init(game.eye.scale)),
     );
-    Game.eye.offsetY = ns.add(
-        Game.eye.offsetY,
-        ns.mul(ns.init(e.movementY*2/canvas.clientHeight), ns.init(Game.eye.scale)),
+    game.eye.offsetY = ns.add(
+        game.eye.offsetY,
+        ns.mul(ns.init(e.movementY*2/canvas.clientHeight), ns.init(game.eye.scale)),
     );
         
     updateEyeControlElements();
-    Game.setEye(Game.eye);
-    Game.requestDraw();
+    game.setEye(game.eye);
+    game.requestDraw();
 });
 
 function getPaintMode() {
@@ -106,14 +104,14 @@ function updateElementVisibility() {
     document.getElementById('palette_cell').style.display = (mode == 'gradient' || mode == '2_gradients') ? 'flex' : 'none';
     //document.getElementById('second_gradient').style.display = (mode == '2_gradients') ? 'flex' : 'none';
     document.getElementById('custom_image_cell').style.display = (mode == 'custom_image') ? 'flex' : 'none';
-    document.getElementById('distance_mode').style.display = (Game.theme.direction == 0) ? 'flex' : 'none';
+    document.getElementById('distance_mode').style.display = (game.theme.direction == 0) ? 'flex' : 'none';
     document.getElementById('scale_invariance_control').style.visibility = (getDistanceMode() == 'distance') ? 'visible' : 'hidden';
     
     for (const element of document.getElementsByClassName('distance_factor_modifier')) {
-        element.style.display = (mode != 'gradient' || Game.theme.direction == 0) ? 'flex' : 'none';
+        element.style.display = (mode != 'gradient' || game.theme.direction == 0) ? 'flex' : 'none';
     }
     for (const element of document.getElementsByClassName('normal_factor_modifier')) {
-        element.style.display = (mode != 'gradient' || Game.theme.direction == 1) ? 'flex' : 'none';
+        element.style.display = (mode != 'gradient' || game.theme.direction == 1) ? 'flex' : 'none';
     }
     
     paintControls();
@@ -125,19 +123,23 @@ function paintModeListener() {
 }
 
 function toggleDirectionListener() {
-    Game.theme.direction = (Game.theme.direction == 0) ? 1 : 0;
+    game.theme.direction = (game.theme.direction == 0) ? 1 : 0;
     updateElementVisibility();
     updateGradientTexture();
 };
 
+var lc_ext = null;
 function myclick() {
-    loadFromEyeControlElements();
-    
-    Game.requestDraw();
-    
+    if (lc_ext) {
+        lc_ext.restoreContext();
+        lc_ext = null;
+    } else {
+        lc_ext = gl.getExtension('WEBGL_lose_context');
+        lc_ext.loseContext();
+    }
 }
 
-var utexture = M.gl_util.createRenderTexture(gl, renderW, renderH);
+///var utexture = M.gl_util.createRenderTexture(gl, renderW, renderH);
 
 function myclick2() {
 
@@ -162,41 +164,40 @@ function updateGradientTexture() {
     }
     M.palette.paintGradient(mainGradient.controller.points, 1024, paintCb);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, Game.theme.gradientTexture);
+    gl.bindTexture(gl.TEXTURE_2D, game.theme.gradientTexture);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 1, gl.RGBA, gl.UNSIGNED_BYTE, gradientArray);
     
     if (getPaintMode() == '2_gradients') {
         M.palette.paintGradient(mainGradient2.controller.points, 1024, paintCb);
     }
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, Game.theme.gradientTexture2);
+    gl.bindTexture(gl.TEXTURE_2D, game.theme.gradientTexture2);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 1, gl.RGBA, gl.UNSIGNED_BYTE, gradientArray);
     
-    Game.theme.offset = offsetControl.get();
-    Game.theme.scale = scaleControl.get();
+    game.theme.offset = offsetControl.get();
+    game.theme.scale = scaleControl.get();
     
-    Game.theme.mirror = document.getElementById('checkbox_mirror').checked;
-    Game.theme.repeat = document.getElementById('checkbox_repeat').checked;
+    game.theme.mirror = document.getElementById('checkbox_mirror').checked;
+    game.theme.repeat = document.getElementById('checkbox_repeat').checked;
     
-    Game.theme.offset2 = offsetControl2.get();
-    Game.theme.scale2 = scaleControl2.get();
+    game.theme.offset2 = offsetControl2.get();
+    game.theme.scale2 = scaleControl2.get();
     
-    Game.theme.mirror2 = document.getElementById('checkbox_mirror2').checked;
-    Game.theme.repeat2 = document.getElementById('checkbox_repeat2').checked;
+    game.theme.mirror2 = document.getElementById('checkbox_mirror2').checked;
+    game.theme.repeat2 = document.getElementById('checkbox_repeat2').checked;
     
-    Game.theme.shade3d = document.getElementById('checkbox_3d').checked && Game.theme.direction == 0;
-    Game.theme.scale_invariant = document.getElementById('checkbox_scale_invariant').checked;
+    game.theme.shade3d = document.getElementById('checkbox_3d').checked && game.theme.direction == 0;
+    game.theme.scale_invariant = document.getElementById('checkbox_scale_invariant').checked;
     
-    Game.theme.mode = (getPaintMode() == 'custom_image') ? 1 : 0;
-    Game.theme.distance_mode = (getPaintMode() == 'custom_image' || getDistanceMode() == 'distance') ? 1 : 0;
+    game.theme.mode = (getPaintMode() == 'custom_image') ? 1 : 0;
+    game.theme.distance_mode = (getPaintMode() == 'custom_image' || getDistanceMode() == 'distance') ? 1 : 0;
     
-    Game.updateGradient();
+    game.updateTheme();
 }
 
 var customImage = new Image();
 customImage.onload = function () {
-    console.log('onload');
-    M.gl_util.loadHTMLImage2Texture(Game.gl(), customImage, Game.theme.customImageTexture);
+    M.gl_util.loadHTMLImage2Texture(game.gl, customImage, game.theme.customImageTexture);
     updateGradientTexture();
 }
 
@@ -327,17 +328,54 @@ for (const element of document.getElementById('eye_preferences').getElementsByTa
     });
 }
 
-updateElementVisibility();
-updateGradientTexture();
-mainGradient.controller.selectedPoint = mainGradient.controller.points[0];
-gradientUpdateCallback(mainGradient);
-updateEyeControlElements();
-Game.requestDraw();
+var canvas0 = document.getElementById("canvas");
+M.gl_util.resizeCanvas(canvas, 1); // todo
+M.gl_util.resizeCanvas(canvas1, 1);
+canvas0.width = canvas0.width - (canvas0.width % 3); // todo
+canvas0.height = canvas0.height - (canvas0.height % 3);
+
+var gl = canvas.getContext("webgl2", {antialias: false});
+if (!gl) {
+    alert("no webgl2 for you!"); //todo
+}
+var game;
+
+function startWithNewGLContext() {
+    M.game_gl.createPositionVAO(gl);
+    game = new M.game.Game(gl, document.getElementById("canvas1"));
+    game.init(gl.canvas.width, gl.canvas.height);
+    if (customImage.width > 0) {
+        M.gl_util.loadHTMLImage2Texture(game.gl, customImage, game.theme.customImageTexture);
+    }
+    updateGradientTexture();
+    game.requestDraw();
+}
+
+startWithNewGLContext();
 
 setInterval(function() {
   document.getElementById("lblTiming").innerText = 'Timing: ' + M.Stat.Computer.lastTiming;
   document.getElementById("lblGLTimer").innerText = 'GL Timer: ' + M.Stat.Computer.GLTimer;
 }, 500);
 
+function raf() {
+    game.raf();
+    requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
 
+mainGradient.controller.selectedPoint = mainGradient.controller.points[0];
+updateGradientTexture();
+gradientUpdateCallback(mainGradient);
+updateEyeControlElements();
+updateElementVisibility();
 
+canvas.addEventListener("webglcontextlost", function(event) {
+    event.preventDefault();
+    console.log('lost');
+}, false);
+
+canvas.addEventListener("webglcontextrestored", function() {
+    console.log('restored');
+    startWithNewGLContext();
+}, false);

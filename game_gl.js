@@ -24,7 +24,7 @@ fragmentShaderSourceColorizer = M.gl_util.preprocess(fragmentShaderSourceColoriz
 
 vertexShaderSource = M.gl_util.preprocess(vertexShaderSource, includes);
 
-M.game_gl.createProgram1 = function () {
+M.game_gl.createProgram1 = function (gl) {
     return M.gl_util.createProgram(
         gl,
         M.gl_util.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource),
@@ -32,7 +32,7 @@ M.game_gl.createProgram1 = function () {
     );
 }
 
-M.game_gl.createProgramPyramid = function () {
+M.game_gl.createProgramPyramid = function (gl) {
     return M.gl_util.createProgram(
         gl,
         M.gl_util.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource),
@@ -40,7 +40,7 @@ M.game_gl.createProgramPyramid = function () {
     );
 }
 
-M.game_gl.createProgramVisualizer = function () {
+M.game_gl.createProgramVisualizer = function (gl) {
     return M.gl_util.createProgram(
         gl,
         M.gl_util.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource2),
@@ -48,7 +48,7 @@ M.game_gl.createProgramVisualizer = function () {
     );
 }
 
-M.game_gl.createProgramColorizer = function () {
+M.game_gl.createProgramColorizer = function (gl) {
     return M.gl_util.createProgram(
         gl,
         M.gl_util.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource2),
@@ -82,9 +82,4 @@ M.game_gl.createPositionVAO = function (gl) {
     var offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(positionLocation, size, type, normalize, stride, offset);
     return vao;
-}
-
-M.game_gl.init = function() {
-    //gl.enable(gl.BLEND); 
-    //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 }
