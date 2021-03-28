@@ -52,8 +52,8 @@ void main() {
         if (pixel[3] < 1.0) {
             txtCoord = eye2CanvasSpace(eyeX, eyeY, scale, bgEyeX, bgEyeY, bgScale);
             if (isWithinUnit(txtCoord)) {
-                //outColor = texture(bgTexture, txtCoord);
-                outColor = vec4(0, 1, 1, 1);
+                outColor = texture(bgTexture, txtCoord);
+                //outColor = vec4(0, 1, 1, 1);
             } else {
                 outColor = vec4(1, 0, 1, 1);
             }

@@ -50,21 +50,48 @@ canvas.addEventListener("wheel", e => {
     game.requestDraw();
 });
 
-var acc = 0;
+function normalizeCanvasCoords(canvas, x, y) {
+    var boundingBox = canvas.getBoundingClientRect();
+    return {
+        x: (x - boundingBox.left) / (boundingBox.width),
+        y: (y - boundingBox.top) / (boundingBox.height)
+    }
+}
 
-canvas.addEventListener("mousemove", e => {
+var canvasGrab = null;
+
+canvas.addEventListener("mousedown", e => {
     if (e.buttons % 2 == 0) {
         return;
     }
-    // todo test when page is zoomed
-    //var canvasX = 
+    canvasGrab = {
+        p: normalizeCanvasCoords(canvas, e.clientX, e.clientY),
+        eye: game.eye.clone(),
+    };
+});
+
+document.addEventListener("mouseup", e => {
+    if (e.button == 2) {
+        canvasGrab = null;
+    }
+});
+
+document.addEventListener("mouseleave", e => {
+    canvasGrab = null;
+});
+
+canvas.addEventListener("mousemove", e => {
+    if (e.buttons % 2 == 0 || canvasGrab == null) {
+        return;
+    }
+    var p = normalizeCanvasCoords(canvas, e.clientX, e.clientY);
     game.eye.offsetX = ns.sub(
-        game.eye.offsetX,
-        ns.mul(ns.init(e.movementX*2/canvas.clientHeight), ns.init(game.eye.scale)),
+        canvasGrab.eye.offsetX,
+        ns.mul(ns.init((p.x - canvasGrab.p.x)*2*canvas.width/canvas.height), ns.init(game.eye.scale)),
     );
     game.eye.offsetY = ns.add(
-        game.eye.offsetY,
-        ns.mul(ns.init(e.movementY*2/canvas.clientHeight), ns.init(game.eye.scale)),
+        canvasGrab.eye.offsetY,
+        ns.mul(ns.init((p.y - canvasGrab.p.y)*2), ns.init(game.eye.scale)),
     );
         
     updateEyeControlElements();

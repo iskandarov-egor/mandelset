@@ -71,12 +71,6 @@ var gradientControllersMouseMove = function(e) {
     }
 };
 
-var gradientControllersMouseUp = function(e) {
-    if (e.buttons % 2 == 0) {
-        activeController = null;
-    }
-};
-
 function resizeCanvasToDisplaySize(canvas) {
     canvas.width  = (window.devicePixelRatio * canvas.clientWidth);
     canvas.height = (window.devicePixelRatio * canvas.clientHeight);
@@ -375,6 +369,13 @@ M.palette.GrayPalette = GrayPalette;
 
 // todo
 document.addEventListener("mousemove", e => gradientControllersMouseMove(e));
-document.addEventListener("mouseup", e => gradientControllersMouseUp(e));
+document.addEventListener("mouseup", e => {
+    if (e.buttons % 2 == 0) {
+        activeController = null;
+    }
+});
+document.addEventListener("mouseleave", e => {
+    activeController = null;
+});
 //g_h.init(canvas_h);
 //g_h_c.init(canvas_hc);
