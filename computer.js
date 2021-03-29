@@ -71,11 +71,12 @@ class Computer {
     }
     
     // sets a new draw target. abandons the previous one and does not wait for its completion.
-    // basically a soft version of 'init'. reinitializes itself, except for some heavy non-changing webgl components.
-    // if samplingSeed is 0, sample pixel centers. otherwise sample random points within the pixel with this seed.
-    reset(newEye, samplingSeed = 0) {
+    // basically a soft version of 'init'. reinitializes itself, except for some non-changing webgl components.
+    // sampleShift is an extra shift to the eye position in pixel units, intended to use for subpixel sampling.
+    // using it is better than simply shifting the eye, because the shift may be smaller the precision of the eye position.
+    reset(newEye, sampleShift = {x: 0, y: 0}) {
         var gl = this.gl;
-        this.samplingSeed = samplingSeed;
+        this.sampleShift = sampleShift;
         this.eye = newEye.clone();  // todo maybe we only need eye in job
         
         M.Stat.Computer.lastTimingStart = performance.now();
@@ -177,7 +178,7 @@ class Computer {
                 if (!this.isPyramidLayer) {
                     this.job.clear();
                 }
-                this.job.reset(this.eye, this.refOrbitFinder.getBestComputer(), this.samplingSeed);
+                this.job.reset(this.eye, this.refOrbitFinder.getBestComputer(), this.sampleShift);
                 this.state = STATE_DRAW;
                 this.drawingEye = this.eye;
             }
@@ -252,7 +253,7 @@ class Job {
     }
     
     // orbitComputer should contain a computed orbit
-    reset(eye, orbitComputer, samplingSeed) {
+    reset(eye, orbitComputer, sampleShift) {
         var gl = this.gl;
         this.orbitComputer = orbitComputer;
         this.eye = eye.clone();
@@ -272,12 +273,14 @@ class Job {
             gl.uniform1i(gl.getUniformLocation(this.program, "isPyramidLayer"), 0);
         }
         
+        var pixelSize = 2.0 / this.bufParam.h;
         gl.uniform1i(gl.getUniformLocation(this.program, "refOrbit"), 0);
         gl.uniform1i(gl.getUniformLocation(this.program, "refOrbitLen"), orbitComputer.iterations);
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetX"), ns.number(ns.sub(this.eye.offsetX, orbitComputer.x)));
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetY"), ns.number(ns.sub(this.eye.offsetY, orbitComputer.y)));
-        
-        gl.uniform1i(gl.getUniformLocation(this.program, "samplingSeed"), samplingSeed);
+        //console.log(sampleShift, sampleShift.x * pixelSize);
+        gl.uniform1f(gl.getUniformLocation(this.program, "sampleShiftX"), sampleShift.x * pixelSize);
+        gl.uniform1f(gl.getUniformLocation(this.program, "sampleShiftY"), sampleShift.y * pixelSize);
         
         var myGPUIterationsPerMs = 18750000; // how many iterations my gpu is able to execute per ms (with no ref orbit)
         var slowGPUIterationsPerMs = myGPUIterationsPerMs / 4; // how many iterations should any gpu be able to execute per ms (with no ref orbit)

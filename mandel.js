@@ -7,6 +7,7 @@ class Eye {
         this.offsetX = args.offsetX;
         this.offsetY = args.offsetY;
         this.iterations = args.iterations;
+        this.samples = args.samples;
     }
     
     clone() {
@@ -15,6 +16,7 @@ class Eye {
             offsetY: ns.clone(this.offsetY),
             scale: this.scale,
             iterations: this.iterations,
+            samples: this.samples,
         });
     }
 };

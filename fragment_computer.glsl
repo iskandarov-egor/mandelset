@@ -19,6 +19,8 @@ uniform sampler2D parent;
 uniform int refOrbitLen;
 uniform float refOrbitEyeOffsetX;
 uniform float refOrbitEyeOffsetY;
+uniform float sampleShiftX; // todo move to vertex shader
+uniform float sampleShiftY;
 uniform bool isPyramidLayer;
 
 uniform int samplingSeed;
@@ -209,13 +211,16 @@ void main() {
     }
     
     vec2 sampleCoord = clipCoord;
-    if (samplingSeed > 0) {
-        sampleCoord += (rand(clipCoord + vec2(0, float(samplingSeed))) - vec2(0.5, 0.5)) * vec2(pixelW, pixelW);
-    };
+    //if (samplingSeed > 0) {
+        sampleCoord.x += sampleShiftX;
+        sampleCoord.y += sampleShiftY;
+        //sampleCoord += (rand(clipCoord + vec2(0, float(samplingSeed))) - vec2(0.5, 0.5)) * vec2(pixelW, pixelW);
+    //};
     
     //ff_main();
     //grid_main();
     vec4 result = computer_texture(sampleCoord);
+    //result[0] = rand(sampleCoord);
     outColor = uvec4(floatBitsToUint(result[0]), floatBitsToUint(result[1]), floatBitsToUint(result[2]), 1);
     //f_main();
 }

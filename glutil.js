@@ -131,24 +131,26 @@ M.gl_util.createProgram = function (gl, vertexShader, fragmentShader) {
 }
 
 
-M.gl_util.resizeCanvas = function (canvas, scale) {
-  // Lookup the size the browser is displaying the canvas.
-  var displayWidth  = canvas.clientWidth;
-  var displayHeight = canvas.clientHeight;
-  
-  var targetWidth = displayWidth * scale;
-  var targetHeight = displayHeight * scale;
-  //targetWidth = targetHeight;
-  //targetWidth = 1881;
- 
-  // Check if the canvas is not the same size.
-  if (canvas.width  !== targetWidth ||
-      canvas.height !== targetHeight) {
- 
-    // Make the canvas the same size
-    canvas.width  = targetWidth - 100;
-    canvas.height = targetHeight;
-  }
+M.gl_util.resizeCanvas = function (canvas) {
+    // Lookup the size the browser is displaying the canvas.
+    var displayWidth  = canvas.clientWidth;
+    var displayHeight = canvas.clientHeight;
+
+    var scale = window.devicePixelRatio; // Change to 1 on retina screens to see blurry canvas.
+
+    var targetWidth = displayWidth * scale;
+    var targetHeight = displayHeight * scale;
+    //targetWidth = targetHeight;
+    //targetWidth = 1881;
+
+    // Check if the canvas is not the same size.
+    if (canvas.width  !== targetWidth ||
+        canvas.height !== targetHeight) {
+
+        // Make the canvas the same size
+        canvas.width  = targetWidth - 100;
+        canvas.height = targetHeight;
+    }
 }
 
 M.gl_util.preprocess = function (source, includes) {

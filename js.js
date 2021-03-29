@@ -7,6 +7,7 @@ function updateEyeControlElements() {
     document.getElementById("input_x").value = ns.number(game.eye.offsetX).toFixed(30);
     document.getElementById("input_y").value = ns.number(game.eye.offsetY).toFixed(30);
     document.getElementById("input_iter").value = game.eye.iterations;
+    document.getElementById("input_samples").value = game.eye.samples;
 }
 
 function loadFromEyeControlElements() {
@@ -15,9 +16,10 @@ function loadFromEyeControlElements() {
         offsetX: parseFloat(document.getElementById("input_x").value),
         offsetY: parseFloat(document.getElementById("input_y").value),
         scale: parseFloat(document.getElementById("input_scale").value),
+        samples: parseFloat(document.getElementById("input_samples").value),
     };
     
-    if (isNaN(values.iterations) || isNaN(values.offsetX) || isNaN(values.offsetY) || isNaN(values.scale)) {
+    if (isNaN(values.iterations) || isNaN(values.offsetX) || isNaN(values.offsetY) || isNaN(values.scale) || isNaN(values.samples)) {
         return;
     }
     var eye = new M.mandel.Eye({
@@ -25,6 +27,7 @@ function loadFromEyeControlElements() {
         offsetX: ns.init(values.offsetX),
         offsetY: ns.init(values.offsetY),
         scale: 1/values.scale,
+        samples: values.samples,
     });
     game.setEye(eye);
     game.requestDraw();
@@ -217,7 +220,7 @@ function updateGradientTexture() {
     game.theme.scale_invariant = document.getElementById('checkbox_scale_invariant').checked;
     
     game.theme.mode = (getPaintMode() == 'custom_image') ? 1 : 0;
-    game.theme.distance_mode = (getPaintMode() == 'custom_image' || getDistanceMode() == 'distance') ? 1 : 0;
+    game.theme.distance_mode = (getDistanceMode() == 'distance') ? 1 : 0;
     
     game.updateTheme();
 }
@@ -358,8 +361,8 @@ for (const element of document.getElementById('eye_preferences').getElementsByTa
 var canvas0 = document.getElementById("canvas");
 M.gl_util.resizeCanvas(canvas, 1); // todo
 M.gl_util.resizeCanvas(canvas1, 1);
-canvas0.width = canvas0.width - (canvas0.width % 3); // todo
-canvas0.height = canvas0.height - (canvas0.height % 3);
+//canvas0.width = canvas0.width - (canvas0.width % 3); // todo
+//canvas0.height = canvas0.height - (canvas0.height % 3);
 
 var gl = canvas.getContext("webgl2", {antialias: false});
 if (!gl) {
@@ -381,8 +384,8 @@ function startWithNewGLContext() {
 startWithNewGLContext();
 
 setInterval(function() {
-  document.getElementById("lblTiming").innerText = 'Timing: ' + M.Stat.Computer.lastTiming;
-  document.getElementById("lblGLTimer").innerText = 'GL Timer: ' + M.Stat.Computer.GLTimer;
+  //document.getElementById("lblTiming").innerText = 'Timing: ' + M.Stat.Computer.lastTiming;
+  //document.getElementById("lblGLTimer").innerText = 'GL Timer: ' + M.Stat.Computer.GLTimer;
 }, 500);
 
 function raf() {

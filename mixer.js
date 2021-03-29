@@ -1,5 +1,5 @@
 class Mixer {
-    constructor(gl, computer1, bufParam, multisampling_passes, theme) {
+    constructor(gl, computer1, eye, bufParam, theme) {
         this.gl = gl;
         this.theme = theme;
         this.computer1 = computer1;
@@ -8,11 +8,11 @@ class Mixer {
         this.mixTextureSwap = M.gl_util.createUnderlayTexture(gl, bufParam.w, bufParam.h);
         this.fbuffer = gl.createFramebuffer();
         this.program = M.game_gl.createProgramColorizer(gl);
-        this.drawingEye = game.eye; //todo aaa
+        this.drawingEye = eye;
         
         var compArg = {
             gl: gl,
-            eye: game.eye, //todo aaa
+            eye: eye,
             buffer: {
                 w: bufParam.w,
                 h: bufParam.h,
@@ -21,8 +21,11 @@ class Mixer {
         };
         this.computer2 = new M.Computer(compArg);
         this.computer2.init(); // todo not here
+        this.computer1.init(); // todo not here
+        
+        this.sampler = newSubPixelSampler(1, eye.samples);
+        this.computer1.reset(eye, this.sampler.nextPoint()); // todo do not reset in init, becaus we reset here anyway
         this.multisampling_pass = 1;
-        this.multisampling_passes = multisampling_passes;
         this.resultTexture = null;
     }
     
@@ -40,22 +43,29 @@ class Mixer {
     }
     
     reset(newEye) {
-        this.computer1.reset(newEye);
+        this.sampler = newSubPixelSampler(1, newEye.samples);
+        this.computer1.reset(newEye, this.sampler.nextPoint());
 		this._clear();
         this.drawingEye = this.computer1.getDrawingEye();
-        this._update(this.computer1.getTexture());
+        this._update(this.computer1.getTexture()); // todo needed?
         this.multisampling_pass = 1;
     }
     
     themeReset() {
         if (this.multisampling_pass > 1) {
-            this._clear();
-            this.multisampling_pass = 1;
-            this._update(this.computer1.getTexture());
-            this._swap();
-            this.multisampling_pass = 2;
-            this.computer2.reset(this.drawingEye, 1);
+            this.themeResetPending = true;
         }
+    }
+    
+    _themeReset() {
+        this._clear();
+        this.multisampling_pass = 1;
+        this._update(this.computer1.getTexture());
+        this._swap();
+        this.multisampling_pass = 2;
+        this.sampler = newSubPixelSampler(1, this.drawingEye.samples);
+        this.sampler.nextPoint();
+        this.computer2.reset(this.drawingEye, this.sampler.nextPoint());
     }
     
     _update(texture) {
@@ -132,10 +142,16 @@ class Mixer {
                     that.drawingEye = that.computer1.getDrawingEye();
                 }
             }
-            if (done && that.multisampling_pass < that.multisampling_passes) {
-                var eye = that.computer1.getDrawingEye().clone();
+            if (that.themeResetPending) {
+                that.themeResetPending = false;
+                that._themeReset();
+                done = false;
+            }
+            if (done && that.multisampling_pass < that.sampler.samples) {
                 //eye.offsetY = ns.mul(ns.init(-1), eye.offsetY);
-                that.computer2.reset(eye, that.multisampling_pass);
+                //that.computer2.reset(that.getDrawingEye(), that.multisampling_pass);
+                var eye = that.getDrawingEye().clone();
+                that.computer2.reset(eye, that.sampler.nextPoint());
                 that.multisampling_pass++;
                 that._swap();
                 done = false;
@@ -149,6 +165,31 @@ class Mixer {
             this.computer2.computeSome(_cb);
         }
     }
+};
+
+function newSubPixelSampler(pixelWidth, nSamples) {
+    var steps = Math.ceil(Math.sqrt(nSamples));
+    var stepSize = pixelWidth/steps;
+    var x = -0.5;
+    var y = 0.5;
+    return {
+        nextPoint: function() {
+            if (nSamples == 0) {
+                return null;
+            }
+            nSamples--;
+            x++;
+            if (x >= steps) {
+                x = 0.5;
+                y++;
+            }
+            return {
+                x: x*stepSize - pixelWidth/2,
+                y: y*stepSize - pixelWidth/2,
+            };
+        },
+        samples: nSamples,
+    };
 };
 
 M.Mixer = Mixer;

@@ -263,7 +263,7 @@ class MainGradient {
         var points = [
             {
                 x: 0,
-                color: [0, 0, 1],
+                color: [1, 1, 1],
             }, {
                 x: 1,
                 color: [0, 0, 0],

@@ -7,6 +7,7 @@ var zeroEye = new M.mandel.Eye({
     offsetX: ns.init(0),
     offsetY: ns.init(0),
     iterations: 100,
+    samples: 1,
 });
 
 var tante = new M.mandel.Eye({    
@@ -14,6 +15,7 @@ var tante = new M.mandel.Eye({
     offsetX: ns.init(-0.774680610626900745252498836635),
     offsetY: ns.init(0.137416885603736660392826252064),
     iterations: 4000,
+    samples: 1,
 });
 
 class Game {
@@ -64,7 +66,8 @@ class Game {
         var comp = new M.Computer(compArg);
         //var comp = new M.PyramidComputer(compArg);
         comp.init();
-        this.mixer = new M.Mixer(gl, comp, compArg.buffer, 1, this.theme);
+        this.mixer = new M.Mixer(gl, comp, this.eye, compArg.buffer, this.theme);
+        //this.mixer.reset(this.eye);
         this.program = M.game_gl.createProgramVisualizer(gl);
         this.underlay = new Underlay(gl, this.program, renderW, renderH);
         this.state = {
