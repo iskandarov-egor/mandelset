@@ -70,26 +70,16 @@ class PyramidComputer {
     }
     
     getTexture() {
-        for (var i = this.computers.length - 1; i >= 0; i--) {
-            /*
-            if (!this.computers[i].isDone()) {
-                if (this.computers[i].state >= 3) {
-                    return this.computers[i].getTexture();
-                } else if (i < this.computers.length - 1 && this.computers[i + 1].state >= 3) {
-                    return this.computers[i + 1].getTexture();
-                } else {
-                    return null;
-                }
-            }
-            */
-            if (!this.computers[i].isDone()) {
-                trace('b', 'ret', i);
+        for (var i = this.computers.length - 1; i >= 1; i--) {
+            if (this.computers[i - 1].isTextureDirty()) {
                 return this.computers[i].getTexture();
             }
         }
-        //return null;
-                trace('b', 'ret', 0);
         return this.computers[0].getTexture();
+    }
+    
+    isTextureDirty() {
+        return this.computers[this.computers.length - 1].isTextureDirty();
     }
     
     getDrawingEye() {

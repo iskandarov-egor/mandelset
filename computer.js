@@ -10,7 +10,7 @@ M.Stat = {
 };
 
 var d = {
-    superSlow: false,
+    superSlow: true,
     oneIter: false,
     iterLimit: null,
     markers: true,
@@ -102,6 +102,10 @@ class Computer {
         }
     }
     
+    isTextureDirty() {
+        return this.eye != this.drawingEye;
+    }
+    
     getTexture() {
         return this.job.renderTexture;
     }
@@ -115,7 +119,7 @@ class Computer {
         
         var waitPeriod = 1;
         if (d.superSlow) {
-            waitPeriod = 1000;
+            waitPeriod = 300;
         }
         var sync;
         var timerQ;

@@ -132,12 +132,12 @@ class Mixer {
         var that = this;
         function _cb(done) {
             if (that.multisampling_pass == 1) {
-                //if (that.computer1.state >= 3) {
+                if (!that.computer1.isTextureDirty()) {
                     that._update(that.computer1.getTexture());
                     that.drawingEye = that.computer1.getDrawingEye();
-                //}
+                }
             } else {
-                if (that.computer2.state >= 3) {
+                if (!that.computer2.isTextureDirty()) {
                     that._update(that.computer2.getTexture());
                     that.drawingEye = that.computer1.getDrawingEye();
                 }
