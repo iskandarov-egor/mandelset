@@ -44,20 +44,24 @@ class Game {
         this.globalOverlay = new M.CanvasOverlay(overlayCanvas);
         this.overlayCanvas = overlayCanvas;
         this.screenDirty = true;
-    }
-    
-    init(renderW, renderH) {
-        var gl = this.gl;
         this.theme.customImageTexture = gl.createTexture();
         this.theme.gradientTexture = M.gl_util.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
         this.theme.gradientTexture2= M.gl_util.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
+        this.program = M.game_gl.createProgramVisualizer(gl);
+        this.state = {
+            name: 'idle',
+        };
+    }
+    
+    initBuffer() {
+        var gl = this.gl;
         
         var compArg = {
             gl: gl,
             eye: this.eye,
             buffer: {
-                w: renderW,
-                h: renderH,
+                w: gl.drawingBufferWidth,
+                h: gl.drawingBufferHeight,
             },
             frameBuffer: gl.createFramebuffer(),
             nLevels: 3,
@@ -68,11 +72,7 @@ class Game {
         comp.init();
         this.mixer = new M.Mixer(gl, comp, this.eye, compArg.buffer, this.theme);
         //this.mixer.reset(this.eye);
-        this.program = M.game_gl.createProgramVisualizer(gl);
-        this.underlay = new Underlay(gl, this.program, renderW, renderH);
-        this.state = {
-            name: 'idle',
-        };
+        this.underlay = new Underlay(gl, this.program, gl.drawingBufferWidth, gl.drawingBufferHeight);
         this.compOverlays = comp.getOverlays();
     }
     

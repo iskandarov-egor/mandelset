@@ -2,12 +2,51 @@ var ns = M.ns.ns;
 // 2162819005114
 // 76619
 
+var canvas = document.getElementById("canvas");
+var canvas1 = document.getElementById("canvas1");
+
 function updateEyeControlElements() {
     document.getElementById("input_scale").value = 1/game.eye.scale;
     document.getElementById("input_x").value = ns.number(game.eye.offsetX).toFixed(30);
     document.getElementById("input_y").value = ns.number(game.eye.offsetY).toFixed(30);
     document.getElementById("input_iter").value = game.eye.iterations;
     document.getElementById("input_samples").value = game.eye.samples;
+    document.getElementById("input_width").value = canvas.width;
+    document.getElementById("input_height").value = canvas.height;
+}
+
+function resizeMainCanvasElement(width, height) {
+    console.log(width);
+    canvas.width = width - (width % 3); //todo
+    canvas.height = height - (height % 3);
+    if (canvas.drawingBufferWidth < canvas.width || canvas.drawingBufferHeight < canvas.height) {
+        canvas.width = canvas.drawingBufferWidth - (drawingBufferWidth % 3);
+        canvas.height = canvas.drawingBufferHeight - (drawingBufferHeight % 3);
+    }
+    
+    var container = document.getElementById("main_stack").getBoundingClientRect();
+    if (container.width/container.height > canvas.width/canvas.height) {
+        canvas.style.removeProperty("width");
+        canvas.style.height = "100%";
+    } else {
+        canvas.style.removeProperty("height");
+        canvas.style.width = "100%";
+    }
+    
+    canvas1.width = canvas.width;
+    canvas1.height = canvas.height;
+    canvas1.style.width = canvas.style.width;
+    canvas1.style.height = canvas.style.height;
+    
+    setTimeout(function() {
+        var rect = canvas.getBoundingClientRect();
+        console.log(rect.width*window.devicePixelRatio > canvas.width, rect.width*window.devicePixelRatio, canvas.width);
+        if (rect.width*window.devicePixelRatio >= canvas.width) {
+            canvas.style.imageRendering = 'pixelated';
+        } else {
+            canvas.style.removeProperty("image-rendering");
+        }
+    }, 1);
 }
 
 function loadFromEyeControlElements() {
@@ -17,11 +56,15 @@ function loadFromEyeControlElements() {
         offsetY: parseFloat(document.getElementById("input_y").value),
         scale: parseFloat(document.getElementById("input_scale").value),
         samples: parseFloat(document.getElementById("input_samples").value),
+        width: parseInt(document.getElementById("input_width").value),
+        height: parseInt(document.getElementById("input_height").value),
     };
-    
-    if (isNaN(values.iterations) || isNaN(values.offsetX) || isNaN(values.offsetY) || isNaN(values.scale) || isNaN(values.samples)) {
-        return;
+    for (var key in values) {
+        if (values.hasOwnProperty(key) && isNaN(values[key])) {           
+            return;
+        }
     }
+    
     var eye = new M.mandel.Eye({
         iterations: values.iterations,
         offsetX: ns.init(values.offsetX),
@@ -29,6 +72,12 @@ function loadFromEyeControlElements() {
         scale: 1/values.scale,
         samples: values.samples,
     });
+    
+    if (canvas.width != values.width || canvas.height != values.height) {
+        resizeMainCanvasElement(values.width, values.height);
+        game.initBuffer();
+    }
+    
     game.setEye(eye);
     game.requestDraw();
 }
@@ -358,9 +407,9 @@ for (const element of document.getElementById('eye_preferences').getElementsByTa
     });
 }
 
-var canvas0 = document.getElementById("canvas");
-M.gl_util.resizeCanvas(canvas, 1); // todo
-M.gl_util.resizeCanvas(canvas1, 1);
+//M.gl_util.resizeCanvas(canvas, 1); // todo
+//M.gl_util.resizeCanvas(canvas1, 1);
+resizeMainCanvasElement(window.devicePixelRatio*canvas.clientWidth, window.devicePixelRatio*canvas.clientHeight);
 //canvas0.width = canvas0.width - (canvas0.width % 3); // todo
 //canvas0.height = canvas0.height - (canvas0.height % 3);
 
@@ -373,7 +422,7 @@ var game;
 function startWithNewGLContext() {
     M.game_gl.createPositionVAO(gl);
     game = new M.game.Game(gl, document.getElementById("canvas1"));
-    game.init(gl.canvas.width, gl.canvas.height);
+    game.initBuffer();
     if (customImage.width > 0) {
         M.gl_util.loadHTMLImage2Texture(game.gl, customImage, game.theme.customImageTexture);
     }

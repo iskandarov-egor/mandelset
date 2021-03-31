@@ -142,6 +142,7 @@ M.gl_util.resizeCanvas = function (canvas) {
     var targetHeight = displayHeight * scale;
     //targetWidth = targetHeight;
     //targetWidth = 1881;
+    
 
     // Check if the canvas is not the same size.
     if (canvas.width  !== targetWidth ||
