@@ -3,24 +3,23 @@ precision highp float;
 
 //out vec4 outColor;
 out uvec4 outColor;
-in vec2 clipCoord;
-in vec2 clipCoordX;
-in vec2 clipCoordY;
 
 uniform float scale;
 uniform float one;
 uniform vec2 offsetX;
 uniform vec2 offsetY;
 uniform float bufferAspectRatio;
-uniform float pixelW;
+uniform float bufferW;
+uniform float bufferH;
 uniform int iterations;
 uniform sampler2D refOrbit;
 uniform sampler2D parent;
 uniform int refOrbitLen;
 uniform float refOrbitEyeOffsetX;
 uniform float refOrbitEyeOffsetY;
-uniform float sampleShiftX; // todo move to vertex shader
+uniform float sampleShiftX;
 uniform float sampleShiftY;
+uniform float sampleShiftScale;
 uniform bool isPyramidLayer;
 
 uniform int samplingSeed;
@@ -92,6 +91,7 @@ vec4 float_color(float x) {
 }
 
 
+/*
 vec4 computer_ff(vec2 clipCoord) {
     //vec2 ffx = vec2(0.0, clipCoord.x);
     //vec2 ffy = vec2(0.0, clipCoord.y);
@@ -124,8 +124,10 @@ vec4 computer_ff(vec2 clipCoord) {
     ///outColor = shade(mandel(ffx.y, ffy.y, iterations));
     ///outColor = floatColor(ffx);
 }
+    */
 
 void f_main() {
+/*
     vec2 coord = clipCoord;
     coord *= scale;
     //coord.x *= screenAspectRatio;
@@ -136,25 +138,30 @@ void f_main() {
     float m = mandel_der(coord.x, coord.y, iterations, der);
     
     outColor = uvec4(floatBitsToUint(m), floatBitsToUint(atan(der.x, der.y)), 0, 1);
-}
-
-void delta_main() {
-    float dx = scale*clipCoord.x;
-    float dy = scale*clipCoord.y;
-    float m = mandel_delta_sim(offsetX[1], offsetY[1], dx, dy, iterations);
-    outColor = shade(m);
+    */
 }
 
 void texture_test_main() {
     //outColor = texelFetch(refOrbit, ivec2(int(1023.0*((clipCoord.y+1.0)/2.0)), 0), 0);
 }
 
-vec4 computer_texture(vec2 clipCoord) {
-    float x = scale*clipCoord.x;
-    float y = scale*clipCoord.y;
+vec4 computer_texture(vec2 bufferSpaceCoord) {
+    float x = scale*bufferSpaceCoord.x;
+    float y = scale*bufferSpaceCoord.y;
     
     float dx = x + refOrbitEyeOffsetX;
     float dy = y + refOrbitEyeOffsetY;
+    
+    /*
+    float a = (4.5-423.0)/201.0;
+    float b = (13.5-1269.0)/603.0;
+    if (abs((gl_FragCoord.x - bufferW/2.0)/(bufferH/2.0) - a) < 0.00001) {
+        
+        return vec4(1, 0, 0, 1);
+    }
+    vec4 c = mantissaColor(bufferSpaceCoord.x);
+    return vec4(c.x, c.y, c.z, 1);
+    */
     vec2 derivative;
     vec2 z;
     float m = mandel_delta(dx, dy, iterations, derivative, z);
@@ -162,10 +169,10 @@ vec4 computer_texture(vec2 clipCoord) {
     vec2 normal = compute_normal(z.x, z.y, derivative.x, derivative.y);
     float distance = compute_distance(z.x, z.y, derivative.x, derivative.y);
     return vec4(m, atan(normal.x, normal.y), distance, 1);
-    //outColor = uvec4(floatBitsToUint(m), floatBitsToUint(normal.x), floatBitsToUint(normal.y), 1);
 }
 
 void texture_main_ff() {
+/*
     //float dx = scale*clipCoord.x;
     //float dy = scale*clipCoord.y;
     vec2 dx = split_ff(clipCoord.x);
@@ -175,7 +182,7 @@ void texture_main_ff() {
     dy = ff_mul(s, dy);
     //float m = mandel_delta(dx, dy, iterations);
     float m = mandel_delta_ff(dx, dy, iterations);
-    outColor = shade(m);
+    outColor = shade(m);*/
 }
 
 /*void mip_main() {
@@ -205,21 +212,27 @@ void main() {
         vec2 pixCoord = (vec2(gl_FragCoord) - vec2(1.5, 1.5));
         vec2 parentCoord = pixCoord / 3.0;
         if (vec2(ivec2(parentCoord)) == parentCoord) {
-            //outColor = uvec4(0, 0, 0, 0);
+            //outColor = uvec4(floatBitsToUint(0.0), floatBitsToUint(1.0), floatBitsToUint(0.0), 1);
             discard;
+            return;
+        } else {
+            //outColor = uvec4(floatBitsToUint(0.0), floatBitsToUint(0.0), floatBitsToUint(1.0), 1);
         }
     }
-    
-    vec2 sampleCoord = clipCoord;
-    //if (samplingSeed > 0) {
-        sampleCoord.x += sampleShiftX;
-        sampleCoord.y += sampleShiftY;
-        //sampleCoord += (rand(clipCoord + vec2(0, float(samplingSeed))) - vec2(0.5, 0.5)) * vec2(pixelW, pixelW);
-    //};
+    /*
+    if (gl_FragCoord.x != 13.5 && gl_FragCoord.x != 4.5) {
+        outColor = uvec4(floatBitsToUint(0.0), floatBitsToUint(0.0), floatBitsToUint(0.0), floatBitsToUint(-2.0));
+        return;
+    }
+    */
+    vec2 bufferCenter = vec2(bufferW, bufferH)/2.0;
+    vec2 bufferSpaceCoord = (sampleShiftScale*gl_FragCoord.xy + vec2(sampleShiftX, sampleShiftY) - bufferCenter)/bufferCenter.yy;
+        //sampleCoord.x += sampleShiftX;
+        //sampleCoord.y += sampleShiftY;
     
     //ff_main();
     //grid_main();
-    vec4 result = computer_texture(sampleCoord);
+    vec4 result = computer_texture(bufferSpaceCoord);
     //result[0] = rand(sampleCoord);
     outColor = uvec4(floatBitsToUint(result[0]), floatBitsToUint(result[1]), floatBitsToUint(result[2]), 1);
     //f_main();

@@ -16,21 +16,37 @@ function updateEyeControlElements() {
 }
 
 function resizeMainCanvasElement(width, height) {
-    console.log(width);
-    canvas.width = width - (width % 3); //todo
-    canvas.height = height - (height % 3);
-    if (canvas.drawingBufferWidth < canvas.width || canvas.drawingBufferHeight < canvas.height) {
-        canvas.width = canvas.drawingBufferWidth - (drawingBufferWidth % 3);
-        canvas.height = canvas.drawingBufferHeight - (drawingBufferHeight % 3);
-    }
+    //canvas.width = width - (width % 3); //todo
+    //canvas.height = height - (height % 3);
     
-    var container = document.getElementById("main_stack").getBoundingClientRect();
+    canvas.width = width;
+    canvas.height = height;
+    if (canvas.drawingBufferWidth < canvas.width || canvas.drawingBufferHeight < canvas.height) {
+        canvas.width = canvas.drawingBufferWidth;// - (drawingBufferWidth % 3);
+        canvas.height = canvas.drawingBufferHeight;// - (drawingBufferHeight % 3);
+    }
+    //console.log(width, height, width % 3, height % 3, canvas.width, canvas.height);
+    
+    var container = {
+        width: document.getElementById("main_stack").clientWidth*window.devicePixelRatio,
+        height: document.getElementById("main_stack").clientHeight*window.devicePixelRatio,
+    };
     if (container.width/container.height > canvas.width/canvas.height) {
         canvas.style.removeProperty("width");
-        canvas.style.height = "100%";
+        var ch = container.height;
+        if (ch < canvas.height) {
+            canvas.style.height = "100%";
+        } else {
+            canvas.style.height = canvas.height/window.devicePixelRatio + "px";
+        }
     } else {
         canvas.style.removeProperty("height");
-        canvas.style.width = "100%";
+        var cw = container.width;
+        if (cw < canvas.width) {
+            canvas.style.width = "100%";
+        } else {
+            canvas.style.width = canvas.width/window.devicePixelRatio + "px";
+        }
     }
     
     canvas1.width = canvas.width;
@@ -40,7 +56,6 @@ function resizeMainCanvasElement(width, height) {
     
     setTimeout(function() {
         var rect = canvas.getBoundingClientRect();
-        console.log(rect.width*window.devicePixelRatio > canvas.width, rect.width*window.devicePixelRatio, canvas.width);
         if (rect.width*window.devicePixelRatio >= canvas.width) {
             canvas.style.imageRendering = 'pixelated';
         } else {
@@ -360,7 +375,8 @@ var offsetControl = new M.palette.GrayPalette(
 var scaleControl = new M.palette.GrayPalette(
     document.getElementById('canvas_scale'),
     document.getElementById('canvas_scale_control'),
-    0.5,
+    //0.5,
+    0,
     updateGradientTexture,
 );
 
@@ -409,7 +425,10 @@ for (const element of document.getElementById('eye_preferences').getElementsByTa
 
 //M.gl_util.resizeCanvas(canvas, 1); // todo
 //M.gl_util.resizeCanvas(canvas1, 1);
-resizeMainCanvasElement(window.devicePixelRatio*canvas.clientWidth, window.devicePixelRatio*canvas.clientHeight);
+resizeMainCanvasElement(
+    window.devicePixelRatio*document.getElementById("main_stack").clientWidth,
+    window.devicePixelRatio*document.getElementById("main_stack").clientHeight
+);
 //canvas0.width = canvas0.width - (canvas0.width % 3); // todo
 //canvas0.height = canvas0.height - (canvas0.height % 3);
 

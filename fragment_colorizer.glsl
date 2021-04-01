@@ -108,6 +108,8 @@ vec3 rgb2srgb(vec3 x) {
 }
 
 vec4 gradientShade(float iterations, float normal_atan, float distance) {
+    
+    //return vec4(iterations, normal_atan, distance, 1);
     if (iterations == -1.0) {
         return vec4(0, 0, 0, 1);
     }

@@ -13,7 +13,7 @@ var zeroEye = new M.mandel.Eye({
 var tante = new M.mandel.Eye({    
     scale: 1/1244664094013.3586,
     offsetX: ns.init(-0.774680610626900745252498836635),
-    offsetY: ns.init(0.137416885603736660392826252064),
+    offsetY: ns.init(0.137416885603786620428934384108),
     iterations: 4000,
     samples: 1,
 });
@@ -67,8 +67,8 @@ class Game {
             nLevels: 3,
             //_orbitLenLimit: 2,
         };
-        var comp = new M.Computer(compArg);
-        //var comp = new M.PyramidComputer(compArg);
+        //var comp = new M.Computer(compArg);
+        var comp = new M.PyramidComputer(compArg);
         comp.init();
         this.mixer = new M.Mixer(gl, comp, this.eye, compArg.buffer, this.theme);
         //this.mixer.reset(this.eye);

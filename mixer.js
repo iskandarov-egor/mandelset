@@ -186,6 +186,7 @@ function newSubPixelSampler(pixelWidth, nSamples) {
             return {
                 x: x*stepSize - pixelWidth/2,
                 y: y*stepSize - pixelWidth/2,
+                scale: 1,
             };
         },
         samples: nSamples,

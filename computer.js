@@ -10,7 +10,7 @@ M.Stat = {
 };
 
 var d = {
-    superSlow: true,
+    superSlow: false,
     oneIter: false,
     iterLimit: null,
     markers: true,
@@ -61,7 +61,7 @@ class Computer {
         } else {
             this.refOrbitFinder = new M.mandel.OrbitFinder(1);
         }
-        this.job = new Job(gl, this.bufParam);
+        this.job = new Job(gl, this.bufParam, this.isPyramidLayer);
         this.overlay = new M.CanvasOverlay(document.getElementById('canvas1'));
         this.overlay.addLiveCallback(overlay => this.overlayCallback(overlay));
         this._orbitLenLimit = args._orbitLenLimit;
@@ -71,10 +71,13 @@ class Computer {
     }
     
     // sets a new draw target. abandons the previous one and does not wait for its completion.
-    // basically a soft version of 'init'. reinitializes itself, except for some non-changing webgl components.
-    // sampleShift is an extra shift to the eye position in pixel units, intended to use for subpixel sampling.
-    // using it is better than simply shifting the eye, because the shift may be smaller the precision of the eye position.
-    reset(newEye, sampleShift = {x: 0, y: 0}) {
+    // sampleShift is an extra transformation to the sample point coordinates.
+    // the sample point coordinates are initially in the centers of pixels
+    // and so range from (0.5, 0.5) to (width - 0.5, height - 0.5) inclusive.
+    // the transformation is: sampleCoordinate * shift.scale + shift.xy
+    // using sampleShift is better than simply shifting the eye, because the shift may be smaller the
+    // precision of the eye position.
+    reset(newEye, sampleShift = {x: 0, y: 0, scale: 1}) {
         var gl = this.gl;
         this.sampleShift = sampleShift;
         this.eye = newEye.clone();  // todo maybe we only need eye in job
@@ -119,7 +122,7 @@ class Computer {
         
         var waitPeriod = 1;
         if (d.superSlow) {
-            waitPeriod = 300;
+            waitPeriod = 1000;
         }
         var sync;
         var timerQ;
@@ -234,9 +237,10 @@ class Computer {
 
 // a job is a small class that handles iterative drawing in small windows.
 class Job {
-    constructor(gl, bufParam) {
+    constructor(gl, bufParam, isPyramidLayer) {
         this.gl = gl;
         this.bufParam = bufParam;
+        this.isPyramidLayer = isPyramidLayer;
         this.done = false;
         this.program = M.game_gl.createProgram1(gl);
         this.fbuffer = gl.createFramebuffer();
@@ -265,7 +269,8 @@ class Job {
         
         gl.useProgram(this.program);
         gl.uniform1f(gl.getUniformLocation(this.program, "bufferAspectRatio"), this.bufParam.ratio);
-        gl.uniform1f(gl.getUniformLocation(this.program, "pixelW"), 2.0 / this.bufParam.h);
+        gl.uniform1f(gl.getUniformLocation(this.program, "bufferW"), this.bufParam.w);
+        gl.uniform1f(gl.getUniformLocation(this.program, "bufferH"), this.bufParam.h);
         gl.uniform1f(gl.getUniformLocation(this.program, "scale"), this.eye.scale);
         gl.uniform1f(gl.getUniformLocation(this.program, "one"), 1.0);
         M.gl_util.glUniformD(gl, gl.getUniformLocation(this.program, "offsetX"), ns.number(this.eye.offsetX));
@@ -282,9 +287,9 @@ class Job {
         gl.uniform1i(gl.getUniformLocation(this.program, "refOrbitLen"), orbitComputer.iterations);
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetX"), ns.number(ns.sub(this.eye.offsetX, orbitComputer.x)));
         gl.uniform1f(gl.getUniformLocation(this.program, "refOrbitEyeOffsetY"), ns.number(ns.sub(this.eye.offsetY, orbitComputer.y)));
-        //console.log(sampleShift, sampleShift.x * pixelSize);
-        gl.uniform1f(gl.getUniformLocation(this.program, "sampleShiftX"), sampleShift.x * pixelSize);
-        gl.uniform1f(gl.getUniformLocation(this.program, "sampleShiftY"), sampleShift.y * pixelSize);
+        gl.uniform1f(gl.getUniformLocation(this.program, "sampleShiftX"), sampleShift.x);
+        gl.uniform1f(gl.getUniformLocation(this.program, "sampleShiftY"), sampleShift.y);
+        gl.uniform1f(gl.getUniformLocation(this.program, "sampleShiftScale"), sampleShift.scale);
         
         var myGPUIterationsPerMs = 18750000; // how many iterations my gpu is able to execute per ms (with no ref orbit)
         var slowGPUIterationsPerMs = myGPUIterationsPerMs / 4; // how many iterations should any gpu be able to execute per ms (with no ref orbit)
@@ -327,13 +332,6 @@ class Job {
         //view = {x: 650, y:300, w:400, h:300};
         // todo GL_MAX_VIEWPORT_DIMS
         gl.viewport(view.x, view.y, view.w, view.h);
-
-        gl.uniform4f(gl.getUniformLocation(this.program, "viewport"),
-            2*view.x/this.bufParam.h - this.bufParam.ratio,
-            2*view.y/this.bufParam.h - 1,
-            2*(view.w)/this.bufParam.h,
-            2*(view.h)/this.bufParam.h
-        );
 
         trace('b', 'dr', this.bufParam.w, ns.number(this.eye.offsetX));
         gl.drawArrays(gl.TRIANGLES, 0, 6);
