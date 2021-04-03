@@ -7,8 +7,8 @@ var canvas1 = document.getElementById("canvas1");
 
 function updateEyeControlElements() {
     document.getElementById("input_scale").value = 1/game.eye.scale;
-    document.getElementById("input_x").value = ns.number(game.eye.offsetX).toFixed(30);
-    document.getElementById("input_y").value = ns.number(game.eye.offsetY).toFixed(30);
+    document.getElementById("input_x").value = ns.tostring(game.eye.offsetX);
+    document.getElementById("input_y").value = ns.tostring(game.eye.offsetY);
     document.getElementById("input_iter").value = game.eye.iterations;
     document.getElementById("input_samples").value = game.eye.samples;
     document.getElementById("input_width").value = canvas.width;
@@ -67,26 +67,27 @@ function resizeMainCanvasElement(width, height) {
 function loadFromEyeControlElements() {
     var values = {
         iterations: parseFloat(document.getElementById("input_iter").value),
-        offsetX: parseFloat(document.getElementById("input_x").value),
-        offsetY: parseFloat(document.getElementById("input_y").value),
+        offsetX: ns.fromstring(document.getElementById("input_x").value),
+        offsetY: ns.fromstring(document.getElementById("input_y").value),
         scale: parseFloat(document.getElementById("input_scale").value),
         samples: parseFloat(document.getElementById("input_samples").value),
         width: parseInt(document.getElementById("input_width").value),
         height: parseInt(document.getElementById("input_height").value),
     };
     for (var key in values) {
-        if (values.hasOwnProperty(key) && isNaN(values[key])) {           
+        if (values.hasOwnProperty(key) && Number.isNaN(values[key])) {
             return;
         }
     }
     
     var eye = new M.mandel.Eye({
         iterations: values.iterations,
-        offsetX: ns.init(values.offsetX),
-        offsetY: ns.init(values.offsetY),
+        offsetX: values.offsetX,
+        offsetY: values.offsetY,
         scale: 1/values.scale,
         samples: values.samples,
     });
+    console.log(eye);
     
     if (canvas.width != values.width || canvas.height != values.height) {
         resizeMainCanvasElement(values.width, values.height);

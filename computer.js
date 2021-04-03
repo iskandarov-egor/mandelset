@@ -38,7 +38,6 @@ class Computer {
     // isPyramidLayer: for optimization. if true, computer will know that it is part of a pyramid computer and
     //                 will skip computing the central pixel in each 9x9 block, but will use the existing pixel
     //                 value in the @framebuffer
-    // eye: - the eye
     // framebuffer: the WebGLFramebuffer object of the destination buffer.
     // refOrbitFinder: if provided, will use this one.
     // bufParam:
@@ -49,7 +48,6 @@ class Computer {
         
         this.isPyramidLayer = args.isPyramidLayer;
         maxSyncTout = gl.getParameter(gl.MAX_CLIENT_WAIT_TIMEOUT_WEBGL);
-        this.eye = args.eye.clone();
         this.bufParam = {
             w: args.buffer.w,
             h: args.buffer.h,
@@ -94,7 +92,6 @@ class Computer {
     
     init() {
         this.job.init();
-        this.reset(this.eye); // todo not good remove this
     }
             
     computeAll() {
@@ -106,7 +103,7 @@ class Computer {
     }
     
     isTextureDirty() {
-        return this.eye != this.drawingEye;
+        return (!this.drawingEye) || (this.eye != this.drawingEye);
     }
     
     getTexture() {

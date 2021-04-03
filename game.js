@@ -17,6 +17,13 @@ var tante = new M.mandel.Eye({
     iterations: 4000,
     samples: 1,
 });
+var ddLimitEye = new M.mandel.Eye({
+    offsetX: ns.init(-1.6331395811715201),
+    offsetY: ns.init(0),
+    scale: 1/1.361052241705286e+30,
+    iterations: 1000,
+    samples: 1,
+});
 
 class Game {
     constructor(gl, overlayCanvas) {
@@ -67,8 +74,8 @@ class Game {
             nLevels: 3,
             //_orbitLenLimit: 2,
         };
-        //var comp = new M.Computer(compArg);
-        var comp = new M.PyramidComputer(compArg);
+        var comp = new M.Computer(compArg);
+        //var comp = new M.PyramidComputer(compArg);
         comp.init();
         this.mixer = new M.Mixer(gl, comp, this.eye, compArg.buffer, this.theme);
         //this.mixer.reset(this.eye);

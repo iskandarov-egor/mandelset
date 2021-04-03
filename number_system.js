@@ -1,6 +1,5 @@
 M.ns = {};
 
-
 function split_dd(x) { // double x
     var c = 268435456.0; // 1 << 27 + 1
     var y = c * x;
@@ -59,51 +58,41 @@ function dd_mul(x, y) {
 
 var ns; // "number system" used to compute orbits. eg simple Number, double Number, etc
 
-function fraction_split(x, width) {
-  var x = Math.abs(x).toFixed(width);
-  
-  var list = [];
-  var z = '0'.charCodeAt(0);
-  var dot = x.indexOf('.')
+var bigFloatFactor = 4;
 
-  for (var i = x.length - 1; i < width + dot; i++) {
-    list.push(0);
-  }
-  for (var i = x.length - 1; i >= 0; i--) {
-    if (i != dot) {
-      list.push(x.charCodeAt(i) - z);
+// big float is a BigInt = x * ((10^10)^factor)
+function makeBigFloat(x) {
+    var mult = 1;
+    while (x != Math.floor(x)) {
+        x *= 2;
+        mult *= 2;
     }
-  }
-  
-  return list;
+    var b = BigInt(x);
+    for (var i = 0; i < bigFloatFactor; i++) {
+        b *= BigInt(10000000000);
+    }
+    return b/BigInt(mult);
 }
 
-function fractions_add(x) {
-  var w = 30;
-  var hi = fraction_split(x[0], w);
-  var lo = fraction_split(x[1], w);
-  console.log(hi,lo);
-  if (lo.length > hi.length) {
-    alert('todo'); // must not happen
-  }
-  hi.push(0);
-  for (var i = 0; i < lo.length; i++) {
-    var d = lo[i] + hi[i];
-    if (d > 9) {
-      hi[i + 1]++;
-      hi[i] = d - 10;
-    } else {
-      hi[i] = d;
+function bigFloat2String(b) {
+    var neg = false;
+    if (b < 0) {
+        neg = true;
+        b = -b;
     }
-  }
-  
-  if (hi[hi.length - 1] == 0) {
-    hi.pop();
-  }
-  
-  hi.reverse();
-  
-  return hi.slice(0, hi.length - w).join('') + '.' + hi.slice(hi.length - w, hi.length).join('');
+    var s = b.toString();
+    s = s.split('');
+    while (s.length < bigFloatFactor*10 + 1) {
+        s.unshift('0');
+    }
+    s.splice(1, 0, '.');
+    while (s[s.length - 1] == '0') {
+        s.pop();
+    }
+    if (s[s.length - 1] == '.') {
+        s.pop();
+    }
+    return (neg ? '-' : '') + s.join('');
 }
 
 var ns_dd = { // double double
@@ -119,63 +108,94 @@ var ns_dd = { // double double
         return [x[0], x[1]];
     },
     number: function(x) {
-        return x[1];
+        return x[1] + x[0];
     },
-  tostring: function(x) {
-        var lo = x[0].toFixed(30);
-    var hi = x[1].toFixed(30);
-    var out = hi;
-    if (lo.includes('e') || hi.includes('e')) {
-      return hi.toFixed(30);
-    }
-    lo = lo.split('')
-    hi = hi.split('')
-    if (lo[0] == '-') {
-      lo.shift()
-    }
-    if (hi[0] == '-') {
-      hi.shift()
-    }
-    if (lo.length() != hi.length()) {
-    }
-    if ((x[0] > 0) == (x[1] > 0)) {
-      // addition
-      
-      if (x[0] < 0) {
+    tostring: function(x) {
+        if (typeof(window.BigInt)=="undefined") {
+            return ns_dd.number(x).toFixed(20);
+        }
+        if (!Number.isFinite(x[0]) || !Number.isFinite(x[1])) {
+            return (x[0] + x[1]).toString();
+        }
+        var b = makeBigFloat(x[0]) + makeBigFloat(x[1]);
+        return bigFloat2String(b, bigFloatFactor);
+    },
+    fromstring(s) {
+        if (typeof(window.BigInt)=="undefined") {
+            return ns_dd.init(parseFloat(s));
+        }
         
-      }
-    } else {
-      // subtraction
-    }
+        if (-1 != s.indexOf('e')) {
+            return ns_dd.init(parseFloat(s));
+        }
+        
+        s = s.trim();
+        var neg = (s[0] == '-');
+        if (neg || s[0] == '+') {
+            s = s.substring(1);
+        }
+        var parts = s.split('.');
+        if (parts.length > 2) {
+            return NaN;
+        }
+        if (parts.length == 1) {
+            parts.push('0');
+        }
+        if (parts[0].length == 0) {
+            parts[0] = '0';
+        }
+        if (parts[1].length == 0) {
+            parts[1] = '0';
+        }
+        if (!(/^[0-9]*$/.test(parts[0])) || !(/^[0-9]*$/.test(parts[1]))) {
+            return NaN;
+        }
+        // we have 2 '.'-parts, integers, non empty
+        var floor = parseInt(parts[0], 10);
+        if (floor.toString() != parts[0]) {
+            return NaN;
+        }
+        
+        // make fractional part exactly 10*bigFloatFactor characters long
+        var fract = parts[1].substring(0, 10*bigFloatFactor);
+        while (fract.length < 10*bigFloatFactor) {
+            fract += '0';
+        }
+        
+        // convert it to float and find the difference
+        var fract1 = parseFloat('0.' + fract);
+        var diff = BigInt(fract) - makeBigFloat(fract1);
+        
+        // make a dd from the float and the difference
+        var fract2 = parseFloat(bigFloat2String(diff));
+        var ret = ns_dd.add(ns_dd.init(floor), ns_dd.add(ns_dd.init(fract1), ns_dd.init(fract2)));
+        return neg ? ns_dd.sub(ns_dd.init(0), ret) : ret;
     }
 };
 
-/*
-class DD {
-    constructor(x) {
-        this.x = x;
+function testToString() {
+    var pairs = [
+        [100, 0],
+        [100, 1],
+        [100, -1],
+        [-100, 1],
+        [-100, -1],
+        [0.100, 0.001],
+        [0.100, -0.001],
+        [-0.100, 0.001],
+        [-0.100, -0.001],
+        [100.001, 1.001],
+        [100.001, -1.001],
+        [-100.001, 1.001],
+        [-100.001, -1.001],
+    ];
+    
+    for (var i = 0; i < pairs.length; i++) {
+        console.log('a', pairs[i][0]);
+        console.log('b', pairs[i][1]);
+        console.log('=', ns.tostring(pairs[i]));
     }
-    add(y) {
-        return dd_add(this.x, y);
-    }
-    mul(y) {
-        return dd_mul(this.x, y);
-    }
-    sub(y) {
-        return dd_add(x, dd_mul([0, -1], y));
-    }
-    clone() {
-        var ret = new DD();
-        ret.x = [this.x[0], this.x[1]];
-        return ret;
-    }
-    number: function(x) {
-        return this.x[1];
-    },
 }
-
-M.ns.DD = DD;
-*/
 
 var ns_Number = { // simple js Number
     add: function(x, y) {

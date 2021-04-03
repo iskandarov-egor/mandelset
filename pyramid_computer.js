@@ -3,14 +3,12 @@ class PyramidComputer {
         this.nLevels = args.nLevels;
         this.computers = [];
         this.gl = args.gl;
-        this.eye = args.eye.clone();
         this.buffer = {
             w: args.buffer.w,
             h: args.buffer.h,
         }
         this.fbuffer = args.frameBuffer;
         this.refOrbitFinder = new M.mandel.OrbitFinder(1);
-        this.drawingEye = game.eye; // todo aaa
         this.program2 = M.game_gl.createProgramPyramid(this.gl);
     }
     
@@ -51,7 +49,6 @@ class PyramidComputer {
     init() {
         var gl = this.gl;
         this.computers = [];
-        var eye = this.eye.clone();
         var buffer = {
             w: this.buffer.w,
             h: this.buffer.h,
@@ -64,7 +61,6 @@ class PyramidComputer {
                     w: buffer.w,
                     h: buffer.h,
                 },
-                eye: eye,
                 refOrbitFinder: this.refOrbitFinder,
             }
             buffer.w = Math.floor((buffer.w + 1) / 3);

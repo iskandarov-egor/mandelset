@@ -15,6 +15,91 @@
 	visualizeBuffer();
 	*/
 
+tostring: function(x) {
+        var a = x[0];
+        var b = x[1];
+        
+        if (Math.abs(b) > Math.abs(a)) {
+            var t = a;
+            a = b;
+            b = t;
+        }
+        
+        var subtraction = ((a < 0) != (b < 0));
+        var negative = (a < 0);
+        
+        //a = Math.abs(a).toFixed(20);
+        //b = Math.abs(b).toFixed(20);
+        a = toFixed1000(a);
+        b = toFixed1000(b);
+        
+        if (a.includes('e') || b.includes('e') || a.length - a.indexOf('.') !=  21 || b.length - b.indexOf('.') != 21) {
+            console.log('aaa', a, b);
+            return b;
+        }
+        
+        
+        a = a.split('').reverse();
+        b = b.split('').reverse();
+        
+        while (a.length != Math.max(a.length, b.length)) { a.push(0); }
+        while (b.length != Math.max(a.length, b.length)) { b.push(0); }
+        
+        function add(a, b) {
+            var carry = 0;
+            for (var i = 0; i < a.length; i++) {
+                if (a[i] != '.') {
+                    var r = carry + parseInt(a[i]) + parseInt(b[i]);
+                    if (r > 9) {
+                        carry = 1;
+                        r -= 10;
+                    } else {
+                        carry = 0;
+                    }
+                    a[i] = r.toString();
+                } else {
+                    if (i != 20 || b[i] != '.') {
+                    //    alert('aaa'); // todo
+                    }
+                }
+            }
+            if (carry) {
+                a.push('1');
+            }
+        }
+        
+        function sub(a, b) {
+            var carry = 0;
+            for (var i = 0; i < a.length; i++) {
+                if (a[i] != '.') {
+                    var r = parseInt(a[i]) - parseInt(b[i]) + carry;
+                    if (r < 0) {
+                        carry = -1;
+                        r += 10;
+                    } else {
+                        carry = 0;
+                    }
+                    a[i] = r.toString();
+                } else {
+                    if (i != 20 || b[i] != '.') {
+                        //alert('aaa'); // todo
+                    }
+                }
+            }
+            if (carry) {
+                alert('aaa'); // todo
+            }
+        }
+        
+        if (subtraction) {
+            sub(a, b);
+        } else {
+            add(a, b);
+        }
+        
+        return ((negative) ? '-' : '') + a.reverse().join('');
+    }
+
 class Loader {
     constructor(gl) {
         this.gl = args.gl;
