@@ -263,34 +263,6 @@ class OrbitFinder {
         }
         
         return true;
-    }    
-    
-    search2(x1, y1, x2, y2, iterLimit) {
-        function gt(x, y) {
-            return ns.number(ns.sub(x, y)) > 0;
-        }
-        function within(c) {
-            return gt(c.x, x1) && gt(x2, c.x) && gt(c.y, y1) && gt(y2, c.y);
-        }
-        
-        for (var i = 0; i < this.computers.length; i++) {
-            var c = this.computers[i];
-            var win = false;
-            if (c.iterations != null) {
-                win = within(c);
-            }
-            if (c.iterations != null && win && c.iterations >= iterLimit) {
-                continue;
-            }
-            var x = ns.add(x1, ns.mul(ns.init(Math.random()), ns.sub(x2, x1)));
-            var y = ns.add(y1, ns.mul(ns.init(Math.random()), ns.sub(y2, y1)));
-            this.tmpComputer.reset(x, y, iterLimit);
-            this.tmpComputer.computeAll();
-            if (c.iterations == null || c.iterations < this.tmpComputer.iterations || !win) {
-                this.computers[i] = this.tmpComputer;
-                this.tmpComputer = c;
-            }
-        }
     }
     
     // search() must have been called at least once

@@ -10,10 +10,19 @@ class PyramidComputer {
         this.fbuffer = args.frameBuffer;
         this.refOrbitFinder = new M.mandel.OrbitFinder(1);
         this.program2 = M.game_gl.createProgramPyramid(this.gl);
+        this.pass_hint = 1;
     }
     
-    reset(newEye, sampleShift) {
-        for (var i = 0; i < this.computers.length; i++) {
+    _nActiveLayers() {
+        return (this.pass_hint > 1 || this.eye.iterations < 10000) ? 1 : this.computers.length;
+    }
+    
+    reset(newEye, sampleShift, opts) {
+        this.eye = newEye.clone();
+        this.pass_hint = opts.pass;
+        console.log(this._nActiveLayers());
+        //if (sampleShift.scale == 1 && sampleShift
+        for (var i = 0; i < this._nActiveLayers(); i++) {
             if (i > 0) {
                 var c = this.computers[i].bufParam;
                 var parent = this.computers[i - 1].bufParam;
@@ -38,12 +47,11 @@ class PyramidComputer {
                     y: parentShift.scale*shift.y + parentShift.y/3,
                     scale: parentShift.scale*shift.scale,
                 };
-                this.computers[i].reset(newEye, shift);
+                this.computers[i].reset(newEye, shift, {isPyramidLayer: (i != this._nActiveLayers() - 1)});
             } else {
-                this.computers[i].reset(newEye, sampleShift);
+                this.computers[i].reset(newEye, sampleShift, {isPyramidLayer: (i != this._nActiveLayers() - 1)});
             }
         }
-        this.eye = newEye.clone();
     }
     
     init() {
@@ -66,7 +74,7 @@ class PyramidComputer {
             buffer.w = Math.floor((buffer.w + 1) / 3);
             buffer.h = Math.floor((buffer.h + 1) / 3);
             if (i < this.nLevels - 1) {
-                compArg.isPyramidLayer = true;
+                //compArg.isPyramidLayer = true;
             }
             
             var comp = new M.Computer(compArg);
@@ -89,7 +97,8 @@ class PyramidComputer {
             that.drawingEye = that.computers[i].getDrawingEye();
             callback(done && i == 0);
         }
-        for (i = this.computers.length - 1; i >= 0; i--) {
+        
+        for (i = this._nActiveLayers() - 1; i >= 0; i--) {
             if (!this.computers[i].isDone()) {
                 trace('b', '  comp layer', i);
                 this.computers[i].computeSome(cb);
@@ -100,8 +109,9 @@ class PyramidComputer {
     }
     
     getTexture() {
-        for (var i = this.computers.length - 1; i >= 1; i--) {
+        for (var i = this._nActiveLayers() - 1; i >= 1; i--) {
             if (this.computers[i - 1].isTextureDirty()) {
+                console.log(i, this.computers[i]);
                 return this.computers[i].getTexture();
             }
         }
@@ -109,7 +119,7 @@ class PyramidComputer {
     }
     
     isTextureDirty() {
-        return this.computers[this.computers.length - 1].isTextureDirty();
+        return this.computers[this._nActiveLayers() - 1].isTextureDirty();
     }
     
     getDrawingEye() {

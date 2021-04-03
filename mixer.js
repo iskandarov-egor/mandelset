@@ -1,32 +1,19 @@
 class Mixer {
-    constructor(gl, computer1, eye, bufParam, theme) {
+    constructor(gl, computer, bufParam, theme) {
         this.gl = gl;
         this.theme = theme;
-        this.computer1 = computer1;
+        this.computer = computer;
         this.bufParam = bufParam;
         this.mixTexture = M.gl_util.createUnderlayTexture(gl, bufParam.w, bufParam.h);
         this.mixTextureSwap = M.gl_util.createUnderlayTexture(gl, bufParam.w, bufParam.h);
         this.fbuffer = gl.createFramebuffer();
         this.program = M.game_gl.createProgramColorizer(gl);
-        this.drawingEye = eye;
         
-        var compArg = {
-            gl: gl,
-            eye: eye,
-            buffer: {
-                w: bufParam.w,
-                h: bufParam.h,
-            },
-            frameBuffer: gl.createFramebuffer(), // todo
-        };
-        this.computer2 = new M.Computer(compArg);
-        this.computer2.init(); // todo not here
-        this.computer1.init(); // todo not here
-        
-        this.sampler = newSubPixelSampler(1, eye.samples);
-        this.computer1.reset(eye, this.sampler.nextPoint()); // todo do not reset in init, becaus we reset here anyway
+        this.sampler = null;
+        this.drawingEye = null;
         this.multisampling_pass = 1;
         this.resultTexture = null;
+        this.firstPassTexture = M.gl_util.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
     }
     
     _clear() {
@@ -44,10 +31,10 @@ class Mixer {
     
     reset(newEye) {
         this.sampler = newSubPixelSampler(1, newEye.samples);
-        this.computer1.reset(newEye, this.sampler.nextPoint());
+        this.computer.reset(newEye, this.sampler.nextPoint(), {pass: 1});
 		this._clear();
-        this.drawingEye = this.computer1.getDrawingEye();
-        this._update(this.computer1.getTexture()); // todo needed?
+        this.drawingEye = this.computer.getDrawingEye();
+        this._update(this.computer.getTexture()); // todo needed?
         this.multisampling_pass = 1;
     }
     
@@ -60,12 +47,22 @@ class Mixer {
     _themeReset() {
         this._clear();
         this.multisampling_pass = 1;
-        this._update(this.computer1.getTexture());
+        this._update(this.firstPassTexture);
         this._swap();
         this.multisampling_pass = 2;
         this.sampler = newSubPixelSampler(1, this.drawingEye.samples);
         this.sampler.nextPoint();
-        this.computer2.reset(this.drawingEye, this.sampler.nextPoint());
+        this.computer.reset(this.drawingEye, this.sampler.nextPoint(), {pass: this.multisampling_pass});
+    }
+    
+    _saveFirstPass(texture) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        gl.readBuffer(gl.COLOR_ATTACHMENT0);
+        
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.firstPassTexture);
+        gl.copyTexImage2D(gl.TEXTURE_2D, 0, gl.RGBA32UI, 0, 0, this.bufParam.w, this.bufParam.h, 0);
     }
     
     _update(texture) {
@@ -128,31 +125,37 @@ class Mixer {
         return this.resultTexture;
     }
     
+    isTextureDirty() {
+        return this.drawingEye == null;
+    }
+    
     computeSome(cb) {
         var that = this;
         function _cb(done) {
             if (that.multisampling_pass == 1) {
-                if (!that.computer1.isTextureDirty()) {
-                    that._update(that.computer1.getTexture());
-                    that.drawingEye = that.computer1.getDrawingEye();
+                if (!that.computer.isTextureDirty()) {
+                    that._saveFirstPass(that.computer.getTexture());
+                    that._update(that.firstPassTexture);
+                    that.drawingEye = that.computer.getDrawingEye();
+                    console.log('sav');
                 }
             } else {
-                if (!that.computer2.isTextureDirty()) {
-                    that._update(that.computer2.getTexture());
-                    that.drawingEye = that.computer1.getDrawingEye();
+                if (!that.computer.isTextureDirty()) {
+                    that._update(that.computer.getTexture());
+                    that.drawingEye = that.computer.getDrawingEye();
                 }
             }
             if (that.themeResetPending) {
                 that.themeResetPending = false;
                 that._themeReset();
                 done = false;
+                console.log('rst');
             }
+                console.log('pass', that.multisampling_pass);
             if (done && that.multisampling_pass < that.sampler.samples) {
-                //eye.offsetY = ns.mul(ns.init(-1), eye.offsetY);
-                //that.computer2.reset(that.getDrawingEye(), that.multisampling_pass);
-                var eye = that.getDrawingEye().clone();
-                that.computer2.reset(eye, that.sampler.nextPoint());
                 that.multisampling_pass++;
+                var eye = that.getDrawingEye().clone();
+                that.computer.reset(eye, that.sampler.nextPoint(), {pass: that.multisampling_pass});
                 that._swap();
                 done = false;
             }
@@ -160,9 +163,9 @@ class Mixer {
             cb(done);
         };
         if (this.multisampling_pass == 1) {
-            this.computer1.computeSome(_cb);
+            this.computer.computeSome(_cb);
         } else {
-            this.computer2.computeSome(_cb);
+            this.computer.computeSome(_cb);
         }
     }
 };

@@ -77,8 +77,9 @@ class Game {
         var comp = new M.Computer(compArg);
         //var comp = new M.PyramidComputer(compArg);
         comp.init();
-        this.mixer = new M.Mixer(gl, comp, this.eye, compArg.buffer, this.theme);
+        this.mixer = new M.Mixer(gl, comp, compArg.buffer, this.theme);
         //this.mixer.reset(this.eye);
+        this.setEye(this.eye);
         this.underlay = new Underlay(gl, this.program, gl.drawingBufferWidth, gl.drawingBufferHeight);
         this.compOverlays = comp.getOverlays();
     }
@@ -152,7 +153,9 @@ class Game {
         function timer() {
             if (that.eye_dirty) {
                 trace('loop', 'dirty eye2');
-                that.underlay.combine(that.mixer.getDrawingEye(), that.mixer.getTexture());
+                if (!that.mixer.isTextureDirty()) {
+                    that.underlay.combine(that.mixer.getDrawingEye(), that.mixer.getTexture());
+                }
                 that.mixer.reset(that.eye);
                 that.eye_dirty = false;
             }
@@ -166,7 +169,9 @@ class Game {
             that.screenDirty = true;
             if (that.eye_dirty) {
                 trace('loop', 'dirty eye');
-                that.underlay.combine(that.mixer.getDrawingEye(), that.mixer.getTexture());
+                if (!that.mixer.isTextureDirty()) {
+                    that.underlay.combine(that.mixer.getDrawingEye(), that.mixer.getTexture());
+                }
                 that.mixer.reset(that.eye);
                 
                 done = false;
@@ -183,11 +188,11 @@ class Game {
             }
         }
         
-        this.mixer.computeSome(cb);
+        timer();
     }
     
     raf() {
-        if (this.screenDirty) {
+        if (this.screenDirty && this.mixer.getDrawingEye()) {
             trace('raf', '<raf>');
             this._visualizeBuffer(this.mixer.getTexture());
             this.screenDirty = false;
@@ -226,6 +231,7 @@ class Underlay {
     }
     
     combine(eye, texture) {
+        console.log('c');
         var gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer1);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture2, 0);

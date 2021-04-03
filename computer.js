@@ -35,9 +35,6 @@ class Computer {
     
     // args:
     // gl: -
-    // isPyramidLayer: for optimization. if true, computer will know that it is part of a pyramid computer and
-    //                 will skip computing the central pixel in each 9x9 block, but will use the existing pixel
-    //                 value in the @framebuffer
     // framebuffer: the WebGLFramebuffer object of the destination buffer.
     // refOrbitFinder: if provided, will use this one.
     // bufParam:
@@ -46,7 +43,6 @@ class Computer {
         this.gl = args.gl;
         var gl = this.gl;
         
-        this.isPyramidLayer = args.isPyramidLayer;
         maxSyncTout = gl.getParameter(gl.MAX_CLIENT_WAIT_TIMEOUT_WEBGL);
         this.bufParam = {
             w: args.buffer.w,
@@ -65,20 +61,25 @@ class Computer {
         this._orbitLenLimit = args._orbitLenLimit;
         this.jobReset = false;
         this.state = STATE_INITIAL;
-        //
     }
     
     // sets a new draw target. abandons the previous one and does not wait for its completion.
+    // 
     // sampleShift is an extra transformation to the sample point coordinates.
     // the sample point coordinates are initially in the centers of pixels
     // and so range from (0.5, 0.5) to (width - 0.5, height - 0.5) inclusive.
     // the transformation is: sampleCoordinate * shift.scale + shift.xy
     // using sampleShift is better than simply shifting the eye, because the shift may be smaller the
     // precision of the eye position.
-    reset(newEye, sampleShift = {x: 0, y: 0, scale: 1}) {
+    // 
+    // opts.isPyramidLayer: if true, computer will know that it is part of a pyramid computer and
+    // will skip computing the central pixel in each 9x9 block, but will use the existing pixel
+    // value in the @framebuffer
+    reset(newEye, sampleShift = {x: 0, y: 0, scale: 1}, opts = {}) {
         var gl = this.gl;
         this.sampleShift = sampleShift;
-        this.eye = newEye.clone();  // todo maybe we only need eye in job
+        this.eye = newEye.clone();
+        this.isPyramidLayer = opts.isPyramidLayer === true;
         
         M.Stat.Computer.lastTimingStart = performance.now();
         
@@ -92,14 +93,6 @@ class Computer {
     
     init() {
         this.job.init();
-    }
-            
-    computeAll() {
-        this.job.iterate(100000);
-        
-        if (!this.job.done) {
-            alert('too many iterations');
-        }
     }
     
     isTextureDirty() {
@@ -119,7 +112,7 @@ class Computer {
         
         var waitPeriod = 1;
         if (d.superSlow) {
-            waitPeriod = 1000;
+            waitPeriod = 100;
         }
         var sync;
         var timerQ;
@@ -225,10 +218,6 @@ class Computer {
     
     isDone() {
         return this.state == STATE_DRAW && this.job.done;
-    }
-    
-    randomizeSampling(seed) {
-        this.job.randomizeSampling(seed);
     }
 }
 
