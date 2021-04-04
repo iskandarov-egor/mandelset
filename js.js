@@ -31,20 +31,10 @@ function resizeMainCanvasElement(width, height) {
     console.log(width, container.width, canvas.width/window.devicePixelRatio);
     if (container.width/container.height > canvas.width/canvas.height) {
         canvas.style.removeProperty("width");
-        var ch = container.height;
-        if (ch < canvas.height) {
-            canvas.style.height = "100%";
-        } else {
-            canvas.style.height = canvas.height/window.devicePixelRatio + "px";
-        }
+        canvas.style.height = "100%";
     } else {
         canvas.style.removeProperty("height");
-        var cw = container.width;
-        if (cw < canvas.width) {
-            canvas.style.width = "100%";
-        } else {
-            canvas.style.width = canvas.width/window.devicePixelRatio + "px";
-        }
+        canvas.style.width = "100%";
     }
     
     canvas1.width = canvas.width;
