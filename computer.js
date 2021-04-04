@@ -185,7 +185,7 @@ class Computer {
     
     updateRefOrbit() {
         var that = this;
-        function eyeWindow(e) { // todo make eye class
+        function eyeWindow(e) {
             var w = ns.init(that.bufParam.ratio * e.scale);
             var h = ns.init(e.scale);
             return [
@@ -201,7 +201,6 @@ class Computer {
         var iterLimit = (this._orbitLenLimit) ? this._orbitLenLimit : this.eye.iterations;
         this.refOrbitFinder.setWindow(window[0], window[1], window[2], window[3], iterLimit);
         this.refOrbitFinder.searchSome();
-        
     }
     
     overlayCallback(overlay) {
@@ -283,6 +282,9 @@ class Job {
         var maxWorkTime = 1000 / 60 / 2; // how much time can we keep the gpu busy before letting it sleep
         var conservativePixelsPerMs = slowGPUIterationsPerMs / this.eye.iterations; // how many pixels can we draw before sleeping
         conservativePixelsPerMs = conservativePixelsPerMs + conservativePixelsPerMs*(refOrbitSpeedup - 1)*(orbitComputer.iterations/this.eye.iterations);
+        if (this.isPyramidLayer) {
+            conservativePixelsPerMs *= 8/9;
+        }
         var window_size = Math.max(1, Math.floor(Math.sqrt(maxWorkTime * conservativePixelsPerMs)));
         this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, window_size);
         if (d.oneIter) {

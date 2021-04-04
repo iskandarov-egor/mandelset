@@ -21,7 +21,6 @@ class PyramidComputer {
         this.eye = newEye.clone();
         this.pass_hint = opts.pass;
         console.log(this._nActiveLayers());
-        //if (sampleShift.scale == 1 && sampleShift
         for (var i = 0; i < this._nActiveLayers(); i++) {
             if (i > 0) {
                 var c = this.computers[i].bufParam;

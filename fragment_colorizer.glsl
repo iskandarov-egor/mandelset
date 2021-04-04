@@ -13,7 +13,7 @@ uniform float scale;
 uniform float offset;
 uniform float scale2;
 uniform float offset2;
-uniform float eye_scale;
+uniform float scale_invariance_factor;
 
 uniform int mirror; // 0-1
 uniform int repeat; // 0-1
@@ -108,8 +108,6 @@ vec3 rgb2srgb(vec3 x) {
 }
 
 vec4 gradientShade(float iterations, float normal_atan, float distance) {
-    
-    //return vec4(iterations, normal_atan, distance, 1);
     if (iterations == -1.0) {
         return vec4(0, 0, 0, 1);
     }
@@ -118,14 +116,21 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
         scale2_factor = round(scale2_factor);
     }
     
-    distance /= eye_scale;
+    float distance_factor;
+    if (scale_invariance_factor != 0.0) {
+        distance_factor = distance/scale_invariance_factor;
+        distance_factor *= pow(10.0, 2.0*scale - 1.0);
+        float base = 1.0+(1000.0*E)*pow(10000.0, 2.0*(0.5-scale));
+        //distance_factor = clamp(-log(1.0/base + distance/scale_invariance_factor)/log(base), 0.0001, 0.9999);
+        //distance_factor = min(0.999, -log(1.0/base + 0.1*distance/scale_invariance_factor)/log(base));
+        distance_factor = pow(distance/scale_invariance_factor/10.0, pow(100.0, scale-1.0));
+    } else {
+        float base = 1.0+(1000.0*E)*pow(10000.0, 2.0*(0.5-scale));
+        distance_factor = 1.0+log(distance)/log(base);
+    }
     
     float normal_factor = fract(scale2_factor*(PI + normal_atan)/(2.0*PI)); // todo fract needed?
-    float base = 1.0+(1000.0*E-1.0)*pow(10000.0, 2.0*(0.5-scale));
-    //float x = ceil(log(distance)/log(base));
-    //float distance_factor = unmix(pow(base, x - 1.0), pow(base, x), distance);
-    float distance_factor = fract(-log(distance)/log(base));
-    float iter_factor = fract(iterations/(pow(2000.0, mix(0.0, 1.0, scale))));
+    float iter_factor = -iterations/(pow(2000.0, mix(0.0, 1.0, scale)));
     
     if (repeat2 == 1) {
         normal_factor = abs(1.0 - 2.0*fract(normal_factor + 0.5 + offset2)); // /\/\/
@@ -134,10 +139,12 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
     }
     
     if (repeat == 1) {
-        distance_factor = abs(1.0 - 2.0*fract(distance_factor + 0.5 + offset));
-        iter_factor = abs(1.0 - 2.0*fract(iter_factor + offset));
+        //if (scale_invariance_factor == 0.0) {
+            distance_factor = 1.0-abs(1.0 - mod(distance_factor + offset, 2.0));
+        //}
+        iter_factor = 1.0-abs(1.0 - mod(1.0+iter_factor + offset, 2.0));
     } else {
-        distance_factor = fract(distance_factor + 0.5 + offset);
+        distance_factor = fract(distance_factor + offset); // +.5 ?
         iter_factor = fract(iter_factor + offset);
     }
     

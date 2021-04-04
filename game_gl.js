@@ -6,7 +6,7 @@ var includes = {
     'debug': loadFile('debug.glsl'),
     'fragment_computer': loadFile('fragment_computer.glsl'),
     'fragment_pyramid': loadFile('fragment_pyramid.glsl'),
-    'fragment_visualizer': loadFile('fragment_visualizer.glsl'),
+    'fragment_compositor': loadFile('fragment_compositor.glsl'),
     'fragment_colorizer': loadFile('fragment_colorizer.glsl'),
 };
 
@@ -16,8 +16,8 @@ fragmentShaderSource = M.gl_util.preprocess(fragmentShaderSource, includes);
 var fragmentShaderSourcePyramid = `#include <fragment_pyramid>`;
 fragmentShaderSourcePyramid = M.gl_util.preprocess(fragmentShaderSourcePyramid, includes);
 
-var fragmentShaderSourceVisualizer = `#include <fragment_visualizer>`;
-fragmentShaderSourceVisualizer = M.gl_util.preprocess(fragmentShaderSourceVisualizer, includes);
+var fragmentShaderSourceCompositor = `#include <fragment_compositor>`;
+fragmentShaderSourceCompositor = M.gl_util.preprocess(fragmentShaderSourceCompositor, includes);
 
 var fragmentShaderSourceColorizer = `#include <fragment_colorizer>`;
 fragmentShaderSourceColorizer = M.gl_util.preprocess(fragmentShaderSourceColorizer, includes);
@@ -40,11 +40,11 @@ M.game_gl.createProgramPyramid = function (gl) {
     );
 }
 
-M.game_gl.createProgramVisualizer = function (gl) {
+M.game_gl.createProgramCompositor = function (gl) {
     return M.gl_util.createProgram(
         gl,
         M.gl_util.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource2),
-        M.gl_util.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSourceVisualizer)
+        M.gl_util.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSourceCompositor)
     );
 }
 

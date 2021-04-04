@@ -27,6 +27,10 @@ var ddLimitEye = new M.mandel.Eye({
 
 class Game {
     constructor(gl, overlayCanvas) {
+        this.states = {
+            idle: 0,
+            loop: 1,
+        };
         this.gl = gl;
         this.eye = zeroEye;
         this.eye_dirty = false;
@@ -54,10 +58,8 @@ class Game {
         this.theme.customImageTexture = gl.createTexture();
         this.theme.gradientTexture = M.gl_util.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
         this.theme.gradientTexture2= M.gl_util.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
-        this.program = M.game_gl.createProgramVisualizer(gl);
-        this.state = {
-            name: 'idle',
-        };
+        this.program = M.game_gl.createProgramCompositor(gl);
+        this.state = this.states.idle;
     }
     
     initBuffer() {
@@ -132,9 +134,8 @@ class Game {
     }
     
     requestDraw() {
-        if (this.state.name == 'idle') {
+        if (this.state == this.states.idle) {
             this._mainLoop();
-        } else {
         }
     }
     
@@ -144,7 +145,7 @@ class Game {
     };
     
     _mainLoop(game) {
-        this.state = { name: 'loop' };
+        this.state = this.states.loop;
         var startTime0 = performance.now();
         var startTime = performance.now();
         var sleep2workRatio = 0.2;
@@ -180,7 +181,7 @@ class Game {
             var now = performance.now();
             if (done) {
                 trace('loop', 'all done', now - startTime0);
-                that.state = { name: 'idle'    };
+                that.state = that.states.idle;
             } else {
                 var workTime = now - startTime;
                 trace('loop', 'sleep for', workTime * sleep2workRatio);
@@ -231,7 +232,6 @@ class Underlay {
     }
     
     combine(eye, texture) {
-        console.log('c');
         var gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer1);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture2, 0);

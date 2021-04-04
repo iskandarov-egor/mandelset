@@ -15,17 +15,13 @@ function updateEyeControlElements() {
     document.getElementById("input_height").value = canvas.height;
 }
 
-function resizeMainCanvasElement(width, height) {
-    //canvas.width = width - (width % 3); //todo
-    //canvas.height = height - (height % 3);
-    
+function resizeMainCanvasElement(width, height) {    
     canvas.width = width;
     canvas.height = height;
     if (canvas.drawingBufferWidth < canvas.width || canvas.drawingBufferHeight < canvas.height) {
         canvas.width = canvas.drawingBufferWidth;// - (drawingBufferWidth % 3);
         canvas.height = canvas.drawingBufferHeight;// - (drawingBufferHeight % 3);
     }
-    //console.log(width, height, width % 3, height % 3, canvas.width, canvas.height);
     
     var container = {
         width: document.getElementById("main_stack").clientWidth*window.devicePixelRatio,
@@ -87,7 +83,6 @@ function loadFromEyeControlElements() {
         scale: 1/values.scale,
         samples: values.samples,
     });
-    console.log(eye);
     
     if (canvas.width != values.width || canvas.height != values.height) {
         resizeMainCanvasElement(values.width, values.height);
@@ -139,7 +134,7 @@ canvas.addEventListener("mousedown", e => {
 });
 
 document.addEventListener("mouseup", e => {
-    if (e.button == 2) {
+    if (e.button == 0) {
         canvasGrab = null;
     }
 });
@@ -376,8 +371,7 @@ var offsetControl = new M.palette.GrayPalette(
 var scaleControl = new M.palette.GrayPalette(
     document.getElementById('canvas_scale'),
     document.getElementById('canvas_scale_control'),
-    //0.5,
-    0,
+    0.5,
     updateGradientTexture,
 );
 

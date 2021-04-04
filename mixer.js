@@ -101,7 +101,7 @@ class Mixer {
         gl.uniform1i(gl.getUniformLocation(this.program, "direction"), this.theme.direction);
         gl.uniform1i(gl.getUniformLocation(this.program, "shade3d"), this.theme.shade3d);
         gl.uniform1i(gl.getUniformLocation(this.program, "mode"), this.theme.mode);
-        gl.uniform1f(gl.getUniformLocation(this.program, "eye_scale"), this.theme.scale_invariant ? this.drawingEye.scale : 1);
+        gl.uniform1f(gl.getUniformLocation(this.program, "scale_invariance_factor"), this.theme.scale_invariant ? this.drawingEye.scale : 0);
         gl.uniform1i(gl.getUniformLocation(this.program, "distance_mode"), this.theme.distance_mode);
 		
 		gl.viewport(0, 0, this.bufParam.w, this.bufParam.h);
@@ -137,7 +137,6 @@ class Mixer {
                     that._saveFirstPass(that.computer.getTexture());
                     that._update(that.firstPassTexture);
                     that.drawingEye = that.computer.getDrawingEye();
-                    console.log('sav');
                 }
             } else {
                 if (!that.computer.isTextureDirty()) {
@@ -149,9 +148,7 @@ class Mixer {
                 that.themeResetPending = false;
                 that._themeReset();
                 done = false;
-                console.log('rst');
             }
-                console.log('pass', that.multisampling_pass);
             if (done && that.multisampling_pass < that.sampler.samples) {
                 that.multisampling_pass++;
                 var eye = that.getDrawingEye().clone();
