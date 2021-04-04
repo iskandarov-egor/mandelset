@@ -180,8 +180,20 @@ function updateElementVisibility() {
     var mode = getPaintMode();
     
     var colorMode = (getPreferencesMode() == 'color');
-    document.getElementById('eye_preferences').style.display = !colorMode ? 'flex' : 'none';
-    document.getElementById('color_preferences').style.display = colorMode ? 'flex' : 'none';
+    for (const element of document.getElementsByClassName('color_preferences')) {
+        if (colorMode) {
+            element.classList.remove('hide');
+        } else {
+            element.classList.add('hide');
+        }
+    }
+    for (const element of document.getElementsByClassName('eye_preferences')) {
+        if (!colorMode) {
+            element.classList.remove('hide');
+        } else {
+            element.classList.add('hide');
+        }
+    }
     if (colorMode) {
         mainGradient.paint();
         palette.paint();
@@ -193,7 +205,7 @@ function updateElementVisibility() {
         element.style.display = (mode == 'gradient' || mode == '2_gradients') ? 'flex' : 'none';
     }
     
-    document.getElementById('palette_cell').style.display = (mode == 'gradient' || mode == '2_gradients') ? 'flex' : 'none';
+    document.getElementById('palette_cell').style.display = (mode == 'gradient') ? 'flex' : 'none';
     //document.getElementById('second_gradient').style.display = (mode == '2_gradients') ? 'flex' : 'none';
     document.getElementById('custom_image_cell').style.display = (mode == 'custom_image') ? 'flex' : 'none';
     document.getElementById('distance_mode').style.display = (game.theme.direction == 0) ? 'flex' : 'none';
@@ -411,7 +423,7 @@ document.getElementById('preference_switch_color').addEventListener('change', up
 document.getElementsByName('paint_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
 document.getElementsByName('distance_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
 document.getElementById('button_direction').addEventListener('click', toggleDirectionListener);
-for (const element of document.getElementById('eye_preferences').getElementsByTagName('input')) {
+for (const element of document.getElementsByTagName('input')) {
     element.addEventListener("keydown", (e) => {
         if (e.key == "Enter") {
             loadFromEyeControlElements();

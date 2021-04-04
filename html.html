@@ -15,6 +15,13 @@
     input[type="number"] {
         -moz-appearance: textfield;
     }
+    input[type="number"] {
+        width: 5em;
+    }
+    
+    .coord_cell {
+        max-width: 25em;
+    }
     .label { 
       margin-left: 4pt; 
       margin-right: 4pt;
@@ -23,7 +30,7 @@
    
     .preference_cells {
       display: flex;
-      flex-shrink: 0;
+      flex-wrap: wrap;
       flex-grow: 1;
     }
     
@@ -58,12 +65,18 @@
       flex-basis: 18em;
     }
     
+    .grow {
+      flex-grow: 1;
+    }
+    
     .short_cell {
       flex-basis: 10em;
     }
     
     .main_gradient_cell {
       flex-basis: 40em;
+      flex-grow: 1;
+      height: 0.95em;
     }
     
     label {
@@ -114,9 +127,12 @@
         width: 0px;
         min-width: 0px;
         visibility:hidden;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        border-left: 0 !important;
+        border-right: 0 !important;
     }
     
     /*
@@ -151,7 +167,7 @@
 </head>
 
 <body>
-  <div style="display: flex" id="main_div">
+  <div style="display: flex; flex-wrap: wrap" id="main_div">
     <div class="preference_cell_rows shrink0" id="preference_switch">
       <div style="display: flex">
         <input type="radio" id="preference_switch_eye" name="preference_switch" value="eye" checked>
@@ -162,7 +178,7 @@
         <label for="preference_switch_color">color settings</label>
       </div>
     </div>
-    <div class="preference_cell_rows shrink0">
+    <div class="preference_cell_rows shrink0 color_preferences">
       <div style="display: flex">
         <input type="radio" id="paint_mode_3" name="paint_mode" value="gradient" checked>
         <label for="paint_mode_3">gradient</label>
@@ -172,18 +188,17 @@
         <label for="paint_mode_4">custom image</label>
       </div>
     </div>
-  <div class="preference_cells" id="color_preferences" style="display: flex">
-    <div class="preference_cell">
+    <div class="preference_cell color_preferences">
       <button id="button_direction">toggle<br/>direction</button>
     </div>
-    <div class="preference_cell" id="custom_image_cell">
+    <div class="preference_cell color_preferences" id="custom_image_cell">
       <!--label for="file_input">Choose a custom picture:</label-->
 
       <input type="file"
              id="file_input" name="file_input"
              accept="image/png, image/jpeg">
     </div>
-    <div class="preference_cell_rows long_cell gradient_mode_cell" id="palette_cell">
+    <div class="preference_cell_rows long_cell gradient_mode_cell color_preferences" id="palette_cell">
       <div class="stack" style="width:100%; flex-basis: 0.6em;">
         <canvas id="canvas_hsv_h" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas> 
         <canvas id="canvas_hsv_h_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
@@ -197,7 +212,7 @@
         <canvas id="canvas_hsv_l_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
       </div>
     </div>
-    <div class="preference_cell_rows main_gradient_cell">
+    <div class="preference_cell_rows main_gradient_cell color_preferences">
       <div class="stack gradient_stack" style="width:100%; height: 100%">
         <canvas id="gradient_canvas" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas> 
         <canvas id="gradient_canvas_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
@@ -207,7 +222,7 @@
         <canvas id="gradient_canvas2_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
       </div>
     </div>
-    <div class="preference_cell short_cell normal_factor_modifier">
+    <div class="preference_cell short_cell normal_factor_modifier color_preferences">
       <div style="flex-grow: 0; display: flex; flex-direction: column; margin-right: 0.5em;">
         <div>offset:</div>
         <div>scale:</div>
@@ -217,13 +232,13 @@
           <canvas id="canvas_offset2" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
           <canvas id="canvas_offset2_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
         </div>
-        <div class="stack gradient_stack" style="flex-basis: 0.95em;">
+        <div class="stack gradient_stack hide" style="flex-basis: 0.95em;">
           <canvas id="canvas_scale2" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
           <canvas id="canvas_scale2_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
         </div>
       </div>
     </div>
-    <div class="preference_cell_rows normal_factor_modifier" style="flex-shrink: 0">
+    <div class="preference_cell_rows normal_factor_modifier color_preferences" style="flex-shrink: 0">
       <div style="display: flex">
         <input type="checkbox" id="checkbox_mirror2">
         <label for="checkbox_mirror2">mirror</label>
@@ -233,7 +248,7 @@
         <label for="checkbox_repeat2">seamless</label>
       </div>
     </div>
-    <div class="preference_cell short_cell distance_factor_modifier">
+    <div class="preference_cell short_cell distance_factor_modifier color_preferences">
       <div style="flex-grow: 0; display: flex; flex-direction: column; margin-right: 0.5em;">
         <div>offset:</div>
         <div>scale:</div>
@@ -249,7 +264,7 @@
         </div>
       </div>
     </div>
-    <div class="preference_cell_rows distance_factor_modifier" style="flex-shrink: 0">
+    <div class="preference_cell_rows distance_factor_modifier color_preferences" style="flex-shrink: 0">
       <div style="display: flex">
         <input type="checkbox" id="checkbox_mirror">
         <label for="chechkbox_mirror">mirror</label>
@@ -259,7 +274,7 @@
         <label for="checkbox_repeat">seamless</label>
       </div>
     </div>
-    <div class="preference_cell_rows" id="distance_mode" style="flex-shrink: 0">
+    <div class="preference_cell_rows color_preferences" id="distance_mode" style="flex-shrink: 0">
       <div style="display: flex">
         <input type="radio" id="distance_mode_1" name="distance_mode" value="iterations" checked>
         <label for="distance_mode_1">use iteration count</label>
@@ -269,7 +284,7 @@
         <label for="distance_mode_2">use distance</label>
       </div>
     </div>
-    <div class="preference_cell_rows" style="flex-shrink: 0">
+    <div class="preference_cell_rows color_preferences" style="flex-shrink: 0">
       <div style="display: flex">
         <input type="checkbox" id="checkbox_3d">
         <label for="checkbox_3d">3d shadow</label>
@@ -279,76 +294,73 @@
         <label for="checkbox_scale_invariant">zoom-invariant</label>
       </div>
     </div>
-  </div>
-  <div class="preference_cells" id="eye_preferences" style="display: none">
-  
-    <div class="preference_cell">
+    
+    <div class="preference_cell eye_preferences">
       <a class="nice_button" onclick='myclick();'>hello</a>
     </div>
 
-    <div class="preference_cell long_cell">
-    <div style="margin-right: 0.2em">
-      <label for="input_x" class="preference_row">x:</label>
-    </div>
+    <div class="preference_cell coord_cell grow eye_preferences">
+      <div style="margin-right: 0.2em">
+        <label for="input_x">x:</label>
+      </div>
 
       <input name="input_x" type="number" id="input_x" value="100" class="preference_input">
     </div>
 
-    <div class="preference_cell long_cell">
-    <div class="preference_label">
-      <label for="input_y" class="preference_row">y:</label>
+    <div class="preference_cell coord_cell grow eye_preferences">
+      <div class="preference_label">
+        <label for="input_y">y:</label>
+      </div>
+      
+      <input name="input_y" type="number" id="input_y" value="100" class="preference_input">
     </div>
 
-    <input name="input_y" type="number" id="input_y" value="100" class="preference_input">
-
+    <div class="preference_cell eye_preferences">
+      <div class="preference_label">
+        <label for="input_scale">scale:</label>
+      </div>
+     
+      <input name="input_scale" type="number" id="input_scale" value="100" class="preference_input">
     </div>
 
-    <div class="preference_cell">
-    <div class="preference_label">
-      <label for="input_scale" class="preference_row">scale:</label>
-    </div>
-
-    <input name="input_scale" type="number" id="input_scale" value="100" class="preference_input">
-    </div>
-
-    <div class="preference_cell">
-    <div class="preference_label">
-      <label for="input_iter" class="preference_row">iterations:</label>
-    </div>
+    <div class="preference_cell eye_preferences">
+      <div class="preference_label">
+        <label for="input_iter">iterations:</label>
+      </div>
 
       <input name="input_iter" type="number" id="input_iter" value="100" class="preference_input">
     </div>
 
-    <div class="preference_cell">
+    <div class="preference_cell eye_preferences">
       <div class="preference_label">
-        <label for="input_width" class="preference_row">width:</label>
+        <label for="input_width">width:</label>
       </div>
      
         <input name="input_width" type="number" id="input_width" value="100" class="preference_input" style="width: 4em">
     </div>
 
-    <div class="preference_cell">
+    <div class="preference_cell eye_preferences">
       <div class="preference_label">
-        <label for="input_height class="preference_row">height:</label>
+        <label for="input_heigh">height:</label>
       </div>
      
         <input name="input_height" type="number" id="input_height" value="100" class="preference_input" style="width: 4em">
     </div>
     
-    <div class="preference_cell" style="flex-shrink: 1">
+    <div class="preference_cell eye_preferences" style="flex-shrink: 1">
       <div class="preference_label">
-        <label for="input_samples class="preference_row">samples per pixel:</label>
+        <label for="input_samples">samples per pixel:</label>
       </div>
      
         <input name="input_samples" type="number" id="input_samples" value="2" class="preference_input" style="width: 3em; min-width: 0">
     </div>
         
-    <div class="preference_cell shrink0" style="">
+    <div class="preference_cell shrink0 eye_preferences" style="">
       <input type="checkbox" id="checkbox_orbit">
       <label for="checkbox_orbit">show reference orbit</label>
     </div>
     <!-- dummied below enforce the header height the same as in the color preferences mode -->
-    <div class="preference_cell_rows dummy" style="width: 0px; min-width: 0px">
+    <div class="preference_cell_rows dummy eye_preferences" style="width: 0px; min-width: 0px">
       <div style="display: flex">
         <input type="radio" name="dummy_radio" value="dummy_radio" class="dummy" checked>
       </div>
@@ -356,7 +368,7 @@
         <input type="radio" name="dummy_radio" value="dummy_radio" class="dummy">
       </div>
     </div>
-    <div class="preference_cell_rows dummy" style="width: 0px; min-width: 0px">
+    <div class="preference_cell_rows dummy eye_preferences" style="width: 0px; min-width: 0px">
       <div style="display: flex">
         <input type="checkbox" class="dummy">
       </div>
@@ -364,13 +376,14 @@
         <input type="checkbox" class="dummy">
       </div>
     </div>
-    <div class="preference_cell dummy">
-      <button id="button_direction" class="dummy"><br/></button>
+    <div class="preference_cell dummy eye_preferences">
+      <button id="button_direction" class="dummy">1<br/>2</button>
     </div>
+  </div>
+  
 
     <!--span id="lblTiming">O_O</span>
     <span id="lblGLTimer">O_O</span-->  
-    </div>
   </div>
   <!--
   
