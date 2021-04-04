@@ -227,13 +227,13 @@ class Job {
         this.bufParam = bufParam;
         this.isPyramidLayer = isPyramidLayer;
         this.done = false;
-        this.program = M.game_gl.createProgram1(gl);
+        this.program = M.gl_resources.createProgram1(gl);
         this.fbuffer = gl.createFramebuffer();
     }
     
     init() {
         var gl = this.gl;
-        this.renderTexture = M.gl_util.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
+        this.renderTexture = M.gl_resources.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.renderTexture, 0);
         gl.clearBufferuiv(gl.COLOR, 0, clearColor);

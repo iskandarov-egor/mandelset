@@ -36,8 +36,8 @@ class Game {
         this.eye_dirty = false;
         this.theme = {
             customImageTexture: gl.createTexture(),
-            gradientTexture: M.gl_util.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
-            gradientTexture2: M.gl_util.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
+            gradientTexture: M.gl_resources.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
+            gradientTexture2: M.gl_resources.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
             offset: 0,
             scale: 0.0,
             repeat: false,
@@ -56,10 +56,11 @@ class Game {
         this.overlayCanvas = overlayCanvas;
         this.screenDirty = true;
         this.theme.customImageTexture = gl.createTexture();
-        this.theme.gradientTexture = M.gl_util.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
-        this.theme.gradientTexture2= M.gl_util.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
-        this.program = M.game_gl.createProgramCompositor(gl);
+        this.theme.gradientTexture = M.gl_resources.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
+        this.theme.gradientTexture2= M.gl_resources.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
+        this.program = M.gl_resources.createProgramCompositor(gl);
         this.state = this.states.idle;
+        this.showRefOrbit = false;
     }
     
     initBuffer() {
@@ -92,6 +93,11 @@ class Game {
         this.screenDirty = true;
     }
     
+    toggleRefOrbit() {
+        this.showRefOrbit = !this.showRefOrbit;
+        this.screenDirty = true;
+    }
+    
     _visualizeBuffer(texture) {
         var gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -118,9 +124,6 @@ class Game {
             gl.uniform1f(gl.getUniformLocation(this.program, "bgEyeX"), ns.number(ns.sub(this.underlay.eye.offsetX, this.eye.offsetX)));
             gl.uniform1f(gl.getUniformLocation(this.program, "bgEyeY"), ns.number(ns.sub(this.underlay.eye.offsetY, this.eye.offsetY)));
             gl.uniform1f(gl.getUniformLocation(this.program, "bgScale"), this.underlay.eye.scale);
-        } else {
-            // we are required by opengl to bind some texture anyway
-            //gl.bindTexture(gl.TEXTURE_2D, underlay.texture);
         }
         
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -129,8 +132,10 @@ class Game {
         
         var overlayCtx = this.overlayCanvas.getContext('2d');
         overlayCtx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
-        this.compOverlays.forEach(o => o.draw(this.eye));
-        this.globalOverlay.draw(this.eye);
+        if (this.showRefOrbit) {
+            this.compOverlays.forEach(o => o.draw(this.eye));
+            this.globalOverlay.draw(this.eye);
+        }
     }
     
     requestDraw() {
@@ -203,15 +208,6 @@ class Game {
 
 M.game.Game = Game;
 
-///var renderW = gl.canvas.width/1;
-///var renderH = gl.canvas.height/1;
-
-
-///var postitionVao = M.game_gl.createPositionVAO(gl);
-
-///var swapTexture;
-
-
 //var lt = new M.LoadTester(gl); // for debugging
 
 
@@ -223,8 +219,8 @@ class Underlay {
         this.w = w;
         this.h = h;
         this.gl = gl;
-        this.texture = M.gl_util.createUnderlayTexture(gl, w, h);
-        this.texture2 = M.gl_util.createUnderlayTexture(gl, w, h);
+        this.texture = M.gl_resources.createUnderlayTexture(gl, w, h);
+        this.texture2 = M.gl_resources.createUnderlayTexture(gl, w, h);
         this.eye = null;
         this.fbuffer1 = gl.createFramebuffer();
         this.fbuffer2 = gl.createFramebuffer();
@@ -239,7 +235,6 @@ class Underlay {
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.useProgram(this.program);
-        //gl.clearColor(0, 1, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.uniform1i(gl.getUniformLocation(this.program, "fgTexture"), 1);
         gl.uniform1f(gl.getUniformLocation(this.program, "screenAspectRatio"), gl.canvas.width/gl.canvas.height);
@@ -252,14 +247,15 @@ class Underlay {
                 
         gl.activeTexture(gl.TEXTURE2);
         gl.uniform1i(gl.getUniformLocation(this.program, "bgTexture"), 2);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
         if (this.eye){
-            gl.bindTexture(gl.TEXTURE_2D, this.texture);
             gl.uniform1f(gl.getUniformLocation(this.program, "bgEyeX"), ns.number(ns.sub(this.eye.offsetX, eye.offsetX)));
             gl.uniform1f(gl.getUniformLocation(this.program, "bgEyeY"), ns.number(ns.sub(this.eye.offsetY, eye.offsetY)));
             gl.uniform1f(gl.getUniformLocation(this.program, "bgScale"), this.eye.scale);
         } else {
-            // we are required by opengl to bind some texture anyway
-            gl.bindTexture(gl.TEXTURE_2D, null);
+            gl.uniform1f(gl.getUniformLocation(this.program, "bgEyeX"), 0);
+            gl.uniform1f(gl.getUniformLocation(this.program, "bgEyeY"), 0);
+            gl.uniform1f(gl.getUniformLocation(this.program, "bgScale"), 1);
         }
                 
         gl.viewport(0, 0, this.w, this.h);

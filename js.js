@@ -16,6 +16,7 @@ function updateEyeControlElements() {
 }
 
 function resizeMainCanvasElement(width, height) {    
+    console.log(width);
     canvas.width = width;
     canvas.height = height;
     if (canvas.drawingBufferWidth < canvas.width || canvas.drawingBufferHeight < canvas.height) {
@@ -24,9 +25,10 @@ function resizeMainCanvasElement(width, height) {
     }
     
     var container = {
-        width: document.getElementById("main_stack").clientWidth*window.devicePixelRatio,
-        height: document.getElementById("main_stack").clientHeight*window.devicePixelRatio,
+        width: Math.floor(document.getElementById("main_stack").clientWidth*window.devicePixelRatio),
+        height: Math.floor(document.getElementById("main_stack").clientHeight*window.devicePixelRatio),
     };
+    console.log(width, container.width, canvas.width/window.devicePixelRatio);
     if (container.width/container.height > canvas.width/canvas.height) {
         canvas.style.removeProperty("width");
         var ch = container.height;
@@ -229,8 +231,6 @@ function myclick() {
     }
 }
 
-///var utexture = M.gl_util.createRenderTexture(gl, renderW, renderH);
-
 function myclick2() {
 
     //underlay.take(comp2.getDrawingEye(), comp2.getTexture());
@@ -276,7 +276,7 @@ function updateGradientTexture() {
     game.theme.mirror2 = document.getElementById('checkbox_mirror2').checked;
     game.theme.repeat2 = document.getElementById('checkbox_repeat2').checked;
     
-    game.theme.shade3d = document.getElementById('checkbox_3d').checked && game.theme.direction == 0;
+    game.theme.shade3d = document.getElementById('checkbox_3d').checked;
     game.theme.scale_invariant = document.getElementById('checkbox_scale_invariant').checked;
     
     game.theme.mode = (getPaintMode() == 'custom_image') ? 1 : 0;
@@ -399,6 +399,7 @@ function paintControls() {
     scaleControl2.paint();
 }
 
+document.getElementById('checkbox_orbit').addEventListener('change', () => {game.toggleRefOrbit();});
 document.getElementById('checkbox_mirror').addEventListener('change', updateGradientTexture);
 document.getElementById('checkbox_repeat').addEventListener('change', updateGradientTexture);
 document.getElementById('checkbox_mirror2').addEventListener('change', updateGradientTexture);
@@ -418,14 +419,12 @@ for (const element of document.getElementById('eye_preferences').getElementsByTa
     });
 }
 
-//M.gl_util.resizeCanvas(canvas, 1); // todo
-//M.gl_util.resizeCanvas(canvas1, 1);
+console.log(0, document.getElementById("main_stack").clientWidth);
 resizeMainCanvasElement(
     window.devicePixelRatio*document.getElementById("main_stack").clientWidth,
     window.devicePixelRatio*document.getElementById("main_stack").clientHeight
 );
-//canvas0.width = canvas0.width - (canvas0.width % 3); // todo
-//canvas0.height = canvas0.height - (canvas0.height % 3);
+console.log(1, document.getElementById("main_stack").clientWidth);
 
 var gl = canvas.getContext("webgl2", {antialias: false});
 if (!gl) {
@@ -434,7 +433,7 @@ if (!gl) {
 var game;
 
 function startWithNewGLContext() {
-    M.game_gl.createPositionVAO(gl);
+    M.gl_resources.createPositionVAO(gl);
     game = new M.game.Game(gl, document.getElementById("canvas1"));
     game.initBuffer();
     if (customImage.width > 0) {
@@ -449,6 +448,8 @@ startWithNewGLContext();
 setInterval(function() {
   //document.getElementById("lblTiming").innerText = 'Timing: ' + M.Stat.Computer.lastTiming;
   //document.getElementById("lblGLTimer").innerText = 'GL Timer: ' + M.Stat.Computer.GLTimer;
+  
+console.log(3, document.getElementById("main_stack").clientWidth);
 }, 500);
 
 function raf() {
@@ -457,11 +458,23 @@ function raf() {
 }
 requestAnimationFrame(raf);
 
+console.log(document.getElementById("main_stack").clientWidth);
+
 mainGradient.controller.selectedPoint = mainGradient.controller.points[0];
 updateGradientTexture();
 gradientUpdateCallback(mainGradient);
 updateEyeControlElements();
 updateElementVisibility();
+console.log(document.getElementById("main_stack").clientWidth);
+
+window.addEventListener('load', (event) => {
+  console.log('page is fully loaded');
+console.log(11, document.getElementById("main_stack").clientWidth);
+});
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    console.log('DOM fully loaded and parsed');
+});
 
 canvas.addEventListener("webglcontextlost", function(event) {
     event.preventDefault();

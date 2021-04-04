@@ -4,16 +4,16 @@ class Mixer {
         this.theme = theme;
         this.computer = computer;
         this.bufParam = bufParam;
-        this.mixTexture = M.gl_util.createUnderlayTexture(gl, bufParam.w, bufParam.h);
-        this.mixTextureSwap = M.gl_util.createUnderlayTexture(gl, bufParam.w, bufParam.h);
+        this.mixTexture = M.gl_resources.createUnderlayTexture(gl, bufParam.w, bufParam.h);
+        this.mixTextureSwap = M.gl_resources.createUnderlayTexture(gl, bufParam.w, bufParam.h);
         this.fbuffer = gl.createFramebuffer();
-        this.program = M.game_gl.createProgramColorizer(gl);
+        this.program = M.gl_resources.createProgramColorizer(gl);
         
         this.sampler = null;
         this.drawingEye = null;
         this.multisampling_pass = 1;
         this.resultTexture = null;
-        this.firstPassTexture = M.gl_util.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
+        this.firstPassTexture = M.gl_resources.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
     }
     
     _clear() {

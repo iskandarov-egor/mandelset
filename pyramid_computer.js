@@ -9,7 +9,7 @@ class PyramidComputer {
         }
         this.fbuffer = args.frameBuffer;
         this.refOrbitFinder = new M.mandel.OrbitFinder(1);
-        this.program2 = M.game_gl.createProgramPyramid(this.gl);
+        this.program = M.gl_resources.createProgramPyramid(this.gl);
         this.pass_hint = 1;
     }
     
@@ -127,7 +127,7 @@ class PyramidComputer {
     
     parentTransfer(texture, parentTexture) {
         var gl = this.gl;
-        gl.useProgram(this.program2);
+        gl.useProgram(this.program);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
         
@@ -135,8 +135,8 @@ class PyramidComputer {
         gl.bindTexture(gl.TEXTURE_2D, parentTexture);
         gl.viewport(0, 0, this.buffer.w, this.buffer.h);
 
-        gl.uniform1i(gl.getUniformLocation(this.program2, "parent"), 1);
-        gl.uniform4f(gl.getUniformLocation(this.program2, "viewport"),
+        gl.uniform1i(gl.getUniformLocation(this.program, "parent"), 1);
+        gl.uniform4f(gl.getUniformLocation(this.program, "viewport"),
             -this.buffer.w/this.buffer.h,
             -1,
             2,
