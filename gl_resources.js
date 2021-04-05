@@ -1,28 +1,18 @@
 M.gl_resources = {};
 
-var includes = {
-    'ff_math': loadFile('ff_math.glsl'),
-    'mandel': loadFile('mandel.glsl'),
-    'debug': loadFile('debug.glsl'),
-    'fragment_computer': loadFile('fragment_computer.glsl'),
-    'fragment_pyramid': loadFile('fragment_pyramid.glsl'),
-    'fragment_compositor': loadFile('fragment_compositor.glsl'),
-    'fragment_colorizer': loadFile('fragment_colorizer.glsl'),
-};
-
 var fragmentShaderSource = `#include <fragment_computer>`;
-fragmentShaderSource = M.gl_util.preprocess(fragmentShaderSource, includes);
+fragmentShaderSource = M.gl_util.preprocess(fragmentShaderSource);
 
 var fragmentShaderSourcePyramid = `#include <fragment_pyramid>`;
-fragmentShaderSourcePyramid = M.gl_util.preprocess(fragmentShaderSourcePyramid, includes);
+fragmentShaderSourcePyramid = M.gl_util.preprocess(fragmentShaderSourcePyramid);
 
 var fragmentShaderSourceCompositor = `#include <fragment_compositor>`;
-fragmentShaderSourceCompositor = M.gl_util.preprocess(fragmentShaderSourceCompositor, includes);
+fragmentShaderSourceCompositor = M.gl_util.preprocess(fragmentShaderSourceCompositor);
 
 var fragmentShaderSourceColorizer = `#include <fragment_colorizer>`;
-fragmentShaderSourceColorizer = M.gl_util.preprocess(fragmentShaderSourceColorizer, includes);
+fragmentShaderSourceColorizer = M.gl_util.preprocess(fragmentShaderSourceColorizer);
 
-vertexShaderSource = M.gl_util.preprocess(vertexShaderSource, includes);
+vertexShaderSource = M.gl_util.preprocess(vertexShaderSource);
 
 M.gl_resources.createProgram1 = function (gl) {
     return M.gl_util.createProgram(

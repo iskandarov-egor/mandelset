@@ -28,7 +28,7 @@ M.gl_util.createProgram = function (gl, vertexShader, fragmentShader) {
   gl.deleteProgram(program);
 }
 
-M.gl_util.preprocess = function (source, includes) {
+M.gl_util.preprocess = function (source) {
     let re = /^([\s\S]*)(#include <[^>]*>)([\s\S]*)$/;
     let re2 = /^#include <([^>]*)>$/;
     for (var i = 0; ; i++) {
@@ -45,10 +45,8 @@ M.gl_util.preprocess = function (source, includes) {
             throw new Error("bad include " + include);
         }
         dep = dep[1];
-        if (!includes.hasOwnProperty(dep)) {
-            throw new Error("unknown include " + dep);
-        }
-        source = source.replace(re, `\$1${includes[dep]}\$3`);
+        dep = loadFile(dep + '.glsl');
+        source = source.replace(re, `\$1${dep}\$3`);
     }
     return source;
 }
