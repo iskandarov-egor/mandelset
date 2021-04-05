@@ -38,9 +38,9 @@ class Mixer {
         this.multisampling_pass = 1;
     }
     
-    themeReset() {
+    themeReset(theme) {
         if (this.multisampling_pass > 1) {
-            this.themeResetPending = true;
+            this.pendingThemeReset = theme;
         }
     }
     
@@ -144,8 +144,9 @@ class Mixer {
                     that.drawingEye = that.computer.getDrawingEye();
                 }
             }
-            if (that.themeResetPending) {
-                that.themeResetPending = false;
+            if (that.pendingThemeReset) {
+                that.pendingThemeReset = null;
+                that.theme = that.pendingThemeReset;
                 that._themeReset();
                 done = false;
             }

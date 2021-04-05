@@ -141,6 +141,9 @@ class Computer {
         }
         
         function timerCb() {
+            if (gl.isContextLost()) {
+                return;
+            }
             var status = gl.getSyncParameter(sync, gl.SYNC_STATUS);
             if (status != gl.SIGNALED) {
                 trace('comp', 'zzz');

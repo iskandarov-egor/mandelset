@@ -77,7 +77,8 @@ function resizeCanvasToDisplaySize(canvas) {
 }
 
 class GradientController {
-    constructor(receiver, modificationAllowed) {
+    constructor(receiver, modificationAllowed, border) {
+        this.border = border;
         this.points = [];
         this.grab = null;
         this.receiver = receiver;
@@ -183,7 +184,23 @@ class GradientController {
         }
     }
     
-    _draw_win98_border(ctx, x1, y1, x2, y2, direction) {
+    _draw_win98_border(ctx, x1, y1, x2, y2, direction, thin) {
+        if (thin) {
+            ctx.strokeStyle = (direction) ? `rgb(223,223,223)` : `rgb(128,128,128)`;
+            ctx.beginPath();
+            ctx.moveTo(x1, y2);
+            ctx.lineTo(x1, y1);
+            ctx.lineTo(x2, y1);
+            ctx.stroke();
+            
+            ctx.strokeStyle = (direction) ? `rgb(128,128,128)` : `rgb(223,223,223)`;
+            ctx.beginPath();
+            ctx.moveTo(x2, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineTo(x1, y2);
+            ctx.stroke();
+            return;
+        }
         ctx.strokeStyle = (direction) ? `rgb(223,223,223)` : `rgb(128,128,128)`;
         ctx.beginPath();
         ctx.moveTo(x1+1, y2-1);
@@ -232,6 +249,7 @@ class GradientController {
         ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
         
         this._draw_win98_border(ctx, x1, y1, x2, y2, !hl);
+
         
         var w = 0.4;
         ctx.clearRect(x1+(x2-x1)*(1-w)/2, y1+(y2-y1)*(1-w)/2, (x2 - x1)*w, (y2 - y1)*w);
@@ -243,7 +261,9 @@ class GradientController {
         var ctx = this.ctx;
         ctx.lineWidth = 1;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        //this._draw_win98_border(ctx, 0.5, 0.5, canvas.width-0.5, canvas.height-0.5, true);
+        if (this.border) {
+            this._draw_win98_border(ctx, 0.5, 0.5, canvas.width-0.5, canvas.height-0.5, false, true);
+        }
         ctx.fillStyle = `rgb(192,192,192)`;
         var h4 = Math.max(0, Math.round(canvas.height/4));
         //ctx.fillRect(1.5, 1.5, canvas.width - 3.0, h4);
@@ -263,7 +283,7 @@ class MainGradient {
         var points = [
             {
                 x: 0,
-                color: [1, 1, 1],
+                color: [0, 1, 1],
             }, {
                 x: 1,
                 color: [0, 0, 0],
@@ -277,7 +297,7 @@ class MainGradient {
             that.updateCallback(that, pendingInsertion);
             that.gradientPainter.paint(that.controller.points);
         }
-        this.controller = new GradientController(receiver, true);
+        this.controller = new GradientController(receiver, true, true);
         this.controller.init(controlCanvas);
         for (var i = 0; i < points.length; i++) {
             this.controller.add_point(points[i]);
@@ -308,9 +328,9 @@ class HSLPalette {
             updateCallback(that);
             that.paint();
         }
-        this.h = new GradientController(receiver);
-        this.s = new GradientController(receiver);
-        this.l = new GradientController(receiver);
+        this.h = new GradientController(receiver, false, true);
+        this.s = new GradientController(receiver, false, true);
+        this.l = new GradientController(receiver, false, true);
         this.h.init(controlCanvasH);
         this.s.init(controlCanvasS);
         this.l.init(controlCanvasL);

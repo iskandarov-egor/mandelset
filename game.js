@@ -100,6 +100,9 @@ class Game {
     
     _visualizeBuffer(texture) {
         var gl = this.gl;
+        if (gl.isContextLost()) {
+            return;
+        }
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -145,7 +148,7 @@ class Game {
     }
     
     updateTheme = function() {
-        this.mixer.themeReset();
+        this.mixer.themeReset(this.theme);
         this.requestDraw();
     };
     
@@ -157,6 +160,10 @@ class Game {
         var that = this;
         
         function timer() {
+            if (that.gl.isContextLost()) {
+                that.state = that.states.idle;
+                return;
+            }
             if (that.eye_dirty) {
                 trace('loop', 'dirty eye2');
                 if (!that.mixer.isTextureDirty()) {
@@ -268,17 +275,4 @@ class Underlay {
     }
     
 };
-
-if (false) {
-Game.draw = function() {
-    mixer.reset(eye);
-    comp2.computeAll();
-    //comp1.computeAll();
-    
-    //visualizeBuffer(pyramid.textureL1);
-}
-Game.resizeCanvas = function() {
-    resizeCanvas(canvas, 1/Game.eye.previewScale);
-}
-}
 

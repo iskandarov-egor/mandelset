@@ -6,17 +6,20 @@ var canvas = document.getElementById("canvas");
 var canvas1 = document.getElementById("canvas1");
 
 function updateEyeControlElements() {
-    document.getElementById("input_scale").value = 1/game.eye.scale;
+    document.getElementById("input_scale").value = game.eye.scale.toExponential(5);
     document.getElementById("input_x").value = ns.tostring(game.eye.offsetX);
     document.getElementById("input_y").value = ns.tostring(game.eye.offsetY);
     document.getElementById("input_iter").value = game.eye.iterations;
     document.getElementById("input_samples").value = game.eye.samples;
     document.getElementById("input_width").value = canvas.width;
     document.getElementById("input_height").value = canvas.height;
+    
+    for (const element of document.getElementsByTagName('input')) {
+        element.classList.remove('invalid_input');
+    }
 }
 
-function resizeMainCanvasElement(width, height) {    
-    console.log(width);
+function resizeMainCanvasElement(width, height) {
     canvas.width = width;
     canvas.height = height;
     if (canvas.drawingBufferWidth < canvas.width || canvas.drawingBufferHeight < canvas.height) {
@@ -28,7 +31,6 @@ function resizeMainCanvasElement(width, height) {
         width: Math.floor(document.getElementById("main_stack").clientWidth*window.devicePixelRatio),
         height: Math.floor(document.getElementById("main_stack").clientHeight*window.devicePixelRatio),
     };
-    console.log(width, container.width, canvas.width/window.devicePixelRatio);
     if (container.width/container.height > canvas.width/canvas.height) {
         canvas.style.removeProperty("width");
         canvas.style.height = "100%";
@@ -53,26 +55,43 @@ function resizeMainCanvasElement(width, height) {
 }
 
 function loadFromEyeControlElements() {
-    var values = {
-        iterations: parseFloat(document.getElementById("input_iter").value),
-        offsetX: ns.fromstring(document.getElementById("input_x").value),
-        offsetY: ns.fromstring(document.getElementById("input_y").value),
-        scale: parseFloat(document.getElementById("input_scale").value),
-        samples: parseFloat(document.getElementById("input_samples").value),
-        width: parseInt(document.getElementById("input_width").value),
-        height: parseInt(document.getElementById("input_height").value),
+    var elements = {
+        iterations: document.getElementById("input_iter"),
+        offsetX: document.getElementById("input_x"),
+        offsetY: document.getElementById("input_y"),
+        scale: document.getElementById("input_scale"),
+        samples: document.getElementById("input_samples"),
+        width: document.getElementById("input_width"),
+        height: document.getElementById("input_height"),
     };
+    var values = {
+        iterations: parseFloat(elements.iterations.value),
+        offsetX: ns.fromstring(elements.offsetX.value),
+        offsetY: ns.fromstring(elements.offsetY.value),
+        scale: parseFloat(elements.scale.value),
+        samples: parseFloat(elements.samples.value),
+        width: parseInt(elements.width.value),
+        height: parseInt(elements.height.value),
+    };
+    var abort = false;
     for (var key in values) {
         if (values.hasOwnProperty(key) && Number.isNaN(values[key])) {
-            return;
+            elements[key].classList.add('invalid_input');
+            abort = true;
+        } else {
+            elements[key].classList.remove('invalid_input');
         }
+    }
+    values.iterations = Math.min(Math.max(values.iterations, 1), 1e6);
+    if (abort) {
+        return;
     }
     
     var eye = new M.mandel.Eye({
         iterations: values.iterations,
         offsetX: values.offsetX,
         offsetY: values.offsetY,
-        scale: 1/values.scale,
+        scale: values.scale,
         samples: values.samples,
     });
     
@@ -83,6 +102,7 @@ function loadFromEyeControlElements() {
     
     game.setEye(eye);
     game.requestDraw();
+    updateEyeControlElements();
 }
 
 canvas.addEventListener("wheel", e => {
@@ -421,12 +441,10 @@ for (const element of document.getElementsByTagName('input')) {
     });
 }
 
-console.log(0, document.getElementById("main_stack").clientWidth);
 resizeMainCanvasElement(
     window.devicePixelRatio*document.getElementById("main_stack").clientWidth,
     window.devicePixelRatio*document.getElementById("main_stack").clientHeight
 );
-console.log(1, document.getElementById("main_stack").clientWidth);
 
 var gl = canvas.getContext("webgl2", {antialias: false});
 if (!gl) {
@@ -435,11 +453,15 @@ if (!gl) {
 var game;
 
 function startWithNewGLContext() {
+    var prev = game;
     M.gl_resources.createPositionVAO(gl);
     game = new M.game.Game(gl, document.getElementById("canvas1"));
     game.initBuffer();
     if (customImage.width > 0) {
         M.gl_util.loadHTMLImage2Texture(game.gl, customImage, game.theme.customImageTexture);
+    }
+    if (prev) {
+        game.setEye(prev.eye);
     }
     updateGradientTexture();
     game.requestDraw();
@@ -450,8 +472,6 @@ startWithNewGLContext();
 setInterval(function() {
   //document.getElementById("lblTiming").innerText = 'Timing: ' + M.Stat.Computer.lastTiming;
   //document.getElementById("lblGLTimer").innerText = 'GL Timer: ' + M.Stat.Computer.GLTimer;
-  
-console.log(3, document.getElementById("main_stack").clientWidth);
 }, 500);
 
 function raf() {
@@ -460,23 +480,11 @@ function raf() {
 }
 requestAnimationFrame(raf);
 
-console.log(document.getElementById("main_stack").clientWidth);
-
 mainGradient.controller.selectedPoint = mainGradient.controller.points[0];
 updateGradientTexture();
 gradientUpdateCallback(mainGradient);
 updateEyeControlElements();
 updateElementVisibility();
-console.log(document.getElementById("main_stack").clientWidth);
-
-window.addEventListener('load', (event) => {
-  console.log('page is fully loaded');
-console.log(11, document.getElementById("main_stack").clientWidth);
-});
-
-document.addEventListener('DOMContentLoaded', (event) => {
-    console.log('DOM fully loaded and parsed');
-});
 
 canvas.addEventListener("webglcontextlost", function(event) {
     event.preventDefault();

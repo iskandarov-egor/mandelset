@@ -138,6 +138,9 @@ var ns_dd = { // double double
         if (parts.length > 2) {
             return NaN;
         }
+        if (parts.length == 0) {
+            parts.push('0');
+        }
         if (parts.length == 1) {
             parts.push('0');
         }
@@ -152,9 +155,6 @@ var ns_dd = { // double double
         }
         // we have 2 '.'-parts, integers, non empty
         var floor = parseInt(parts[0], 10);
-        if (floor.toString() != parts[0]) {
-            return NaN;
-        }
         
         // make fractional part exactly 10*bigFloatFactor characters long
         var fract = parts[1].substring(0, 10*bigFloatFactor);
