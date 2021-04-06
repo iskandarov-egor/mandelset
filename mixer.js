@@ -100,8 +100,10 @@ class Mixer {
         gl.uniform1i(gl.getUniformLocation(this.program, "repeat2"), this.theme.repeat2 ? 1 : 0);
         gl.uniform1i(gl.getUniformLocation(this.program, "direction"), this.theme.direction);
         gl.uniform1i(gl.getUniformLocation(this.program, "shade3d"), this.theme.shade3d);
+        gl.uniform3f(gl.getUniformLocation(this.program, "interior_color"),
+            this.theme.interiorColor[0], this.theme.interiorColor[1], this.theme.interiorColor[2]);
         gl.uniform1i(gl.getUniformLocation(this.program, "mode"), this.theme.mode);
-        gl.uniform1f(gl.getUniformLocation(this.program, "scale_invariance_factor"), this.theme.scale_invariant ? this.drawingEye.scale : 0);
+        gl.uniform1f(gl.getUniformLocation(this.program, "scale_invariance_factor"), this.theme.scaleInvariant ? this.drawingEye.scale : 0);
         gl.uniform1i(gl.getUniformLocation(this.program, "distance_mode"), this.theme.distance_mode);
 		
 		gl.viewport(0, 0, this.bufParam.w, this.bufParam.h);
@@ -145,8 +147,8 @@ class Mixer {
                 }
             }
             if (that.pendingThemeReset) {
-                that.pendingThemeReset = null;
                 that.theme = that.pendingThemeReset;
+                that.pendingThemeReset = null;
                 that._themeReset();
                 done = false;
             }

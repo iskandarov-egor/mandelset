@@ -476,6 +476,15 @@ var error2 = {
 	iterations: 1000,
 };
 
+var vitki = {
+	scale: 4.89889e-28,
+	offsetX: ns.init(-0.7538048869715159914508542590472882274151),
+	offsetY: ns.init(-0.0473165168068373370968674669554347697321),
+	previewScale: 1,
+	iterations: 80000,
+
+}
+
 var macaroni1 = {	
     scale: 1/5077091.561327687,
 	offsetX: ns.init(-0.001311564150764691618830659614),

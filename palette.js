@@ -61,7 +61,7 @@ var gradientControllersMouseMove = function(e) {
     
     var c = activeController;
     if (e.buttons == 1) {
-        if (c.grab != null) {
+        if (c.grab != null && c.movementAllowed) {
             var location = c._normalizeCanvasCoords(c.ctx, e);
             c.grab.point.x = (location.x - c.grab.x) / c.canvas.width;
             c.grab.point.x = Math.max(0, Math.min(1, c.grab.point.x));
@@ -76,15 +76,34 @@ function resizeCanvasToDisplaySize(canvas) {
     canvas.height = (window.devicePixelRatio * canvas.clientHeight);
 }
 
+class SelectionGroup {
+    constructor() {
+        this.selectedPoint = null;
+        this.controllers = [];
+    }
+    
+    paintAll() {
+        for (var i = 0; i < this.controllers.length; i++) {
+            this.controllers[i].paint();
+        }
+    }
+};
+
+M.palette.SelectionGroup = SelectionGroup;
+
 class GradientController {
-    constructor(receiver, modificationAllowed, border) {
-        this.border = border;
+    constructor(receiver, modificationAllowed, movementAllowed, selectionGroup, border) {
+        this.selectionGroup = selectionGroup;
+        if (selectionGroup) {
+            selectionGroup.controllers.push(this);
+        }
+        this.border = border != false;
         this.points = [];
         this.grab = null;
         this.receiver = receiver;
         this.highlightedPoint = null;
-        this.selectedPoint = null;
         this.modificationAllowed = modificationAllowed;
+        this.movementAllowed = movementAllowed;
     }
     
     add_point(p) {
@@ -97,6 +116,7 @@ class GradientController {
     //todo mouse leave event
         canvas.addEventListener("mousemove", e => { this.mousemove(e); });
         canvas.addEventListener("mousedown", e => { this.mousedown(e); });
+        canvas.addEventListener("mouseleave", e => { this.mouseleave(e); });
         canvas.addEventListener("mouseup", e => { this.mouseup(e); });
         canvas.addEventListener('contextmenu', function(e) { e.preventDefault(); }, false);
     }
@@ -136,10 +156,15 @@ class GradientController {
     }
     
     mousemove(e) {
-        if (e.buttons == 1) {
+        if (e.buttons == 1 || !this.modificationAllowed) {
             return;
         }
         this.highlightedPoint = this._locate_point(e, this.modificationAllowed);
+        this.paint();
+    }
+    
+    mouseleave(e) {
+        this.highlightedPoint = null;
         this.paint();
     }
         
@@ -167,10 +192,18 @@ class GradientController {
             x: (!this.modificationAllowed) ? 0 : location.x - p.x * this.canvas.width,
             point: p,
         };
-        this.selectedPoint = p;
+        if (this.selectionGroup) {
+            this.selectionGroup.selectedPoint = p;
+        }
+        this.highlightedPoint = null;
         activeController = this;
         this.receiver(pendingInsertion);
         gradientControllersMouseMove(e);
+        if (this.selectionGroup) {
+            this.selectionGroup.paintAll();
+        } else {
+            this.paint();
+        }
     }
     
     mouseup(e) {
@@ -233,10 +266,10 @@ class GradientController {
     _paint_point(ctx, p, canvas_width, canvas_height) {
         var x = Math.floor(canvas_width * p.x);
                 
-        var hl = (p == this.highlightedPoint || p == this.selectedPoint);
+        var hl = (p == this.highlightedPoint || (this.selectionGroup && p == this.selectionGroup.selectedPoint));
         
         if (!this.modificationAllowed) {
-            hl = false;
+            //hl = false;
         }
         ctx.strokeStyle = (!hl) ? `rgb(0,0,0)` : `rgb(255,255,255)`;
         
@@ -276,19 +309,10 @@ class GradientController {
     }
 };
 
-
-class MainGradient {
-    constructor(displayCanvas, controlCanvas, updateCallback) {
+class Gradient {
+    constructor(displayCanvas, controlCanvas, updateCallback, selectionGroup, modificationAllowed, movementAllowed, points) {
         this.gradientPainter = new GradientPainter(displayCanvas, function(x) { return x; });
-        var points = [
-            {
-                x: 0,
-                color: [0, 1, 1],
-            }, {
-                x: 1,
-                color: [0, 0, 0],
-            }
-        ];
+        var points = points;
         for (var i = 0; i < points.length; i++) {
             //points[i].color = M.colors.srgb2lab(points[i].color);
         }
@@ -297,7 +321,7 @@ class MainGradient {
             that.updateCallback(that, pendingInsertion);
             that.gradientPainter.paint(that.controller.points);
         }
-        this.controller = new GradientController(receiver, true, true);
+        this.controller = new GradientController(receiver, modificationAllowed, movementAllowed, selectionGroup);
         this.controller.init(controlCanvas);
         for (var i = 0; i < points.length; i++) {
             this.controller.add_point(points[i]);
@@ -311,11 +335,8 @@ class MainGradient {
     paint() {
         this.controller.paint();
         this.gradientPainter.paint(this.controller.points);
-        //var ratio = this.controller.canvas.height/this.controller.canvas.width;
-        //this.gradientPainter.canvas.style.width = 100*(1 - ratio) + '%';
-        //this.gradientPainter.canvas.style.left = 100*ratio/2 + '%';
     }
-}
+};
 
 class HSLPalette {
     constructor(displayCanvasH, controlCanvasH, displayCanvasS, controlCanvasS, displayCanvasL, controlCanvasL, updateCallback) {
@@ -328,9 +349,9 @@ class HSLPalette {
             updateCallback(that);
             that.paint();
         }
-        this.h = new GradientController(receiver, false, true);
-        this.s = new GradientController(receiver, false, true);
-        this.l = new GradientController(receiver, false, true);
+        this.h = new GradientController(receiver, false, true, null);
+        this.s = new GradientController(receiver, false, true, null);
+        this.l = new GradientController(receiver, false, true, null);
         this.h.init(controlCanvasH);
         this.s.init(controlCanvasS);
         this.l.init(controlCanvasL);
@@ -358,7 +379,7 @@ class HSLPalette {
     }
 };
 
-class GrayPalette {
+class Slider {
     constructor(displayCanvas, controlCanvas, initialValue, updateCallback) {
         this.g = new GradientPainter(displayCanvas, function(x) { return x; });
         
@@ -366,7 +387,7 @@ class GrayPalette {
         function receiver() {
             updateCallback(that);
         }
-        this.c = new GradientController(receiver);
+        this.c = new GradientController(receiver, false, true, null, false);
         this.c.init(controlCanvas);
         this.c.add_point({x: initialValue, color: [0, 0, 0]});
         this.paint();
@@ -382,9 +403,9 @@ class GrayPalette {
     }
 };
 
-M.palette.MainGradient = MainGradient;
+M.palette.Gradient = Gradient;
 M.palette.HSLPalette = HSLPalette;
-M.palette.GrayPalette = GrayPalette;
+M.palette.Slider = Slider;
 
 
 // todo

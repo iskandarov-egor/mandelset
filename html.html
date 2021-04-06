@@ -220,14 +220,14 @@
         <canvas id="canvas_hsv_l_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
       </div>
     </div>
-    <div class="preference_cell_rows main_gradient_cell color_preferences">
-      <div class="stack gradient_stack" style="width:100%; flex-basis: 1em">
-        <canvas id="gradient_canvas" class="gradient" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas> 
-        <canvas id="gradient_canvas_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
+    <div class="preference_cell main_gradient_cell color_preferences" style="display: flex">
+      <div class="stack" style="flex-grow: 1; height: 0.95em;">
+        <canvas id="gradient_canvas" class="gradient " width=100 height=1 style='width: 100%; height: 100%;  user-select: none;'></canvas> 
+        <canvas id="gradient_canvas_control" class="" width=100 height=1 style='width: 100%; height: 100%;  user-select: none;'></canvas>
       </div>
-      <div id="second_gradient" class="stack gradient_stack" style="width:100%; height: 100%; display: none">
-        <canvas id="gradient_canvas2" class="gradient" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas> 
-        <canvas id="gradient_canvas2_control" width=100 height=1 style='width: 100%; height: 0.95em;  user-select: none;'></canvas>
+      <div id="interior_gradient_stack" class="stack " style="width: 0.95em; margin-left: 0.5em; height: 0.95em;">
+        <canvas id="interior_gradient_canvas" class="gradient" width=100 height=1 style='width: 100%; height: 100%;  user-select: none;'></canvas> 
+        <canvas id="interior_gradient_canvas_control" width=100 height=1 style='width: 100%; height: 100%;  user-select: none;'></canvas>
       </div>
     </div>
     <div class="preference_cell short_cell normal_factor_modifier color_preferences">
@@ -236,11 +236,11 @@
         <div>scale:</div>
       </div>
       <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-around">
-        <div class="stack gradient_stack" style="flex-basis: 0.95em">
+        <div class="stack" style="flex-basis: 0.95em">
           <canvas id="canvas_offset2" class="gradient" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
           <canvas id="canvas_offset2_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
         </div>
-        <div class="stack gradient_stack" style="flex-basis: 0.95em;">
+        <div class="stack" style="flex-basis: 0.95em;">
           <canvas id="canvas_scale2" class="gradient" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
           <canvas id="canvas_scale2_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
         </div>
@@ -262,11 +262,11 @@
         <div>scale:</div>
       </div>
       <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-around">
-        <div class="stack gradient_stack" style="flex-basis: 0.95em">
+        <div class="stack" style="flex-basis: 0.95em">
           <canvas id="canvas_offset" class="gradient" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
           <canvas id="canvas_offset_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
         </div>
-        <div class="stack gradient_stack" style="flex-basis: 0.95em;">
+        <div class="stack" style="flex-basis: 0.95em;">
           <canvas id="canvas_scale" class="gradient" width=100 height=1 style='width: 100%; height: 50%; top: 25%; user-select: none;'></canvas> 
           <canvas id="canvas_scale_control" width=100 height=1 style='width: 100%; height: 100%; user-select: none;'></canvas>
         </div>

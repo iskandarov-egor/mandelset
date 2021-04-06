@@ -23,8 +23,8 @@ function resizeMainCanvasElement(width, height) {
     canvas.width = width;
     canvas.height = height;
     if (canvas.drawingBufferWidth < canvas.width || canvas.drawingBufferHeight < canvas.height) {
-        canvas.width = canvas.drawingBufferWidth;// - (drawingBufferWidth % 3);
-        canvas.height = canvas.drawingBufferHeight;// - (drawingBufferHeight % 3);
+        canvas.width = canvas.drawingBufferWidth;
+        canvas.height = canvas.drawingBufferHeight;
     }
     
     var container = {
@@ -279,12 +279,11 @@ function updateGradientTexture() {
     gl.bindTexture(gl.TEXTURE_2D, game.theme.gradientTexture);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 1, gl.RGBA, gl.UNSIGNED_BYTE, gradientArray);
     
-    if (getPaintMode() == '2_gradients') {
-        M.palette.paintGradient(mainGradient2.controller.points, 1024, paintCb);
-    }
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, game.theme.gradientTexture2);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 1, gl.RGBA, gl.UNSIGNED_BYTE, gradientArray);
+    
+    game.theme.interiorColor = interiorGradient.controller.points[0].color;
     
     game.theme.offset = offsetControl.get();
     game.theme.scale = scaleControl.get();
@@ -299,7 +298,7 @@ function updateGradientTexture() {
     game.theme.repeat2 = document.getElementById('checkbox_repeat2').checked;
     
     game.theme.shade3d = document.getElementById('checkbox_3d').checked;
-    game.theme.scale_invariant = document.getElementById('checkbox_scale_invariant').checked;
+    game.theme.scaleInvariant = document.getElementById('checkbox_scale_invariant').checked;
     
     game.theme.mode = (getPaintMode() == 'custom_image') ? 1 : 0;
     game.theme.distance_mode = (getDistanceMode() == 'distance') ? 1 : 0;
@@ -331,46 +330,62 @@ function gradientUpdateCallback(gradient, pendingInsertion) {
     if (pendingInsertion) {
         pendingInsertion.color = (lastSelectedGradientPoint) ? lastSelectedGradientPoint.color : [1, 0, 0];
     }
-    if (gradient.controller.selectedPoint) {
-        var hsl = M.colors.srgb2hsl(gradient.controller.selectedPoint.color);
+    if (gradient.controller.selectionGroup.selectedPoint) {
+        var hsl = M.colors.srgb2hsl(gradient.controller.selectionGroup.selectedPoint.color);
         hsl = M.colors.clamp1(hsl);
         palette.h.points[0].x = hsl[0];
         palette.s.points[0].x = hsl[1];
         palette.l.points[0].x = hsl[2];
         palette.paint();
         
-        var other = (gradient != mainGradient) ? mainGradient : mainGradient2;
-        other.controller.selectedPoint = null;
-        other.paint();
-        lastSelectedGradientPoint = gradient.controller.selectedPoint;
+        lastSelectedGradientPoint = gradient.controller.selectionGroup.selectedPoint;
     }
     updateGradientTexture();
 }
 
 function paletteUpdateCallback(palette) {
-    var gradient = (mainGradient.controller.selectedPoint) ? mainGradient : mainGradient2;
-    if (gradient.controller.selectedPoint) {
+    if (mainGradient.controller.selectionGroup.selectedPoint) {
         var hsl = [
             palette.h.points[0].x,
             palette.s.points[0].x,
             palette.l.points[0].x,
         ];
-        gradient.controller.selectedPoint.color = M.colors.hsl2srgb(hsl);
-        gradient.paint();
+        mainGradient.controller.selectionGroup.selectedPoint.color = M.colors.hsl2srgb(hsl);
+        mainGradient.paint();
+        interiorGradient.paint();
         updateGradientTexture();
     }
 }
 
-var mainGradient = new M.palette.MainGradient(
+var gradientSelectionGroup = new M.palette.SelectionGroup();
+
+var mainGradient = new M.palette.Gradient(
     document.getElementById('gradient_canvas'),
     document.getElementById('gradient_canvas_control'),
     gradientUpdateCallback,
+    gradientSelectionGroup,
+    true,
+    true, [
+        {
+            x: 0,
+            color: [0, 1, 1],
+        }, {
+            x: 1,
+            color: [0, 0, 0],
+        }
+    ]
 );
 
-var mainGradient2 = new M.palette.MainGradient(
-    document.getElementById('gradient_canvas2'),
-    document.getElementById('gradient_canvas2_control'),
+var interiorGradient = new M.palette.Gradient(
+    document.getElementById('interior_gradient_canvas'),
+    document.getElementById('interior_gradient_canvas_control'),
     gradientUpdateCallback,
+    gradientSelectionGroup,
+    false,
+    false, [{
+        x: 0.5,
+        color: [0, 0, 0],
+    }]
 );
 
 var palette = new M.palette.HSLPalette(
@@ -383,28 +398,28 @@ var palette = new M.palette.HSLPalette(
     paletteUpdateCallback
 );
 
-var offsetControl = new M.palette.GrayPalette(
+var offsetControl = new M.palette.Slider(
     document.getElementById('canvas_offset'),
     document.getElementById('canvas_offset_control'),
     0,
     updateGradientTexture,
 );
 
-var scaleControl = new M.palette.GrayPalette(
+var scaleControl = new M.palette.Slider(
     document.getElementById('canvas_scale'),
     document.getElementById('canvas_scale_control'),
     0.5,
     updateGradientTexture,
 );
 
-var offsetControl2 = new M.palette.GrayPalette(
+var offsetControl2 = new M.palette.Slider(
     document.getElementById('canvas_offset2'),
     document.getElementById('canvas_offset2_control'),
     0,
     updateGradientTexture,
 );
 
-var scaleControl2 = new M.palette.GrayPalette(
+var scaleControl2 = new M.palette.Slider(
     document.getElementById('canvas_scale2'),
     document.getElementById('canvas_scale2_control'),
     0,
@@ -413,7 +428,7 @@ var scaleControl2 = new M.palette.GrayPalette(
 
 function paintControls() {
     mainGradient.paint();
-    mainGradient2.paint();
+    interiorGradient.paint();
     palette.paint();
     offsetControl.paint();
     scaleControl.paint();
@@ -480,7 +495,7 @@ function raf() {
 }
 requestAnimationFrame(raf);
 
-mainGradient.controller.selectedPoint = mainGradient.controller.points[0];
+mainGradient.controller.selectionGroup.selectedPoint = mainGradient.controller.points[0];
 updateGradientTexture();
 gradientUpdateCallback(mainGradient);
 updateEyeControlElements();

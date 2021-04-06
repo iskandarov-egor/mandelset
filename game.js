@@ -47,7 +47,8 @@ class Game {
             repeat2: false,
             mirror2: false,
             shade3d: false,
-            scale_invariant: false,
+            scaleInvariant: false,
+            interiorColor: [0, 0, 0],
             direction: 0,
             mode: 0, // 0 - gradients, 1 - image texture
             distance_mode: 0, // 0 - iteration count, 1 - distance estimation
