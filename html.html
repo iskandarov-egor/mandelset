@@ -43,7 +43,7 @@
     
     .preference_cell {
       display: flex;
-      margin-right: 1em;
+      margin-right: 0.6em;
       align-items: center;
     }
     
@@ -57,7 +57,7 @@
       justify-content: space-around;
       min-width: 0;
       //height: 2em;
-      margin-right: 1em;
+      margin-right: 0.6em;
     }
     
     .preference_label {
@@ -304,7 +304,7 @@
     </div>
     
     <div class="preference_cell eye_preferences">
-      <a class="nice_button" onclick='myclick();'>hello</a>
+      <a class="nice_button hide" onclick='myclick();'>hello</a>
     </div>
 
     <div class="preference_cell coord_cell grow eye_preferences">
@@ -344,7 +344,7 @@
         <label for="input_width">width:</label>
       </div>
      
-        <input name="input_width" type="number" id="input_width" value="100" class="preference_input" style="width: 4em">
+      <input name="input_width" type="number" id="input_width" value="100" class="preference_input" style="width: 4em">
     </div>
 
     <div class="preference_cell eye_preferences">
@@ -352,7 +352,7 @@
         <label for="input_heigh">height:</label>
       </div>
      
-        <input name="input_height" type="number" id="input_height" value="100" class="preference_input" style="width: 4em">
+      <input name="input_height" type="number" id="input_height" value="100" class="preference_input" style="width: 4em">
     </div>
     
     <div class="preference_cell eye_preferences" style="flex-shrink: 1">
@@ -363,9 +363,17 @@
         <input name="input_samples" type="number" id="input_samples" value="2" class="preference_input" style="width: 3em; min-width: 0">
     </div>
         
-    <div class="preference_cell shrink0 eye_preferences" style="">
+    <div class="preference_cell eye_preferences" style="flex-shrink: 1">
+      <div class="preference_label">
+        <label for="input_aggressiveness">calculation speed:</label>
+      </div>
+     
+        <input name="input_aggressiveness" type="number" id="input_aggressiveness" value="5" class="preference_input" style="width: 3em; min-width: 0">
+    </div>
+    
+    <div class="preference_cell eye_preferences">
       <input type="checkbox" id="checkbox_orbit">
-      <label for="checkbox_orbit">show reference orbit</label>
+      <label for="checkbox_orbit" style="word-wrap: break-word">show reference orbit</label>
     </div>
     <!-- dummied below enforce the header height the same as in the color preferences mode -->
     <div class="preference_cell_rows dummy eye_preferences" style="width: 0px; min-width: 0px">

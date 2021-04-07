@@ -13,6 +13,7 @@ function updateEyeControlElements() {
     document.getElementById("input_samples").value = game.eye.samples;
     document.getElementById("input_width").value = canvas.width;
     document.getElementById("input_height").value = canvas.height;
+    document.getElementById("input_aggressiveness").value = game.aggressiveness;
     
     for (const element of document.getElementsByTagName('input')) {
         element.classList.remove('invalid_input');
@@ -63,6 +64,7 @@ function loadFromEyeControlElements() {
         samples: document.getElementById("input_samples"),
         width: document.getElementById("input_width"),
         height: document.getElementById("input_height"),
+        aggressiveness: document.getElementById("input_aggressiveness"),
     };
     var values = {
         iterations: parseFloat(elements.iterations.value),
@@ -72,6 +74,7 @@ function loadFromEyeControlElements() {
         samples: parseFloat(elements.samples.value),
         width: parseInt(elements.width.value),
         height: parseInt(elements.height.value),
+        aggressiveness: parseInt(elements.aggressiveness.value),
     };
     var abort = false;
     for (var key in values) {
@@ -83,6 +86,7 @@ function loadFromEyeControlElements() {
         }
     }
     values.iterations = Math.min(Math.max(values.iterations, 1), 1e6);
+    values.aggressiveness = Math.min(Math.max(values.aggressiveness, 1), 10);
     if (abort) {
         return;
     }
@@ -100,6 +104,7 @@ function loadFromEyeControlElements() {
         game.initBuffer();
     }
     
+    game.aggressiveness = values.aggressiveness;
     game.setEye(eye);
     game.requestDraw();
     updateEyeControlElements();
@@ -463,7 +468,8 @@ resizeMainCanvasElement(
 
 var gl = canvas.getContext("webgl2", {antialias: false});
 if (!gl) {
-    alert("no webgl2 for you!"); //todo
+    alert("webgl2 not supported");
+    throw new Error("webgl2 not supported");
 }
 var game;
 

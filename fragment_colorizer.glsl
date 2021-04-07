@@ -85,10 +85,7 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
     if (iterations == -1.0) {
         return vec4(interior_color.xyz, 1);
     }
-    float scale2_factor = pow(100.0, scale2);
-    if (abs(scale2_factor - round(scale2_factor)) < 0.1) {
-        scale2_factor = round(scale2_factor);
-    }
+    float scale2_factor = round(pow(100.0, scale2));
     
     float distance_factor;
     if (scale_invariance_factor != 0.0) {
@@ -103,8 +100,8 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
         distance_factor = 1.0+log(distance)/log(base);
     }
     
-    float normal_factor = fract(scale2_factor*(PI + normal_atan)/(2.0*PI)); // todo fract needed?
-    float iter_factor = -iterations/(pow(2000.0, mix(0.0, 1.0, scale)));
+    float normal_factor = scale2_factor*(PI + normal_atan)/(2.0*PI);
+    float iter_factor = -iterations/(pow(2000.0, mix(1.0, 0.0, scale)));
     
     if (repeat2 == 1) {
         normal_factor = abs(1.0 - 2.0*fract(normal_factor + 0.5 + offset2)); // /\/\/

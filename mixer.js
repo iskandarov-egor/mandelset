@@ -13,6 +13,8 @@ class Mixer {
         this.drawingEye = null;
         this.multisampling_pass = 1;
         this.resultTexture = null;
+        this.resetTime = 0;
+        this.textureUpdateRL = newRateLimiter(3);
         this.firstPassTexture = M.gl_resources.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
     }
     
@@ -32,16 +34,14 @@ class Mixer {
     reset(newEye) {
         this.sampler = newSubPixelSampler(1, newEye.samples);
         this.computer.reset(newEye, this.sampler.nextPoint(), {pass: 1});
-		this._clear();
-        this.drawingEye = this.computer.getDrawingEye();
-        this._update(this.computer.getTexture()); // todo needed?
         this.multisampling_pass = 1;
+        this.resetTime = performance.now();
     }
     
     themeReset(theme) {
-        if (this.multisampling_pass > 1) {
+        //if (this.multisampling_pass > 1) {
             this.pendingThemeReset = theme;
-        }
+        //}
     }
     
     _themeReset() {
@@ -108,7 +108,6 @@ class Mixer {
 		
 		gl.viewport(0, 0, this.bufParam.w, this.bufParam.h);
 		
-        trace('b', '    mix');
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
         this.resultTexture = this.mixTexture;
     }
@@ -131,28 +130,35 @@ class Mixer {
         return this.drawingEye == null;
     }
     
-    computeSome(cb) {
+    computeSome(cb, timeLimit) {
         var that = this;
         function _cb(done) {
+            var updated = false;
             if (that.multisampling_pass == 1) {
                 if (!that.computer.isTextureDirty()) {
                     if (done) {
                         that._saveFirstPass(that.computer.getTexture());
                     }
-                    that.drawingEye = that.computer.getDrawingEye();
-                    that._update(that.computer.getTexture());
+                    if (done || performance.now() - that.resetTime < 1000 || that.pendingThemeReset || that.textureUpdateRL.proceed()) {
+                        that.drawingEye = that.computer.getDrawingEye();
+                        that._update(that.computer.getTexture());
+                        updated = true;
+                    }
                 }
             } else {
                 if (!that.computer.isTextureDirty()) {
                     that.drawingEye = that.computer.getDrawingEye();
                     that._update(that.computer.getTexture());
+                    updated = true;
                 }
             }
             if (that.pendingThemeReset) {
                 that.theme = that.pendingThemeReset;
                 that.pendingThemeReset = null;
-                that._themeReset();
-                done = false;
+                if (that.multisampling_pass > 1) {
+                    that._themeReset();
+                    done = false;
+                }
             }
             if (done && that.multisampling_pass < that.sampler.samples) {
                 that.multisampling_pass++;
@@ -162,12 +168,12 @@ class Mixer {
                 done = false;
             }
             
-            cb(done);
+            cb(done, updated);
         };
         if (this.multisampling_pass == 1) {
-            this.computer.computeSome(_cb);
+            this.computer.computeSome(_cb, timeLimit);
         } else {
-            this.computer.computeSome(_cb);
+            this.computer.computeSome(_cb, timeLimit);
         }
     }
 };

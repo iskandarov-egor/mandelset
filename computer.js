@@ -107,7 +107,7 @@ class Computer {
         return (this.drawingEye) ? this.drawingEye : this.eye;
     }
     
-    computeSome(callback) {
+    computeSome(callback, timeLimit) {
         var gl = this.gl;
         
         var waitPeriod = 1;
@@ -116,7 +116,7 @@ class Computer {
         }
         var sync;
         var timerQ;
-        var startTime = performance.now();
+        var startTime;
         var that = this;
         
         if (this.state >= STATE_DRAW && this.job.done) {
@@ -124,8 +124,9 @@ class Computer {
             callback(true);
             return;
         }
-                
+        
         function blast() {
+            startTime = performance.now();
             trace('comp', 'blast');
             
             const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
@@ -167,6 +168,14 @@ class Computer {
                     return;
                 }
                 trace('comp', 'uvi');
+                
+                var now = performance.now();
+                if (timeLimit > now + now - startTime) {
+                    // have time for some more work
+                    console.log('b', now, timeLimit, now - startTime);
+                    blast();
+                    return;
+                }
                 callback(false);
             }
         }
@@ -286,9 +295,12 @@ class Job {
         var conservativePixelsPerMs = slowGPUIterationsPerMs / this.eye.iterations; // how many pixels can we draw before sleeping
         conservativePixelsPerMs = conservativePixelsPerMs + conservativePixelsPerMs*(refOrbitSpeedup - 1)*(orbitComputer.iterations/this.eye.iterations);
         if (this.isPyramidLayer) {
-            conservativePixelsPerMs *= 8/9;
+            conservativePixelsPerMs *= 9/8;
         }
-        var window_size = Math.max(1, Math.floor(Math.sqrt(maxWorkTime * conservativePixelsPerMs)));
+        
+        // TODO: ugly global game variable
+        var aggressiveness = (game.aggressiveness >= 5) ? 1 + (game.aggressiveness - 5) * 2 : game.aggressiveness / 5;
+        var window_size = Math.max(1, Math.floor(Math.sqrt(maxWorkTime * conservativePixelsPerMs * aggressiveness)));
         this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, window_size);
         if (d.oneIter) {
             this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, 1000000);
@@ -319,12 +331,9 @@ class Job {
             this.done = true;
             return;
         }
-            
-        //view = {x: 650, y:300, w:400, h:300};
-        // todo GL_MAX_VIEWPORT_DIMS
+        
         gl.viewport(view.x, view.y, view.w, view.h);
 
-        trace('b', 'dr', this.bufParam.w, ns.number(this.eye.offsetX));
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         return true;
     }

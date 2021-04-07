@@ -22,7 +22,6 @@ class PyramidComputer {
     reset(newEye, sampleShift, opts) {
         this.eye = newEye.clone();
         this.pass_hint = opts.pass;
-        console.log(this._nActiveLayers());
         for (var i = 0; i < this._nActiveLayers(); i++) {
             if (i > 0) {
                 var c = this.computers[i].bufParam;
@@ -85,34 +84,48 @@ class PyramidComputer {
         }
     }
     
-    computeSome(callback) {
+    computeSome(callback, timeLimit) {
         var i = 0;
         var that = this;
+        var startTime;
+        
         function cb(done) {
             if (done && i != 0) {
-                trace('b', '  trans', i);
                 that.parentTransfer(that.computers[i - 1].getTexture(), that.computers[i].getTexture());
                 //that.computers[i - 1].drawingEye = that.computers[i].getDrawingEye();
+                done = false;
             }
             
             that.drawingEye = that.computers[i].getDrawingEye();
-            callback(done && i == 0);
-        }
-        
-        for (i = this._nActiveLayers() - 1; i >= 0; i--) {
-            if (!this.computers[i].isDone()) {
-                trace('b', '  comp layer', i);
-                this.computers[i].computeSome(cb);
-                return;
+            var now = performance.now();
+            
+            if (!done && (timeLimit > now + now - startTime)) {
+                // have time for some more work
+                work();
+            } else {
+                trace('b', 'd', done, i);
+                callback(done);
             }
         }
-        callback(true);
+        
+        function work() {
+            startTime = performance.now();
+            for (i = that._nActiveLayers() - 1; i >= 0; i--) {
+                if (!that.computers[i].isDone()) {
+                    that.computers[i].computeSome(cb, timeLimit);
+                    return;
+                }
+            }
+            callback(true);
+        }
+                
+        work();
     }
     
     getTexture() {
         for (var i = this._nActiveLayers() - 1; i >= 1; i--) {
             if (this.computers[i - 1].isTextureDirty()) {
-                console.log(i, this.computers[i]);
+                trace('b', 'nt', i - 1);
                 return this.computers[i].getTexture();
             }
         }

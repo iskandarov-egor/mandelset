@@ -17,11 +17,20 @@ var tante = new M.mandel.Eye({
     iterations: 4000,
     samples: 1,
 });
+
 var ddLimitEye = new M.mandel.Eye({
     offsetX: ns.init(-1.6331395811715201),
     offsetY: ns.init(0),
     scale: 1/1.361052241705286e+30,
     iterations: 1000,
+    samples: 1,
+});
+
+var cscopeEye = new M.mandel.Eye({
+    offsetX: ns.init(0.2812736633680872270509045000241887273623),
+    offsetY: ns.init(0.0119906872191721991661175769073460179273),
+    scale: 1.67328e-16,
+    iterations: 120000,
     samples: 1,
 });
 
@@ -32,12 +41,12 @@ class Game {
             loop: 1,
         };
         this.gl = gl;
-        this.eye = tante;
+        this.eye = cscopeEye;
         this.eye_dirty = false;
         this.theme = {
             customImageTexture: gl.createTexture(),
-            gradientTexture: M.gl_resources.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
-            gradientTexture2: M.gl_resources.createGradientTexture(gl, 1024, 1), // todo try RGB instead of RGBA
+            gradientTexture: M.gl_resources.createGradientTexture(gl, 1024, 1), // TODO: try RGB instead of RGBA
+            gradientTexture2: M.gl_resources.createGradientTexture(gl, 1024, 1), // TODO: try RGB instead of RGBA
             offset: 0,
             scale: 0.0,
             repeat: false,
@@ -57,10 +66,9 @@ class Game {
         this.overlayCanvas = overlayCanvas;
         this.screenDirty = true;
         this.theme.customImageTexture = gl.createTexture();
-        this.theme.gradientTexture = M.gl_resources.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
-        this.theme.gradientTexture2= M.gl_resources.createGradientTexture(gl, 1024, 1); // todo try RGB instead of RGBA
         this.program = M.gl_resources.createProgramCompositor(gl);
         this.state = this.states.idle;
+        this.aggressiveness = 5;
         this.showRefOrbit = false;
     }
     
@@ -124,7 +132,7 @@ class Game {
         gl.uniform1i(gl.getUniformLocation(this.program, "bgTexture"), 2);
         
         gl.bindTexture(gl.TEXTURE_2D, this.underlay.texture);
-        if (this.underlay.eye){ // todo is true ok?
+        if (this.underlay.eye){
             gl.uniform1f(gl.getUniformLocation(this.program, "bgEyeX"), ns.number(ns.sub(this.underlay.eye.offsetX, this.eye.offsetX)));
             gl.uniform1f(gl.getUniformLocation(this.program, "bgEyeY"), ns.number(ns.sub(this.underlay.eye.offsetY, this.eye.offsetY)));
             gl.uniform1f(gl.getUniformLocation(this.program, "bgScale"), this.underlay.eye.scale);
@@ -173,14 +181,14 @@ class Game {
                 that.mixer.reset(that.eye);
                 that.eye_dirty = false;
             }
-            var now = performance.now();
-            startTime = now;
+            startTime = performance.now();
+            var timeLimit = startTime + 1000/30;
             trace('loop', 'timer');
-            that.mixer.computeSome(cb);
+            that.mixer.computeSome(cb, timeLimit);
         }
         
-        function cb(done) {
-            that.screenDirty = true;
+        function cb(done, updated) {
+            that.screenDirty = updated;
             if (that.eye_dirty) {
                 trace('loop', 'dirty eye');
                 if (!that.mixer.isTextureDirty()) {

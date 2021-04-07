@@ -113,7 +113,6 @@ class GradientController {
     init(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-    //todo mouse leave event
         canvas.addEventListener("mousemove", e => { this.mousemove(e); });
         canvas.addEventListener("mousedown", e => { this.mousedown(e); });
         canvas.addEventListener("mouseleave", e => { this.mouseleave(e); });
@@ -407,8 +406,6 @@ M.palette.Gradient = Gradient;
 M.palette.HSLPalette = HSLPalette;
 M.palette.Slider = Slider;
 
-
-// todo
 document.addEventListener("mousemove", e => gradientControllersMouseMove(e));
 document.addEventListener("mouseup", e => {
     if (e.buttons % 2 == 0) {
@@ -418,5 +415,3 @@ document.addEventListener("mouseup", e => {
 document.addEventListener("mouseleave", e => {
     activeController = null;
 });
-//g_h.init(canvas_h);
-//g_h_c.init(canvas_hc);

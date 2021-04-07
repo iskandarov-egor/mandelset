@@ -83,7 +83,7 @@ class OrbitComputer {
     
     reset(x, y, iterLimit) {
         if (iterLimit > 1024*1024) {
-            alert('todo2');
+            throw new Error("should not happen");
         }
         this.textureUpdated = false;
         this.x = x;

@@ -1,4 +1,6 @@
 
+
+
 function loadFile(filePath) {
   var result = null;
   var xmlhttp = new XMLHttpRequest();
@@ -40,4 +42,20 @@ function newBlockScanner(w, h, blockWidth) {
     
     scanner.reset();
     return scanner;
+}
+
+function newRateLimiter(rps) {
+    var lastTime = 0;
+    var interval = 1000/rps;
+    return {
+        proceed: function() {
+            var now = performance.now();
+            if (now - lastTime > interval) {
+                lastTime = now;
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 }
