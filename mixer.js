@@ -136,14 +136,16 @@ class Mixer {
         function _cb(done) {
             if (that.multisampling_pass == 1) {
                 if (!that.computer.isTextureDirty()) {
-                    that._saveFirstPass(that.computer.getTexture());
-                    that._update(that.firstPassTexture);
+                    if (done) {
+                        that._saveFirstPass(that.computer.getTexture());
+                    }
                     that.drawingEye = that.computer.getDrawingEye();
+                    that._update(that.computer.getTexture());
                 }
             } else {
                 if (!that.computer.isTextureDirty()) {
-                    that._update(that.computer.getTexture());
                     that.drawingEye = that.computer.getDrawingEye();
+                    that._update(that.computer.getTexture());
                 }
             }
             if (that.pendingThemeReset) {

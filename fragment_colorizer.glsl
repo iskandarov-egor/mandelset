@@ -155,7 +155,7 @@ vec4 gradientShade(float iterations, float normal_atan, float distance) {
         vec3 light = vec3(1, 1, 1);
         vec3 normal = vec3(cos(normal_atan), sin(normal_atan), 2.0);
         shading_factor = clamp(0.1, 1.0, 0.1 + abs(dot(light, normal))/sqrt(3.0*(1.0+2.0*2.0)));
-        result = (shading_factor*(result));
+        result = rgb2srgb(shading_factor*srgb2rgb(result));
     }
     
     return vec4(result.xyz, 1);
@@ -213,7 +213,9 @@ void main() {
         
         if (multisampling_pass > 1) {
             vec4 prev_color = texture(prev, txtCoord);
-            outColor = (float(multisampling_pass - 1) * prev_color + outColor) / float(multisampling_pass);
+            outColor = vec4(rgb2srgb(
+                (float(multisampling_pass - 1) * srgb2rgb(prev_color.xyz) + srgb2rgb(outColor.xyz)) / float(multisampling_pass)
+            ).xyz, 1);
         } else {
         }
     }

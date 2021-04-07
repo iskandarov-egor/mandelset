@@ -14,7 +14,9 @@ class PyramidComputer {
     }
     
     _nActiveLayers() {
-        return (this.pass_hint > 1 || this.eye.iterations < 10000) ? 1 : this.computers.length;
+        var total_iterations = this.eye.iterations * this.buffer.w * this.buffer.h;
+        var threshold = 1000 * 2560 * 1440;
+        return (this.pass_hint > 1 || total_iterations < threshold) ? 1 : this.computers.length;
     }
     
     reset(newEye, sampleShift, opts) {

@@ -32,7 +32,7 @@ class Game {
             loop: 1,
         };
         this.gl = gl;
-        this.eye = zeroEye;
+        this.eye = tante;
         this.eye_dirty = false;
         this.theme = {
             customImageTexture: gl.createTexture(),
@@ -78,8 +78,8 @@ class Game {
             nLevels: 3,
             //_orbitLenLimit: 2,
         };
-        var comp = new M.Computer(compArg);
-        //var comp = new M.PyramidComputer(compArg);
+        //var comp = new M.Computer(compArg);
+        var comp = new M.PyramidComputer(compArg);
         comp.init();
         this.mixer = new M.Mixer(gl, comp, compArg.buffer, this.theme);
         //this.mixer.reset(this.eye);
