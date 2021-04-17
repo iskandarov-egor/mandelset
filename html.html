@@ -102,6 +102,30 @@
         top:0;
     }
     
+    #progress {
+        color: white;
+        display: flex;
+        position:absolute;
+        left:2em;
+        top: 1em;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 0.5em;
+        user-select: none;
+        pointer-events:none;
+    }
+    #progress > canvas {
+        height: 2em;
+        width: 2em;
+        user-select: none;
+        pointer-events:none;
+    }
+    #progress > label {
+        margin-left: 0.25em;
+        white-space: pre-wrap;
+        pointer-events:none;
+        user-select: none;
+    }
+    
     html {
         height: 100%;
         /*background-color: rgb(14, 10, 40);
@@ -140,35 +164,6 @@
         padding-right: 0 !important;
         border-left: 0 !important;
         border-right: 0 !important;
-    }
-    
-    /*
-    .preference_cell > button {
-        margin-bottom: 0px;
-        margin-top: 0px;
-        border-bottom: 0px;
-        border-top: 0px;
-        padding-bottom: 0px;
-        padding-top: 0px;
-    }
-    */
-    
-    .nice_button {
-        display:inline-block;
-        padding:0.3em 1.2em;
-        margin:0 0 0 0;
-        box-sizing: border-box;
-        text-decoration:none;
-        /*font-family:'Roboto',sans-serif;*/
-        font-weight:300;
-        color:#FFFFFF;
-        background-color:#4eb5f1;
-        text-align:center;
-        transition: all 0.2s;
-        cursor: pointer;
-    }
-    a.nice_button:hover {
-        background-color:#4095c6;
     }
   </style>
 
@@ -278,7 +273,7 @@
         <label for="checkbox_mirror">mirror</label>
       </div>
       <div style="display: flex">
-        <input type="checkbox" id="checkbox_repeat" >
+        <input type="checkbox" id="checkbox_repeat"  checked>
         <label for="checkbox_repeat">seamless</label>
       </div>
     </div>
@@ -401,28 +396,14 @@
     <!--span id="lblTiming">O_O</span>
     <span id="lblGLTimer">O_O</span-->  
   </div>
-  <!--
-  
-  <button onclick='myclick2();'>pumba</button>
-  <button onclick='myclick3();'>olovo</button>
-  <input type="number" id="preview" value="1">preview</td>
-  <input type="number" id="zoom" value="-1">zoom</td>
-  <input type="number" id="x" value="-1">x</td>
-  <input type="number" id="y" value="-1">y</td>
-  <span id="infolabel">O_O</span>
-  
-  
-  
-  <div style="width:100%; height: 100%; display: grid" id="main_stack">
-  <canvas id="canvas" style='user-select: none; image-rendering: pixelated; grid-column: 1; grid-row: 1;'></canvas>
-  <canvas id="canvas1" style='pointer-events: none; user-select: none; grid-column: 1; grid-row: 1;'></canvas>
-  
-  </div>
-  -->
   
   <div class="stack" style="width:100%; height: 100%" id="main_stack">
-  <canvas id="canvas" style='height: 100%;  user-select: none; image-rendering: pixelated'></canvas>
-  <canvas id="canvas1" style='height: 100%;  pointer-events: none; user-select: none;'></canvas>
+  <canvas id="canvas" style='height: 100%; user-select: none; image-rendering: pixelated'></canvas>
+  <canvas id="canvas1" style='height: 100%; pointer-events: none; user-select: none;'></canvas>
+  <div id="progress">
+    <canvas id="progress_canvas" style=''></canvas>
+    <label id="progress_text" style=''> </label>
+  </div>
   
   </div>
   <script>var M = {}; </script>

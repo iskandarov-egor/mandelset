@@ -172,7 +172,6 @@ class Computer {
                 var now = performance.now();
                 if (timeLimit > now + now - startTime) {
                     // have time for some more work
-                    console.log('b', now, timeLimit, now - startTime);
                     blast();
                     return;
                 }
@@ -193,6 +192,10 @@ class Computer {
             }
             blast();
         }
+    }
+    
+    getProgress() {
+        return (this.state == STATE_ORBIT) ? ['finding a reference orbit', this.refOrbitFinder.getProgress()] : ['rendering', this.job.getProgress()];
     }
     
     updateRefOrbit() {
@@ -255,6 +258,10 @@ class Job {
         var gl = this.gl;
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbuffer);
         gl.clearBufferuiv(gl.COLOR, 0, clearColor);
+    }
+    
+    getProgress() {
+        return (this.scanner) ? this.scanner.getProgress() : 0;
     }
     
     // orbitComputer should contain a computed orbit

@@ -71,11 +71,6 @@ var gradientControllersMouseMove = function(e) {
     }
 };
 
-function resizeCanvasToDisplaySize(canvas) {
-    canvas.width  = (window.devicePixelRatio * canvas.clientWidth);
-    canvas.height = (window.devicePixelRatio * canvas.clientHeight);
-}
-
 class SelectionGroup {
     constructor() {
         this.selectedPoint = null;

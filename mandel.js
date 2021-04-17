@@ -182,6 +182,10 @@ class OrbitFinder {
         this.attempts = 0;
     }
     
+    getProgress() {
+        return this.attempts / 100;
+    }
+    
     searchSome() {
         var window = this.window;
         function within(c) {

@@ -39,9 +39,7 @@ class Mixer {
     }
     
     themeReset(theme) {
-        //if (this.multisampling_pass > 1) {
-            this.pendingThemeReset = theme;
-        //}
+        this.pendingThemeReset = theme;
     }
     
     _themeReset() {
@@ -128,6 +126,18 @@ class Mixer {
     
     isTextureDirty() {
         return this.drawingEye == null;
+    }
+    
+    getProgress() {
+        var compProgress = this.computer.getProgress();
+        if (this.multisampling_pass == 1) {
+            return compProgress;
+        } else {
+            return [
+                'multisampling',
+                ((this.multisampling_pass - 2) + compProgress[1])/(this.sampler.samples - 1)
+            ];
+        }
     }
     
     computeSome(cb, timeLimit) {

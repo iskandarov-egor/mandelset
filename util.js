@@ -40,6 +40,10 @@ function newBlockScanner(w, h, blockWidth) {
         scanner.yBlock = 0;
     };
     
+    scanner.getProgress = function() {
+        return (scanner.yBlock*scanner.xBlocks + scanner.xBlock) / (scanner.yBlocks*scanner.xBlocks);
+    };
+    
     scanner.reset();
     return scanner;
 }
@@ -58,4 +62,9 @@ function newRateLimiter(rps) {
             }
         }
     }
+}
+
+function resizeCanvasToDisplaySize(canvas) {
+    canvas.width = window.devicePixelRatio*canvas.clientWidth;
+    canvas.height = window.devicePixelRatio*canvas.clientHeight;
 }

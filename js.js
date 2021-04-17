@@ -466,6 +466,8 @@ resizeMainCanvasElement(
     window.devicePixelRatio*document.getElementById("main_stack").clientHeight
 );
 
+resizeCanvasToDisplaySize(document.getElementById("progress_canvas"));
+
 var gl = canvas.getContext("webgl2", {antialias: false});
 if (!gl) {
     alert("webgl2 not supported");
@@ -494,6 +496,51 @@ setInterval(function() {
   //document.getElementById("lblTiming").innerText = 'Timing: ' + M.Stat.Computer.lastTiming;
   //document.getElementById("lblGLTimer").innerText = 'GL Timer: ' + M.Stat.Computer.GLTimer;
 }, 500);
+
+function newProgressWatcher(div, canvas, label) {
+    var hidden = false;
+    var w = {};
+    var ctx = canvas.getContext("2d");
+    ctx.lineWidth  = Math.max(1, canvas.width / 10);
+    
+    w.update = function(game) {
+        var compTime = game.getComputationTime();
+        var hide = (compTime < 5000);
+        if (hide != hidden) {
+            hidden = hide;
+            if (hide) {
+                div.classList.add('hide');
+            } else {
+                div.classList.remove('hide');
+            }
+        }
+        var p = game.getProgress();
+        var dots = Math.floor(compTime/1000) % 4;
+        label.textContent = p[0] + '.'.repeat(dots) + ' '.repeat(3 - dots);
+        ctx.clearRect(0, 0, canvas.width, canvas.width);
+        ctx.beginPath();
+        var r = canvas.width / 3;
+        ctx.strokeStyle = 'rgb(128,128,128)';
+        ctx.arc(canvas.width / 2, canvas.width / 2, r, Math.PI * 1.5, Math.PI * 3.5);
+        ctx.stroke(); 
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgb(225,225,225)';
+        ctx.arc(canvas.width / 2, canvas.width / 2, r, Math.PI * 1.5, Math.PI * (2*p[1] + 1.5));
+        ctx.stroke(); 
+    };
+    return w;
+}
+
+resizeCanvasToDisplaySize(document.getElementById("progress_canvas"));
+var progressWatcher = newProgressWatcher(
+    document.getElementById("progress"),
+    document.getElementById("progress_canvas"),
+    document.getElementById("progress_text"),
+);
+
+game.updateCallback = function() {
+    progressWatcher.update(game);
+};
 
 function raf() {
     game.raf();

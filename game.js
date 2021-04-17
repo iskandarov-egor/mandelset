@@ -68,6 +68,8 @@ class Game {
         this.theme.customImageTexture = gl.createTexture();
         this.program = M.gl_resources.createProgramCompositor(gl);
         this.state = this.states.idle;
+        this.updateCallback = null;
+        
         this.aggressiveness = 5;
         this.showRefOrbit = false;
     }
@@ -156,15 +158,29 @@ class Game {
         }
     }
     
-    updateTheme = function() {
+    updateTheme() {
         this.mixer.themeReset(this.theme);
         this.requestDraw();
     };
     
-    _mainLoop(game) {
+    getProgress() {
+        if (this.state == this.states.idle) {
+            return ['', 1];
+        } else {
+            return this.mixer.getProgress();
+        }
+    };
+    
+    getComputationTime() {
+        //console.log(this.state, this.states.idle, performance.now() - this.computingSince, performance.now(), this.computingSince);
+        return (this.state == this.states.idle) ? 0 : performance.now() - this.computingSince;
+    };
+    
+    _mainLoop() {
         this.state = this.states.loop;
         var startTime0 = performance.now();
         var startTime = performance.now();
+        this.computingSince = startTime0;
         var sleep2workRatio = 0.2;
         var that = this;
         
@@ -178,6 +194,7 @@ class Game {
                 if (!that.mixer.isTextureDirty()) {
                     that.underlay.combine(that.mixer.getDrawingEye(), that.mixer.getTexture());
                 }
+                that.computingSince = performance.now();
                 that.mixer.reset(that.eye);
                 that.eye_dirty = false;
             }
@@ -195,6 +212,7 @@ class Game {
                     that.underlay.combine(that.mixer.getDrawingEye(), that.mixer.getTexture());
                 }
                 that.mixer.reset(that.eye);
+                that.computingSince = performance.now();
                 
                 done = false;
                 that.eye_dirty = false;
@@ -207,6 +225,9 @@ class Game {
                 var workTime = now - startTime;
                 trace('loop', 'sleep for', workTime * sleep2workRatio);
                 setTimeout(timer, workTime * sleep2workRatio);
+            }
+            if (that.updateCallback) {
+                that.updateCallback();
             }
         }
         

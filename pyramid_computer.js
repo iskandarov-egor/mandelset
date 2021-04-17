@@ -122,6 +122,22 @@ class PyramidComputer {
         work();
     }
     
+    getProgress() {
+        var ret = ['', 0];
+        var total_weight = 0;
+        for (var i = 0; i < this._nActiveLayers(); i++) {
+            var p = this.computers[i].getProgress();
+            if (p[1] > 0 && ret[0] == 0) {
+                ret[0] = p[0];
+            }
+            var weight = Math.pow(9, this._nActiveLayers() - i - 1);
+            total_weight += weight;
+            ret[1] += p[1]*weight;
+        }
+        ret[1] /= total_weight;
+        return ret;
+    }
+    
     getTexture() {
         for (var i = this._nActiveLayers() - 1; i >= 1; i--) {
             if (this.computers[i - 1].isTextureDirty()) {
