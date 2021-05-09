@@ -102,16 +102,19 @@
         top:0;
     }
     
-    #progress {
+    .overlay_text {
         color: white;
         display: flex;
         position:absolute;
-        left:2em;
-        top: 1em;
         background-color: rgba(0, 0, 0, 0.5);
         padding: 0.5em;
         user-select: none;
         pointer-events:none;
+    }
+    
+    #progress {
+        left:2em;
+        top: 1em;
     }
     #progress > canvas {
         height: 2em;
@@ -124,6 +127,10 @@
         white-space: pre-wrap;
         pointer-events:none;
         user-select: none;
+    }
+    
+    #help {
+        right: 2em;
     }
     
     html {
@@ -302,6 +309,14 @@
       <a class="nice_button hide" onclick='myclick();'>hello</a>
     </div>
 
+    <div class="preference_cell eye_preferences">
+      <div class="preference_label">
+        <label for="input_iter">iterations:</label>
+      </div>
+
+      <input name="input_iter" type="number" id="input_iter" value="100" class="preference_input">
+    </div>
+
     <div class="preference_cell coord_cell grow eye_preferences">
       <div style="margin-right: 0.2em">
         <label for="input_x">x:</label>
@@ -324,14 +339,6 @@
       </div>
      
       <input name="input_scale" type="number" id="input_scale" value="100" class="preference_input" style="width: 7em">
-    </div>
-
-    <div class="preference_cell eye_preferences">
-      <div class="preference_label">
-        <label for="input_iter">iterations:</label>
-      </div>
-
-      <input name="input_iter" type="number" id="input_iter" value="100" class="preference_input">
     </div>
 
     <div class="preference_cell eye_preferences">
@@ -360,7 +367,7 @@
         
     <div class="preference_cell eye_preferences" style="flex-shrink: 1">
       <div class="preference_label">
-        <label for="input_aggressiveness">calculation speed:</label>
+        <label for="input_aggressiveness">computation</br>aggressiveness:</label>
       </div>
      
         <input name="input_aggressiveness" type="number" id="input_aggressiveness" value="5" class="preference_input" style="width: 3em; min-width: 0">
@@ -400,9 +407,14 @@
   <div class="stack" style="width:100%; height: 100%" id="main_stack">
   <canvas id="canvas" style='height: 100%; user-select: none; image-rendering: pixelated'></canvas>
   <canvas id="canvas1" style='height: 100%; pointer-events: none; user-select: none;'></canvas>
-  <div id="progress">
+  <div id="progress" class="overlay_text">
     <canvas id="progress_canvas" style=''></canvas>
     <label id="progress_text" style=''> </label>
+  </div>
+  <div id="help" class="overlay_text">
+    * drag the view with your mouse to move around</br>
+    * scroll to zoom in and out</br>
+    * to see more detail at deeper zooms, increase the "iterations" value and press the return key</br>
   </div>
   
   </div>

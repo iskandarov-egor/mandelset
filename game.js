@@ -10,6 +10,14 @@ var zeroEye = new M.mandel.Eye({
     samples: 1,
 });
 
+var initialEye = new M.mandel.Eye({
+    scale: 1,
+    offsetX: ns.init(0),
+    offsetY: ns.init(0),
+    iterations: 100,
+    samples: 9,
+});
+
 var tante = new M.mandel.Eye({    
     scale: 1/1244664094013.3586,
     offsetX: ns.init(-0.774680610626900745252498836635),
@@ -41,7 +49,7 @@ class Game {
             loop: 1,
         };
         this.gl = gl;
-        this.eye = cscopeEye;
+        this.eye = initialEye;
         this.eye_dirty = false;
         this.theme = {
             customImageTexture: gl.createTexture(),

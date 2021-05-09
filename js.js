@@ -150,6 +150,11 @@ canvas.addEventListener("mousedown", e => {
     };
 });
 
+
+document.addEventListener("mousedown", e => {
+    document.getElementById("help").classList.add('hide');
+});
+
 document.addEventListener("mouseup", e => {
     if (e.button == 0) {
         canvasGrab = null;

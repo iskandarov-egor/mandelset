@@ -55,7 +55,8 @@ void main() {
                 outColor = texture(bgTexture, txtCoord);
                 //outColor = vec4(0, 1, 1, 1);
             } else {
-                outColor = vec4(1, 0, 1, 1);
+                //outColor = vec4(1, 0, 1, 1);
+                outColor = vec4(0, 0, 0, 1);
             }
         } else {
             
@@ -64,7 +65,8 @@ void main() {
         }
         
     } else {
-        outColor = vec4(1, 1, 0, 1);
+        //outColor = vec4(1, 1, 0, 1);
+        outColor = vec4(0, 0, 0, 1);
         return;
     }
 }
