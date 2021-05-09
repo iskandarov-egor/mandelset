@@ -129,12 +129,12 @@ class Computer {
             startTime = performance.now();
             trace('comp', 'blast');
             
-            const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
-            timerQ = gl.createQuery();
+            //const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+            //timerQ = gl.createQuery();
             
-            gl.beginQuery(ext.TIME_ELAPSED_EXT, timerQ);
+            //gl.beginQuery(ext.TIME_ELAPSED_EXT, timerQ);
             that.job.iterate(1);
-            gl.endQuery(ext.TIME_ELAPSED_EXT);
+            //gl.endQuery(ext.TIME_ELAPSED_EXT);
             
             sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
             gl.flush();
@@ -150,7 +150,8 @@ class Computer {
                 trace('comp', 'zzz');
                 setTimeout(timerCb, waitPeriod);
             } else {
-                const available = gl.getQueryParameter(timerQ, gl.QUERY_RESULT_AVAILABLE);
+                //const available = gl.getQueryParameter(timerQ, gl.QUERY_RESULT_AVAILABLE);
+                const available = false;
                 if (available) {
                     M.Stat.Computer.GLTimer = gl.getQueryParameter(timerQ, gl.QUERY_RESULT) / 1e6;
                     gl.deleteQuery(timerQ);

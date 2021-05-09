@@ -41,7 +41,7 @@ class Game {
             loop: 1,
         };
         this.gl = gl;
-        this.eye = cscopeEye;
+        this.eye = zeroEye;
         this.eye_dirty = false;
         this.theme = {
             customImageTexture: gl.createTexture(),

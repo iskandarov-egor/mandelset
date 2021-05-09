@@ -223,14 +223,14 @@ function updateElementVisibility() {
     document.getElementById('palette_cell').style.display = (mode == 'gradient') ? 'flex' : 'none';
     //document.getElementById('second_gradient').style.display = (mode == '2_gradients') ? 'flex' : 'none';
     document.getElementById('custom_image_cell').style.display = (mode == 'custom_image') ? 'flex' : 'none';
-    document.getElementById('distance_mode').style.display = (game.theme.direction == 0) ? 'flex' : 'none';
+    document.getElementById('distance_mode').style.display = (!game || game.theme.direction == 0) ? 'flex' : 'none';
     document.getElementById('scale_invariance_control').style.visibility = (getDistanceMode() == 'distance') ? 'visible' : 'hidden';
     
     for (const element of document.getElementsByClassName('distance_factor_modifier')) {
-        element.style.display = (mode != 'gradient' || game.theme.direction == 0) ? 'flex' : 'none';
+        element.style.display = (mode != 'gradient' || !game || game.theme.direction == 0) ? 'flex' : 'none';
     }
     for (const element of document.getElementsByClassName('normal_factor_modifier')) {
-        element.style.display = (mode != 'gradient' || game.theme.direction == 1) ? 'flex' : 'none';
+        element.style.display = (mode != 'gradient' || !game || game.theme.direction == 1) ? 'flex' : 'none';
     }
     
     paintControls();
@@ -460,7 +460,7 @@ for (const element of document.getElementsByTagName('input')) {
         }
     });
 }
-
+updateElementVisibility();
 resizeMainCanvasElement(
     window.devicePixelRatio*document.getElementById("main_stack").clientWidth,
     window.devicePixelRatio*document.getElementById("main_stack").clientHeight
@@ -468,7 +468,9 @@ resizeMainCanvasElement(
 
 resizeCanvasToDisplaySize(document.getElementById("progress_canvas"));
 
-var gl = canvas.getContext("webgl2", {antialias: false});
+// there's a bug in older versions of firefox that results in a blank image from "save as" if
+// we don't set preserveDrawingBuffer to true
+var gl = canvas.getContext("webgl2", {antialias: false, preserveDrawingBuffer: true});
 if (!gl) {
     alert("webgl2 not supported");
     throw new Error("webgl2 not supported");
@@ -552,7 +554,6 @@ mainGradient.controller.selectionGroup.selectedPoint = mainGradient.controller.p
 updateGradientTexture();
 gradientUpdateCallback(mainGradient);
 updateEyeControlElements();
-updateElementVisibility();
 
 canvas.addEventListener("webglcontextlost", function(event) {
     event.preventDefault();
