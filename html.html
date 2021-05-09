@@ -81,7 +81,8 @@
     }
     
     .main_gradient_cell {
-      flex-basis: 40em;
+      flex-basis: 20em;
+      flex-grow: 1;
       justify-content: center;
     }
     
@@ -322,7 +323,7 @@
         <label for="input_x">x:</label>
       </div>
 
-      <input name="input_x" type="number" id="input_x" value="100" class="preference_input">
+      <input name="input_x" type="number" id="input_x" value="100" class="preference_input" step="any">
     </div>
 
     <div class="preference_cell coord_cell grow eye_preferences">
@@ -330,7 +331,7 @@
         <label for="input_y">y:</label>
       </div>
       
-      <input name="input_y" type="number" id="input_y" value="100" class="preference_input">
+      <input name="input_y" type="number" id="input_y" value="100" class="preference_input" step="any">
     </div>
 
     <div class="preference_cell eye_preferences">
@@ -338,7 +339,7 @@
         <label for="input_scale">scale:</label>
       </div>
      
-      <input name="input_scale" type="number" id="input_scale" value="100" class="preference_input" style="width: 7em">
+      <input name="input_scale" type="number" id="input_scale" value="100" class="preference_input" style="width: 7em" step="any">
     </div>
 
     <div class="preference_cell eye_preferences">
