@@ -55,7 +55,7 @@ function resizeMainCanvasElement(width, height) {
     }, 1);
 }
 
-function loadFromEyeControlElements() {
+function loadEyePreferencesFromControlElements() {
     var elements = {
         iterations: document.getElementById("input_iter"),
         offsetX: document.getElementById("input_x"),
@@ -76,21 +76,21 @@ function loadFromEyeControlElements() {
         height: parseInt(elements.height.value),
         aggressiveness: parseInt(elements.aggressiveness.value),
     };
-    var abort = false;
+    var ok = true;
     for (var key in values) {
         if (values.hasOwnProperty(key) && Number.isNaN(values[key])) {
             elements[key].classList.add('invalid_input');
-            abort = true;
+            ok = false;
         } else {
             elements[key].classList.remove('invalid_input');
         }
     }
     values.iterations = Math.min(Math.max(values.iterations, 1), 1e6);
     values.aggressiveness = Math.min(Math.max(values.aggressiveness, 1), 10);
-    if (abort) {
-        return;
-    }
-    
+    return ok ? values : null;
+}
+
+function applyEyePreferences(values) {
     var eye = new M.mandel.Eye({
         iterations: values.iterations,
         offsetX: values.offsetX,
@@ -108,6 +108,15 @@ function loadFromEyeControlElements() {
     game.setEye(eye);
     game.requestDraw();
     updateEyeControlElements();
+}
+
+function loadFromEyeControlElements() {
+    var values = loadEyePreferencesFromControlElements();
+    if (values == null) {
+        return;
+    }
+    
+    applyEyePreferences(values);
 }
 
 canvas.addEventListener("wheel", e => {
@@ -252,6 +261,157 @@ function toggleDirectionListener() {
     updateGradientTexture();
 };
 
+function download(filename, text) { // browser programming is hard
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
+function newlines2crlf(s) { // i dont like browser programming
+    if (s.includes('\n') && !s.includes('\r\n')) {
+        return s.replaceAll('\n', '\r\n');
+    } else {
+        return s;
+    }
+}
+
+function saveViewClickListener() {
+    var values = loadEyePreferencesFromControlElements();
+    if (values == null) {
+        return;
+    }
+    
+    values.offsetX = ns.tostring(values.offsetX);
+    values.offsetY = ns.tostring(values.offsetY);
+    
+    download("mandelbrot_view.txt", newlines2crlf(JSON.stringify(values, null, 2)));
+};
+
+function loadViewInputOnChange(evt) {
+    var tgt = evt.target;
+    var files = tgt.files;
+
+    if (files && files.length) {
+        var fr = new FileReader();
+        fr.onload = function (e) {
+            var values = JSON.parse(e.target.result);
+        
+            var types = {
+                iterations: 'number',
+                offsetX: 'string',
+                offsetY: 'string',
+                scale: 'number',
+                samples: 'number',
+                width: 'number',
+                height: 'number',
+                aggressiveness: 'number',
+            };
+            
+            for (var k in types) {
+                if (typeof(values[k]) != types[k]) {
+                    return;
+                }
+            }
+            
+            values.offsetX = ns.fromstring(values.offsetX);
+            values.offsetY = ns.fromstring(values.offsetY);
+            
+            applyEyePreferences(values);
+        }
+        fr.readAsText(files[0]);
+    }
+}
+
+function loadColorsInputOnChange(evt) {
+    var tgt = evt.target;
+    var files = tgt.files;
+
+    if (files && files.length) {
+        var fr = new FileReader();
+        fr.onload = function (e) {
+            var values = JSON.parse(e.target.result);
+        
+            var types = {                
+                mainGradientPoints: 'object',//
+                interiorColor: 'object',//
+                scale: 'number',//
+                offset: 'number',//
+                mirror: 'boolean',//
+                repeat: 'boolean',//
+                offset2: 'number',//
+                scale2: 'number',//
+                mirror2: 'boolean',//
+                repeat2: 'boolean',//
+                shade3d: 'boolean',//
+                scaleInvariant: 'boolean',//
+                paintMode: 'string',
+                distanceMode: 'string',
+            };
+            
+            for (var k in types) {
+                if (typeof(values[k]) != types[k]) {
+                    return;
+                }
+            }
+            
+            applyColorPreferences(values);
+            updateColorControlElements(values);
+            mainGradient.controller.selectionGroup.selectedPoint = mainGradient.controller.points[0];
+            gradientUpdateCallback(mainGradient);
+            
+        }
+        fr.readAsText(files[0]);
+    }
+}
+
+function updateColorControlElements(values) {
+    mainGradient.reset_points(values.mainGradientPoints);
+    mainGradient.paint();
+    
+    offsetControl.reset(values.offset);
+    offsetControl.paint();
+    offsetControl2.reset(values.offset2);
+    offsetControl2.paint();
+    scaleControl.reset(values.scale);
+    scaleControl.paint();
+    scaleControl2.reset(values.scale2);
+    scaleControl2.paint();
+    interiorGradient.reset_points([{
+        x: 0.5, color: values.interiorColor,
+    }]);
+    interiorGradient.paint();
+    
+    controls.checkbox_mirror.checked = values.mirror;
+    controls.checkbox_mirror2.checked = values.mirror2;
+    controls.checkbox_repeat.checked = values.repeat;
+    controls.checkbox_repeat2.checked = values.repeat2;
+    controls.checkbox_scale_invariant.checked = values.scaleInvariant;
+    controls.checkbox_3d.checked = values.shade3d;
+    
+    if (values.distanceMode == 'distance') {
+        document.querySelector('input[name="distance_mode"][value="distance"]').checked = true;
+    } else {
+        document.querySelector('input[name="distance_mode"][value="iterations"]').checked = true;
+    }
+    
+    updateElementVisibility();
+}
+
+function loadViewClickListener() {
+    document.getElementById("load_view_input").click();
+};
+
+function loadColorsClickListener() {
+    document.getElementById("load_colors_input").click();
+};
+
 var lc_ext = null;
 function myclick() {
     if (lc_ext) {
@@ -275,8 +435,30 @@ function myclick3() {
     visualizeBuffer(comp2.getTexture());
 }
 
+function readColorPreferences() {
+    var values = {
+        mainGradientPoints: mainGradient.controller.points,
+        interiorColor: interiorGradient.controller.points[0].color,
+        scale: scaleControl.get(),
+        offset: offsetControl.get(),
+        mirror: document.getElementById('checkbox_mirror').checked,
+        repeat: document.getElementById('checkbox_repeat').checked,
+        offset2: offsetControl2.get(),
+        scale2: scaleControl2.get(),
+        mirror2: document.getElementById('checkbox_mirror2').checked,
+        repeat2: document.getElementById('checkbox_repeat2').checked,
+        shade3d: document.getElementById('checkbox_3d').checked,
+        scaleInvariant: document.getElementById('checkbox_scale_invariant').checked,
+        paintMode: getPaintMode(),
+        distanceMode: getDistanceMode(),
+        direction: game.theme.direction, // direction is a toggle, can't read it from the elements
+    };
+    
+    return values;
+}
+
 var gradientArray = new Uint8Array(1024*1*4);
-function updateGradientTexture() {
+function applyColorPreferences(values) {    
     function paintCb(i, color) {
         var rgb = M.colors.clamp1(color);
         gradientArray[i*4] = 255*rgb[0];
@@ -284,7 +466,7 @@ function updateGradientTexture() {
         gradientArray[i*4 + 2] = 255*rgb[2];
         gradientArray[i*4 + 3] = 255;
     }
-    M.palette.paintGradient(mainGradient.controller.points, 1024, paintCb);
+    M.palette.paintGradient(values.mainGradientPoints, 1024, paintCb);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, game.theme.gradientTexture);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 1, gl.RGBA, gl.UNSIGNED_BYTE, gradientArray);
@@ -293,28 +475,44 @@ function updateGradientTexture() {
     gl.bindTexture(gl.TEXTURE_2D, game.theme.gradientTexture2);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1024, 1, gl.RGBA, gl.UNSIGNED_BYTE, gradientArray);
     
-    game.theme.interiorColor = interiorGradient.controller.points[0].color;
+    game.theme.interiorColor = values.interiorColor;
     
-    game.theme.offset = offsetControl.get();
-    game.theme.scale = scaleControl.get();
+    game.theme.offset = values.offset;
+    game.theme.scale = values.scale;
     
-    game.theme.mirror = document.getElementById('checkbox_mirror').checked;
-    game.theme.repeat = document.getElementById('checkbox_repeat').checked;
+    game.theme.mirror = values.mirror;
+    game.theme.repeat = values.repeat;
     
-    game.theme.offset2 = offsetControl2.get();
-    game.theme.scale2 = scaleControl2.get();
+    game.theme.offset2 = values.offset2;
+    game.theme.scale2 = values.scale2;
     
-    game.theme.mirror2 = document.getElementById('checkbox_mirror2').checked;
-    game.theme.repeat2 = document.getElementById('checkbox_repeat2').checked;
+    game.theme.mirror2 = values.mirror2;
+    game.theme.repeat2 = values.repeat2;
     
-    game.theme.shade3d = document.getElementById('checkbox_3d').checked;
-    game.theme.scaleInvariant = document.getElementById('checkbox_scale_invariant').checked;
+    game.theme.shade3d = values.shade3d;
+    game.theme.scaleInvariant = values.scaleInvariant;
     
-    game.theme.mode = (getPaintMode() == 'custom_image') ? 1 : 0;
-    game.theme.distance_mode = (getDistanceMode() == 'distance') ? 1 : 0;
+    game.theme.mode = (values.paintMode == 'custom_image') ? 1 : 0;
+    game.theme.distance_mode = (values.distanceMode == 'distance') ? 1 : 0;
+    
+    game.theme.direction = values.direction;
     
     game.updateTheme();
 }
+
+function updateGradientTexture() {
+    var values = readColorPreferences();
+    applyColorPreferences(values);
+}
+
+function saveColorsClickListener() {
+    var values = readColorPreferences();
+    if (values == null) {
+        return;
+    }
+    
+    download("mandelbrot_colors.txt", newlines2crlf(JSON.stringify(values, null, 2)));
+};
 
 var customImage = new Image();
 customImage.onload = function () {
@@ -334,6 +532,9 @@ document.getElementById('file_input').onchange = function (evt) {
         fr.readAsDataURL(files[0]);
     }
 }
+
+document.getElementById('load_view_input').onchange = loadViewInputOnChange;
+document.getElementById('load_colors_input').onchange = loadColorsInputOnChange;
 
 var lastSelectedGradientPoint = null;
 function gradientUpdateCallback(gradient, pendingInsertion) {
@@ -444,20 +645,44 @@ function paintControls() {
     scaleControl.paint();
     offsetControl2.paint();
     scaleControl2.paint();
-}
+};
 
-document.getElementById('checkbox_orbit').addEventListener('change', () => {game.toggleRefOrbit();});
-document.getElementById('checkbox_mirror').addEventListener('change', updateGradientTexture);
-document.getElementById('checkbox_repeat').addEventListener('change', updateGradientTexture);
-document.getElementById('checkbox_mirror2').addEventListener('change', updateGradientTexture);
-document.getElementById('checkbox_repeat2').addEventListener('change', updateGradientTexture);
-document.getElementById('checkbox_3d').addEventListener('change', updateGradientTexture);
-document.getElementById('checkbox_scale_invariant').addEventListener('change', updateGradientTexture);
-document.getElementById('preference_switch_eye').addEventListener('change', updateElementVisibility);
-document.getElementById('preference_switch_color').addEventListener('change', updateElementVisibility);
-document.getElementsByName('paint_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
-document.getElementsByName('distance_mode').forEach((x) => { x.addEventListener('change', paintModeListener); });
-document.getElementById('button_direction').addEventListener('click', toggleDirectionListener);
+var controls = {
+    checkbox_orbit: document.getElementById('checkbox_orbit'),
+    checkbox_mirror: document.getElementById('checkbox_mirror'),
+    checkbox_repeat: document.getElementById('checkbox_repeat'),
+    checkbox_mirror2: document.getElementById('checkbox_mirror2'),
+    checkbox_repeat2: document.getElementById('checkbox_repeat2'),
+    checkbox_3d: document.getElementById('checkbox_3d'),
+    checkbox_scale_invariant: document.getElementById('checkbox_scale_invariant'),
+    preference_switch_eye: document.getElementById('preference_switch_eye'),
+    preference_switch_color: document.getElementById('preference_switch_color'),
+    paint_mode: document.getElementsByName('paint_mode'),
+    distance_mode: document.getElementsByName('distance_mode'),
+    button_direction: document.getElementById('button_direction'),
+    button_save_view: document.getElementById('button_save_view'),
+    button_load_view: document.getElementById('button_load_view'),
+    button_save_colors: document.getElementById('button_save_colors'),
+    button_load_colors: document.getElementById('button_load_colors'),
+};
+
+controls.checkbox_orbit.addEventListener('change', () => {game.toggleRefOrbit();});
+controls.checkbox_mirror.addEventListener('change', updateGradientTexture);
+controls.checkbox_repeat.addEventListener('change', updateGradientTexture);
+controls.checkbox_mirror2.addEventListener('change', updateGradientTexture);
+controls.checkbox_repeat2.addEventListener('change', updateGradientTexture);
+controls.checkbox_3d.addEventListener('change', updateGradientTexture);
+controls.checkbox_scale_invariant.addEventListener('change', updateGradientTexture);
+controls.preference_switch_eye.addEventListener('change', updateElementVisibility);
+controls.preference_switch_color.addEventListener('change', updateElementVisibility);
+controls.paint_mode.forEach((x) => { x.addEventListener('change', paintModeListener); });
+controls.distance_mode.forEach((x) => { x.addEventListener('change', paintModeListener); });
+controls.button_direction.addEventListener('click', toggleDirectionListener);
+controls.button_save_view.addEventListener('click', saveViewClickListener);
+controls.button_load_view.addEventListener('click', loadViewClickListener);
+controls.button_save_colors.addEventListener('click', saveColorsClickListener);
+controls.button_load_colors.addEventListener('click', loadColorsClickListener);
+
 for (const element of document.getElementsByTagName('input')) {
     element.addEventListener("keydown", (e) => {
         if (e.key == "Enter") {
@@ -465,7 +690,6 @@ for (const element of document.getElementsByTagName('input')) {
         }
     });
 }
-updateElementVisibility();
 resizeMainCanvasElement(
     window.devicePixelRatio*document.getElementById("main_stack").clientWidth,
     window.devicePixelRatio*document.getElementById("main_stack").clientHeight
@@ -537,6 +761,9 @@ function newProgressWatcher(div, canvas, label) {
     };
     return w;
 }
+
+
+updateElementVisibility();
 
 resizeCanvasToDisplaySize(document.getElementById("progress_canvas"));
 var progressWatcher = newProgressWatcher(

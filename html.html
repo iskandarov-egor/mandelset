@@ -173,6 +173,10 @@
         border-left: 0 !important;
         border-right: 0 !important;
     }
+    
+    .flat_button {
+        border: 0;
+    }
   </style>
 
 </head>
@@ -181,21 +185,28 @@
   <div style="display: flex; flex-wrap: wrap" id="main_div">
     <div class="preference_cell_rows shrink0" id="preference_switch">
       <div style="display: flex">
-        <input type="radio" id="preference_switch_eye" name="preference_switch" value="eye" checked>
+        <input type="radio" id="preference_switch_eye" name="preference_switch" value="eye" autocomplete="off" checked>
         <label for="preference_switch_eye">view settings</label>
       </div>
       <div style="display: flex">
-        <input type="radio" id="preference_switch_color" name="preference_switch" value="color">
+        <input type="radio" id="preference_switch_color" name="preference_switch" value="color" autocomplete="off">
         <label for="preference_switch_color">color settings</label>
       </div>
     </div>
+    
+    <div class="preference_cell_rows color_preferences">
+      <button class="flat_button" id="button_save_colors">save colors</button>
+      <button class="flat_button" id="button_load_colors">load colors</button>
+      <input type="file" class="hide" id="load_colors_input" name="file_input" accept="text/plain" autocomplete="off">
+    </div>
+    
     <div class="preference_cell_rows shrink0 color_preferences">
       <div style="display: flex">
-        <input type="radio" id="paint_mode_3" name="paint_mode" value="gradient" checked>
+        <input type="radio" id="paint_mode_3" name="paint_mode" value="gradient" checked autocomplete="off">
         <label for="paint_mode_3">gradient</label>
       </div>
       <div style="display: flex">
-        <input type="radio" id="paint_mode_4" name="paint_mode" value="custom_image">
+        <input type="radio" id="paint_mode_4" name="paint_mode" value="custom_image" autocomplete="off">
         <label for="paint_mode_4">custom image</label>
       </div>
     </div>
@@ -207,7 +218,7 @@
 
       <input type="file"
              id="file_input" name="file_input"
-             accept="image/png, image/jpeg">
+             accept="image/png, image/jpeg" autocomplete="off">
     </div>
     <div class="preference_cell_rows long_cell gradient_mode_cell color_preferences" id="palette_cell">
       <div class="stack" style="width:100%; flex-basis: 0.6em;">
@@ -251,11 +262,11 @@
     </div>
     <div class="preference_cell_rows normal_factor_modifier color_preferences" style="flex-shrink: 0">
       <div style="display: flex">
-        <input type="checkbox" id="checkbox_mirror2">
+        <input type="checkbox" id="checkbox_mirror2" autocomplete="off">
         <label for="checkbox_mirror2">mirror</label>
       </div>
       <div style="display: flex">
-        <input type="checkbox" id="checkbox_repeat2" checked>
+        <input type="checkbox" id="checkbox_repeat2" checked autocomplete="off">
         <label for="checkbox_repeat2">seamless</label>
       </div>
     </div>
@@ -277,31 +288,31 @@
     </div>
     <div class="preference_cell_rows distance_factor_modifier color_preferences" style="flex-shrink: 0">
       <div style="display: flex">
-        <input type="checkbox" id="checkbox_mirror">
+        <input type="checkbox" id="checkbox_mirror" autocomplete="off">
         <label for="checkbox_mirror">mirror</label>
       </div>
       <div style="display: flex">
-        <input type="checkbox" id="checkbox_repeat"  checked>
+        <input type="checkbox" id="checkbox_repeat"  checked autocomplete="off">
         <label for="checkbox_repeat">seamless</label>
       </div>
     </div>
     <div class="preference_cell_rows color_preferences" id="distance_mode" style="flex-shrink: 0">
       <div style="display: flex">
-        <input type="radio" id="distance_mode_1" name="distance_mode" value="iterations" checked>
+        <input type="radio" id="distance_mode_1" name="distance_mode" value="iterations" checked autocomplete="off">
         <label for="distance_mode_1">use iteration count</label>
       </div>
       <div style="display: flex">
-        <input type="radio" id="distance_mode_2" name="distance_mode" value="distance">
+        <input type="radio" id="distance_mode_2" name="distance_mode" value="distance" autocomplete="off">
         <label for="distance_mode_2">use distance</label>
       </div>
     </div>
     <div class="preference_cell_rows color_preferences" style="flex-shrink: 0">
       <div style="display: flex">
-        <input type="checkbox" id="checkbox_3d">
+        <input type="checkbox" id="checkbox_3d" autocomplete="off">
         <label for="checkbox_3d">3d shadow</label>
       </div>
       <div style="display: flex" id="scale_invariance_control">
-        <input type="checkbox" id="checkbox_scale_invariant">
+        <input type="checkbox" id="checkbox_scale_invariant" autocomplete="off">
         <label for="checkbox_scale_invariant">zoom-invariant</label>
       </div>
     </div>
@@ -309,13 +320,20 @@
     <div class="preference_cell eye_preferences">
       <a class="nice_button hide" onclick='myclick();'>hello</a>
     </div>
+    
+    <div class="preference_cell_rows eye_preferences">
+      <button class="flat_button" id="button_save_view">save view</button>
+      <button class="flat_button" id="button_load_view">load view</button>
+      
+      <input type="file" class="hide" id="load_view_input" name="file_input" accept="text/plain" autocomplete="off">
+    </div>
 
     <div class="preference_cell eye_preferences">
       <div class="preference_label">
         <label for="input_iter">iterations:</label>
       </div>
 
-      <input name="input_iter" type="number" id="input_iter" value="100" class="preference_input">
+      <input name="input_iter" type="number" id="input_iter" value="100" class="preference_input" autocomplete="off">
     </div>
 
     <div class="preference_cell coord_cell grow eye_preferences">
@@ -323,7 +341,7 @@
         <label for="input_x">x:</label>
       </div>
 
-      <input name="input_x" type="number" id="input_x" value="100" class="preference_input" step="any">
+      <input name="input_x" type="number" id="input_x" value="100" class="preference_input" step="any" autocomplete="off">
     </div>
 
     <div class="preference_cell coord_cell grow eye_preferences">
@@ -331,7 +349,7 @@
         <label for="input_y">y:</label>
       </div>
       
-      <input name="input_y" type="number" id="input_y" value="100" class="preference_input" step="any">
+      <input name="input_y" type="number" id="input_y" value="100" class="preference_input" step="any" autocomplete="off">
     </div>
 
     <div class="preference_cell eye_preferences">
@@ -339,7 +357,7 @@
         <label for="input_scale">scale:</label>
       </div>
      
-      <input name="input_scale" type="number" id="input_scale" value="100" class="preference_input" style="width: 7em" step="any">
+      <input name="input_scale" type="number" id="input_scale" value="100" class="preference_input" style="width: 7em" step="any" autocomplete="off">
     </div>
 
     <div class="preference_cell eye_preferences">
@@ -347,7 +365,7 @@
         <label for="input_width">width:</label>
       </div>
      
-      <input name="input_width" type="number" id="input_width" value="100" class="preference_input" style="width: 4em">
+      <input name="input_width" type="number" id="input_width" value="100" class="preference_input" style="width: 4em" autocomplete="off">
     </div>
 
     <div class="preference_cell eye_preferences">
@@ -355,7 +373,7 @@
         <label for="input_heigh">height:</label>
       </div>
      
-      <input name="input_height" type="number" id="input_height" value="100" class="preference_input" style="width: 4em">
+      <input name="input_height" type="number" id="input_height" value="100" class="preference_input" style="width: 4em" autocomplete="off">
     </div>
     
     <div class="preference_cell eye_preferences" style="flex-shrink: 1">
@@ -363,7 +381,7 @@
         <label for="input_samples">samples per pixel:</label>
       </div>
      
-        <input name="input_samples" type="number" id="input_samples" value="2" class="preference_input" style="width: 3em; min-width: 0">
+        <input name="input_samples" type="number" id="input_samples" value="2" class="preference_input" style="width: 3em; min-width: 0" autocomplete="off">
     </div>
         
     <div class="preference_cell eye_preferences" style="flex-shrink: 1">
@@ -371,28 +389,28 @@
         <label for="input_aggressiveness">computation</br>aggressiveness:</label>
       </div>
      
-        <input name="input_aggressiveness" type="number" id="input_aggressiveness" value="5" class="preference_input" style="width: 3em; min-width: 0">
+        <input name="input_aggressiveness" type="number" id="input_aggressiveness" value="5" class="preference_input" style="width: 3em; min-width: 0" autocomplete="off">
     </div>
     
     <div class="preference_cell eye_preferences">
-      <input type="checkbox" id="checkbox_orbit">
+      <input type="checkbox" id="checkbox_orbit" autocomplete="off">
       <label for="checkbox_orbit" style="word-wrap: break-word">show reference orbit</label>
     </div>
     <!-- dummied below enforce the header height the same as in the color preferences mode -->
     <div class="preference_cell_rows dummy eye_preferences" style="width: 0px; min-width: 0px">
       <div style="display: flex">
-        <input type="radio" name="dummy_radio" value="dummy_radio" class="dummy" checked>
+        <input type="radio" name="dummy_radio" value="dummy_radio" class="dummy" checked autocomplete="off">
       </div>
       <div style="display: flex">
-        <input type="radio" name="dummy_radio" value="dummy_radio" class="dummy">
+        <input type="radio" name="dummy_radio" value="dummy_radio" class="dummy" autocomplete="off">
       </div>
     </div>
     <div class="preference_cell_rows dummy eye_preferences" style="width: 0px; min-width: 0px">
       <div style="display: flex">
-        <input type="checkbox" class="dummy">
+        <input type="checkbox" class="dummy" autocomplete="off">
       </div>
       <div style="display: flex">
-        <input type="checkbox" class="dummy">
+        <input type="checkbox" class="dummy" autocomplete="off">
       </div>
     </div>
     <div class="preference_cell dummy eye_preferences">

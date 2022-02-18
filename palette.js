@@ -105,6 +105,10 @@ class GradientController {
         this.points.push(p);
     }
     
+    clear_points() {
+        this.points = [];
+    }
+    
     init(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
@@ -330,6 +334,13 @@ class Gradient {
         this.controller.paint();
         this.gradientPainter.paint(this.controller.points);
     }
+    
+    reset_points(points) {
+        this.controller.clear_points();
+        for (var i = 0; i < points.length; i++) {
+            this.controller.add_point(points[i]);
+        }
+    }
 };
 
 class HSLPalette {
@@ -394,6 +405,11 @@ class Slider {
     
     get() {
         return this.c.points[0].x;
+    }
+    
+    reset(x) {
+        this.c.clear_points();
+        this.c.add_point({x: x, color: [0, 0, 0]});
     }
 };
 
