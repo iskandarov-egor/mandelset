@@ -5,20 +5,201 @@ var ns = M.ns.ns;
 var canvas = document.getElementById("canvas");
 var canvas1 = document.getElementById("canvas1");
 
-function updateEyeControlElements() {
-    document.getElementById("input_scale").value = game.eye.scale.toExponential(5);
-    document.getElementById("input_x").value = ns.tostring(game.eye.offsetX);
-    document.getElementById("input_y").value = ns.tostring(game.eye.offsetY);
-    document.getElementById("input_iter").value = game.eye.iterations;
-    document.getElementById("input_samples").value = game.eye.samples;
-    document.getElementById("input_width").value = canvas.width;
-    document.getElementById("input_height").value = canvas.height;
-    document.getElementById("input_aggressiveness").value = game.aggressiveness;
+var prefMVC = {
+    eye: {
+        iterations: 100,
+        offsetX: ns.init(0),
+        offsetY: ns.init(0),
+        scale: 1,
+        samples: 9,
+        width: 0,
+        height: 0,
+        aggressiveness: 5,
+    },
+    eyeElements: {
+        iterations: document.getElementById("input_iter"),
+        offsetX: document.getElementById("input_x"),
+        offsetY: document.getElementById("input_y"),
+        scale: document.getElementById("input_scale"),
+        samples: document.getElementById("input_samples"),
+        width: document.getElementById("input_width"),
+        height: document.getElementById("input_height"),
+        aggressiveness: document.getElementById("input_aggressiveness"),
+        orbit: document.getElementById('checkbox_orbit'),
+    },
+    colors: {
+        mainGradientPoints: [
+            {
+                x: 0,
+                color: [0, 1, 1],
+            }, {
+                x: 1,
+                color: [0, 0, 0],
+            }
+        ],
+        interiorColor: [0, 0, 0],
+        scale: 0.5,
+        offset: 0,
+        mirror: false,
+        repeat: true,
+        offset2: 0,
+        scale2: 0,
+        mirror2: false,
+        repeat2: true,
+        shade3d: false,
+        scaleInvariant: false,
+        paintMode: 'gradient', // 'gradient' or 'custom_image'
+        distanceMode: 'iterations', // 'iterations' or 'distance'
+        direction: false, // two possible directions as bool
+    },
+    colorElements: {
+        mirror: document.getElementById('checkbox_mirror'),
+        repeat: document.getElementById('checkbox_repeat'),
+        mirror2: document.getElementById('checkbox_mirror2'),
+        repeat2: document.getElementById('checkbox_repeat2'),
+        shade3d: document.getElementById('checkbox_3d'),
+        scaleInvariant: document.getElementById('checkbox_scale_invariant'),
+        distanceModeSelector: function() {
+            return document.querySelector('input[name="distance_mode"]:checked');
+        },
+        paintModeSelector: function() {
+            return document.querySelector('input[name="paint_mode"]:checked');
+        },
+        direction: document.getElementById('button_direction'),
+    },    
+    getPreferencesMode: function() {
+        return document.querySelector('input[name="preference_switch"]:checked').value;
+    },
+};
+
+prefMVC.eyeElements.orbit.addEventListener('change', () => {game.toggleRefOrbit();});
+prefMVC.colorElements.mirror.addEventListener('change', updateGradientTexture);
+prefMVC.colorElements.repeat.addEventListener('change', updateGradientTexture);
+prefMVC.colorElements.mirror2.addEventListener('change', updateGradientTexture);
+prefMVC.colorElements.repeat2.addEventListener('change', updateGradientTexture);
+prefMVC.colorElements.shade3d.addEventListener('change', updateGradientTexture);
+prefMVC.colorElements.scaleInvariant.addEventListener('change', updateGradientTexture);
+document.getElementById('preference_switch_eye').addEventListener('change', updateElementVisibility);
+document.getElementById('preference_switch_color').addEventListener('change', updateElementVisibility);
+document.getElementsByName('paint_mode')
+    .forEach((x) => { x.addEventListener('change', paintModeListener); });
+document.getElementsByName('distance_mode')
+    .forEach((x) => { x.addEventListener('change', paintModeListener); });
+prefMVC.colorElements.direction.addEventListener('click', toggleDirectionListener);
+
+
+/*
+function getPaintMode() {
+    return document.querySelector('input[name="paint_mode"]:checked').value;
+}
+
+function getDistanceMode() {
+    return document.querySelector('input[name="distance_mode"]:checked').value;
+}
+
+function getPreferencesMode() {
+    return document.querySelector('input[name="preference_switch"]:checked').value;
+}
+*/
+
+prefMVC.eyeReadFromElements = function() {
+    var elements = prefMVC.eyeElements;
+    var values = {
+        iterations: parseFloat(elements.iterations.value),
+        offsetX: ns.fromstring(elements.offsetX.value),
+        offsetY: ns.fromstring(elements.offsetY.value),
+        scale: parseFloat(elements.scale.value),
+        samples: parseFloat(elements.samples.value),
+        width: parseInt(elements.width.value),
+        height: parseInt(elements.height.value),
+        aggressiveness: parseInt(elements.aggressiveness.value),
+    };
+    var ok = true;
+    for (var key in values) {
+        if (values.hasOwnProperty(key) && Number.isNaN(values[key])) {
+            elements[key].classList.add('invalid_input');
+            ok = false;
+        } else {
+            elements[key].classList.remove('invalid_input');
+        }
+    }
+    values.iterations = Math.min(Math.max(values.iterations, 1), 1e6);
+    values.aggressiveness = Math.min(Math.max(values.aggressiveness, 1), 10);
+    
+    if (ok) {
+        prefMVC.eye = values;
+    }
+    return ok;
+};
+
+prefMVC.eyeUpdateElements = function() {
+    prefMVC.eyeElements.scale.value = prefMVC.eye.scale.toExponential(5);
+    prefMVC.eyeElements.offsetY.value = ns.tostring(prefMVC.eye.offsetY);
+    prefMVC.eyeElements.offsetX.value = ns.tostring(prefMVC.eye.offsetX);
+    prefMVC.eyeElements.iterations.value = prefMVC.eye.iterations;
+    prefMVC.eyeElements.samples.value = prefMVC.eye.samples;
+    prefMVC.eyeElements.width.value = prefMVC.eye.width;
+    prefMVC.eyeElements.height.value = prefMVC.eye.height;
+    prefMVC.eyeElements.aggressiveness.value = prefMVC.eye.aggressiveness;
     
     for (const element of document.getElementsByTagName('input')) {
         element.classList.remove('invalid_input');
     }
-}
+};
+
+prefMVC.colorsReadFromElements = function() {
+    prefMVC.colors = {
+        mainGradientPoints: mainGradient.controller.points,
+        interiorColor: interiorGradient.controller.points[0].color,
+        scale: scaleControl.get(),
+        offset: offsetControl.get(),
+        mirror: prefMVC.colorElements.mirror.checked,
+        repeat: prefMVC.colorElements.repeat.checked,
+        offset2: offsetControl2.get(),
+        scale2: scaleControl2.get(),
+        mirror2: prefMVC.colorElements.mirror2.checked,
+        repeat2: prefMVC.colorElements.repeat2.checked,
+        shade3d: prefMVC.colorElements.shade3d.checked,
+        scaleInvariant: prefMVC.colorElements.scaleInvariant.checked,
+        paintMode: prefMVC.colorElements.paintModeSelector().value,
+        distanceMode: prefMVC.colorElements.distanceModeSelector().value,
+        direction: prefMVC.colors.direction, // direction is a toggle, can't read it from the elements
+    };
+};
+
+prefMVC.colorsUpdateElements = function() {
+//function updateColorControlElements(values) {
+    mainGradient.reset_points(prefMVC.colors.mainGradientPoints);
+    mainGradient.paint();
+    
+    offsetControl.reset(prefMVC.colors.offset);
+    offsetControl.paint();
+    offsetControl2.reset(prefMVC.colors.offset2);
+    offsetControl2.paint();
+    scaleControl.reset(prefMVC.colors.scale);
+    scaleControl.paint();
+    scaleControl2.reset(prefMVC.colors.scale2);
+    scaleControl2.paint();
+    interiorGradient.reset_points([{
+        x: 0.5, color: prefMVC.colors.interiorColor,
+    }]);
+    interiorGradient.paint();
+    
+    prefMVC.colorElements.mirror.checked = prefMVC.colors.mirror;
+    prefMVC.colorElements.mirror2.checked = prefMVC.colors.mirror2;
+    prefMVC.colorElements.repeat.checked = prefMVC.colors.repeat;
+    prefMVC.colorElements.repeat2.checked = prefMVC.colors.repeat2;
+    prefMVC.colorElements.scaleInvariant.checked = prefMVC.colors.scaleInvariant;
+    prefMVC.colorElements.shade3d.checked = prefMVC.colors.shade3d;
+    
+    if (values.distanceMode == 'distance') {
+        document.querySelector('input[name="distance_mode"][value="distance"]').checked = true;
+    } else {
+        document.querySelector('input[name="distance_mode"][value="iterations"]').checked = true;
+    }
+    
+    updateElementVisibility();
+};
 
 function resizeMainCanvasElement(width, height) {
     canvas.width = width;
@@ -55,41 +236,6 @@ function resizeMainCanvasElement(width, height) {
     }, 1);
 }
 
-function loadEyePreferencesFromControlElements() {
-    var elements = {
-        iterations: document.getElementById("input_iter"),
-        offsetX: document.getElementById("input_x"),
-        offsetY: document.getElementById("input_y"),
-        scale: document.getElementById("input_scale"),
-        samples: document.getElementById("input_samples"),
-        width: document.getElementById("input_width"),
-        height: document.getElementById("input_height"),
-        aggressiveness: document.getElementById("input_aggressiveness"),
-    };
-    var values = {
-        iterations: parseFloat(elements.iterations.value),
-        offsetX: ns.fromstring(elements.offsetX.value),
-        offsetY: ns.fromstring(elements.offsetY.value),
-        scale: parseFloat(elements.scale.value),
-        samples: parseFloat(elements.samples.value),
-        width: parseInt(elements.width.value),
-        height: parseInt(elements.height.value),
-        aggressiveness: parseInt(elements.aggressiveness.value),
-    };
-    var ok = true;
-    for (var key in values) {
-        if (values.hasOwnProperty(key) && Number.isNaN(values[key])) {
-            elements[key].classList.add('invalid_input');
-            ok = false;
-        } else {
-            elements[key].classList.remove('invalid_input');
-        }
-    }
-    values.iterations = Math.min(Math.max(values.iterations, 1), 1e6);
-    values.aggressiveness = Math.min(Math.max(values.aggressiveness, 1), 10);
-    return ok ? values : null;
-}
-
 function applyEyePreferences(values) {
     var eye = new M.mandel.Eye({
         iterations: values.iterations,
@@ -107,16 +253,7 @@ function applyEyePreferences(values) {
     game.aggressiveness = values.aggressiveness;
     game.setEye(eye);
     game.requestDraw();
-    updateEyeControlElements();
-}
-
-function loadFromEyeControlElements() {
-    var values = loadEyePreferencesFromControlElements();
-    if (values == null) {
-        return;
-    }
-    
-    applyEyePreferences(values);
+    prefMVC.eyeUpdateElements();
 }
 
 canvas.addEventListener("wheel", e => {
@@ -131,12 +268,11 @@ canvas.addEventListener("wheel", e => {
     // :: game.eye.offsetX = cx + (game.eye.offsetX - cx) * factor;
     // :: game.eye.offsetX = x * game.eye.scale + game.eye.offsetX + (-x * game.eye.scale) * factor;
     // :: game.eye.offsetX = x * game.eye.scale*(1 - factor) + game.eye.offsetX;
-    game.eye.offsetX = ns.add(ns.init(x * game.eye.scale*(1 - factor)), game.eye.offsetX);
-    game.eye.offsetY = ns.add(ns.init(y * game.eye.scale*(1 - factor)), game.eye.offsetY);
-    game.eye.scale *= factor;
-    updateEyeControlElements();
-    game.setEye(game.eye);
-    game.requestDraw();
+    prefMVC.eye.offsetX = ns.add(ns.init(x * prefMVC.eye.scale*(1 - factor)), prefMVC.eye.offsetX);
+    prefMVC.eye.offsetY = ns.add(ns.init(y * prefMVC.eye.scale*(1 - factor)), prefMVC.eye.offsetY);
+    prefMVC.eye.scale *= factor;
+    prefMVC.eyeUpdateElements();
+    applyEyePreferences(prefMVC.eye);
 });
 
 function normalizeCanvasCoords(canvas, x, y) {
@@ -179,36 +315,23 @@ canvas.addEventListener("mousemove", e => {
         return;
     }
     var p = normalizeCanvasCoords(canvas, e.clientX, e.clientY);
-    game.eye.offsetX = ns.sub(
+    prefMVC.eye.offsetX = ns.sub(
         canvasGrab.eye.offsetX,
-        ns.mul(ns.init((p.x - canvasGrab.p.x)*2*canvas.width/canvas.height), ns.init(game.eye.scale)),
+        ns.mul(ns.init((p.x - canvasGrab.p.x)*2*canvas.width/canvas.height), ns.init(prefMVC.eye.scale)),
     );
-    game.eye.offsetY = ns.add(
+    prefMVC.eye.offsetY = ns.add(
         canvasGrab.eye.offsetY,
-        ns.mul(ns.init((p.y - canvasGrab.p.y)*2), ns.init(game.eye.scale)),
+        ns.mul(ns.init((p.y - canvasGrab.p.y)*2), ns.init(prefMVC.eye.scale)),
     );
         
-    updateEyeControlElements();
-    game.setEye(game.eye);
-    game.requestDraw();
+    prefMVC.eyeUpdateElements();
+    applyEyePreferences(prefMVC.eye);
 });
 
-function getPaintMode() {
-    return document.querySelector('input[name="paint_mode"]:checked').value;
-}
-
-function getDistanceMode() {
-    return document.querySelector('input[name="distance_mode"]:checked').value;
-}
-
-function getPreferencesMode() {
-    return document.querySelector('input[name="preference_switch"]:checked').value;
-}
-
 function updateElementVisibility() {
-    var mode = getPaintMode();
+    var mode = prefMVC.colorElements.paintModeSelector().value;
     
-    var colorMode = (getPreferencesMode() == 'color');
+    var colorMode = (prefMVC.getPreferencesMode() == 'color');
     for (const element of document.getElementsByClassName('color_preferences')) {
         if (colorMode) {
             element.classList.remove('hide');
@@ -235,16 +358,16 @@ function updateElementVisibility() {
     }
     
     document.getElementById('palette_cell').style.display = (mode == 'gradient') ? 'flex' : 'none';
-    //document.getElementById('second_gradient').style.display = (mode == '2_gradients') ? 'flex' : 'none';
     document.getElementById('custom_image_cell').style.display = (mode == 'custom_image') ? 'flex' : 'none';
-    document.getElementById('distance_mode').style.display = (!game || game.theme.direction == 0) ? 'flex' : 'none';
-    document.getElementById('scale_invariance_control').style.visibility = (getDistanceMode() == 'distance') ? 'visible' : 'hidden';
+    document.getElementById('distance_mode').style.display = (!prefMVC.colors.direction) ? 'flex' : 'none';
+    document.getElementById('scale_invariance_control').style.visibility =
+        (prefMVC.colorElements.distanceModeSelector().value == 'distance') ? 'visible' : 'hidden';
     
     for (const element of document.getElementsByClassName('distance_factor_modifier')) {
-        element.style.display = (mode != 'gradient' || !game || game.theme.direction == 0) ? 'flex' : 'none';
+        element.style.display = (mode != 'gradient' || !prefMVC.colors.direction) ? 'flex' : 'none';
     }
     for (const element of document.getElementsByClassName('normal_factor_modifier')) {
-        element.style.display = (mode != 'gradient' || !game || game.theme.direction == 1) ? 'flex' : 'none';
+        element.style.display = (mode != 'gradient' || prefMVC.colors.direction) ? 'flex' : 'none';
     }
     
     paintControls();
@@ -256,7 +379,7 @@ function paintModeListener() {
 }
 
 function toggleDirectionListener() {
-    game.theme.direction = (game.theme.direction == 0) ? 1 : 0;
+    prefMVC.colors.direction = !prefMVC.colors.direction;
     updateElementVisibility();
     updateGradientTexture();
 };
@@ -362,46 +485,13 @@ function loadColorsInputOnChange(evt) {
             }
             
             applyColorPreferences(values);
-            updateColorControlElements(values);
+            prefMVC.eyeUpdateElements();
             mainGradient.controller.selectionGroup.selectedPoint = mainGradient.controller.points[0];
             gradientUpdateCallback(mainGradient);
             
         }
         fr.readAsText(files[0]);
     }
-}
-
-function updateColorControlElements(values) {
-    mainGradient.reset_points(values.mainGradientPoints);
-    mainGradient.paint();
-    
-    offsetControl.reset(values.offset);
-    offsetControl.paint();
-    offsetControl2.reset(values.offset2);
-    offsetControl2.paint();
-    scaleControl.reset(values.scale);
-    scaleControl.paint();
-    scaleControl2.reset(values.scale2);
-    scaleControl2.paint();
-    interiorGradient.reset_points([{
-        x: 0.5, color: values.interiorColor,
-    }]);
-    interiorGradient.paint();
-    
-    controls.checkbox_mirror.checked = values.mirror;
-    controls.checkbox_mirror2.checked = values.mirror2;
-    controls.checkbox_repeat.checked = values.repeat;
-    controls.checkbox_repeat2.checked = values.repeat2;
-    controls.checkbox_scale_invariant.checked = values.scaleInvariant;
-    controls.checkbox_3d.checked = values.shade3d;
-    
-    if (values.distanceMode == 'distance') {
-        document.querySelector('input[name="distance_mode"][value="distance"]').checked = true;
-    } else {
-        document.querySelector('input[name="distance_mode"][value="iterations"]').checked = true;
-    }
-    
-    updateElementVisibility();
 }
 
 function loadViewClickListener() {
@@ -423,6 +513,7 @@ function myclick() {
     }
 }
 
+/*
 function myclick2() {
 
     //underlay.take(comp2.getDrawingEye(), comp2.getTexture());
@@ -434,31 +525,10 @@ function myclick3() {
     underlay.combine(comp2.getDrawingEye(), comp2.getTexture(), renderW, renderH);
     visualizeBuffer(comp2.getTexture());
 }
-
-function readColorPreferences() {
-    var values = {
-        mainGradientPoints: mainGradient.controller.points,
-        interiorColor: interiorGradient.controller.points[0].color,
-        scale: scaleControl.get(),
-        offset: offsetControl.get(),
-        mirror: document.getElementById('checkbox_mirror').checked,
-        repeat: document.getElementById('checkbox_repeat').checked,
-        offset2: offsetControl2.get(),
-        scale2: scaleControl2.get(),
-        mirror2: document.getElementById('checkbox_mirror2').checked,
-        repeat2: document.getElementById('checkbox_repeat2').checked,
-        shade3d: document.getElementById('checkbox_3d').checked,
-        scaleInvariant: document.getElementById('checkbox_scale_invariant').checked,
-        paintMode: getPaintMode(),
-        distanceMode: getDistanceMode(),
-        direction: game.theme.direction, // direction is a toggle, can't read it from the elements
-    };
-    
-    return values;
-}
+*/
 
 var gradientArray = new Uint8Array(1024*1*4);
-function applyColorPreferences(values) {    
+function applyColorPreferences(values) {
     function paintCb(i, color) {
         var rgb = M.colors.clamp1(color);
         gradientArray[i*4] = 255*rgb[0];
@@ -495,23 +565,20 @@ function applyColorPreferences(values) {
     game.theme.mode = (values.paintMode == 'custom_image') ? 1 : 0;
     game.theme.distance_mode = (values.distanceMode == 'distance') ? 1 : 0;
     
-    game.theme.direction = values.direction;
+    game.theme.direction = values.direction ? 1 : 0;
     
     game.updateTheme();
 }
 
 function updateGradientTexture() {
-    var values = readColorPreferences();
-    applyColorPreferences(values);
+    prefMVC.colorsReadFromElements();
+    applyColorPreferences(prefMVC.colors);
 }
 
 function saveColorsClickListener() {
-    var values = readColorPreferences();
-    if (values == null) {
-        return;
-    }
+    prefMVC.colorsReadFromElements();
     
-    download("mandelbrot_colors.txt", newlines2crlf(JSON.stringify(values, null, 2)));
+    download("mandelbrot_colors.txt", newlines2crlf(JSON.stringify(prefMVC.colors, null, 2)));
 };
 
 var customImage = new Image();
@@ -576,15 +643,7 @@ var mainGradient = new M.palette.Gradient(
     gradientUpdateCallback,
     gradientSelectionGroup,
     true,
-    true, [
-        {
-            x: 0,
-            color: [0, 1, 1],
-        }, {
-            x: 1,
-            color: [0, 0, 0],
-        }
-    ]
+    true, prefMVC.colors.mainGradientPoints,
 );
 
 var interiorGradient = new M.palette.Gradient(
@@ -595,7 +654,7 @@ var interiorGradient = new M.palette.Gradient(
     false,
     false, [{
         x: 0.5,
-        color: [0, 0, 0],
+        color: prefMVC.colors.interiorColor,
     }]
 );
 
@@ -612,30 +671,35 @@ var palette = new M.palette.HSLPalette(
 var offsetControl = new M.palette.Slider(
     document.getElementById('canvas_offset'),
     document.getElementById('canvas_offset_control'),
-    0,
+    prefMVC.colors.offset,
     updateGradientTexture,
 );
 
 var scaleControl = new M.palette.Slider(
     document.getElementById('canvas_scale'),
     document.getElementById('canvas_scale_control'),
-    0.5,
+    prefMVC.colors.scale,
     updateGradientTexture,
 );
 
 var offsetControl2 = new M.palette.Slider(
     document.getElementById('canvas_offset2'),
     document.getElementById('canvas_offset2_control'),
-    0,
+    prefMVC.colors.offset2,
     updateGradientTexture,
 );
 
 var scaleControl2 = new M.palette.Slider(
     document.getElementById('canvas_scale2'),
     document.getElementById('canvas_scale2_control'),
-    0,
+    prefMVC.colors.scale2,
     updateGradientTexture,
 );
+
+document.getElementById('button_save_view').addEventListener('click', saveViewClickListener);
+document.getElementById('button_load_view').addEventListener('click', loadViewClickListener);
+document.getElementById('button_save_colors').addEventListener('click', saveColorsClickListener);
+document.getElementById('button_load_colors').addEventListener('click', loadColorsClickListener);
 
 function paintControls() {
     mainGradient.paint();
@@ -647,55 +711,15 @@ function paintControls() {
     scaleControl2.paint();
 };
 
-var controls = {
-    checkbox_orbit: document.getElementById('checkbox_orbit'),
-    checkbox_mirror: document.getElementById('checkbox_mirror'),
-    checkbox_repeat: document.getElementById('checkbox_repeat'),
-    checkbox_mirror2: document.getElementById('checkbox_mirror2'),
-    checkbox_repeat2: document.getElementById('checkbox_repeat2'),
-    checkbox_3d: document.getElementById('checkbox_3d'),
-    checkbox_scale_invariant: document.getElementById('checkbox_scale_invariant'),
-    preference_switch_eye: document.getElementById('preference_switch_eye'),
-    preference_switch_color: document.getElementById('preference_switch_color'),
-    paint_mode: document.getElementsByName('paint_mode'),
-    distance_mode: document.getElementsByName('distance_mode'),
-    button_direction: document.getElementById('button_direction'),
-    button_save_view: document.getElementById('button_save_view'),
-    button_load_view: document.getElementById('button_load_view'),
-    button_save_colors: document.getElementById('button_save_colors'),
-    button_load_colors: document.getElementById('button_load_colors'),
-};
-
-controls.checkbox_orbit.addEventListener('change', () => {game.toggleRefOrbit();});
-controls.checkbox_mirror.addEventListener('change', updateGradientTexture);
-controls.checkbox_repeat.addEventListener('change', updateGradientTexture);
-controls.checkbox_mirror2.addEventListener('change', updateGradientTexture);
-controls.checkbox_repeat2.addEventListener('change', updateGradientTexture);
-controls.checkbox_3d.addEventListener('change', updateGradientTexture);
-controls.checkbox_scale_invariant.addEventListener('change', updateGradientTexture);
-controls.preference_switch_eye.addEventListener('change', updateElementVisibility);
-controls.preference_switch_color.addEventListener('change', updateElementVisibility);
-controls.paint_mode.forEach((x) => { x.addEventListener('change', paintModeListener); });
-controls.distance_mode.forEach((x) => { x.addEventListener('change', paintModeListener); });
-controls.button_direction.addEventListener('click', toggleDirectionListener);
-controls.button_save_view.addEventListener('click', saveViewClickListener);
-controls.button_load_view.addEventListener('click', loadViewClickListener);
-controls.button_save_colors.addEventListener('click', saveColorsClickListener);
-controls.button_load_colors.addEventListener('click', loadColorsClickListener);
-
 for (const element of document.getElementsByTagName('input')) {
     element.addEventListener("keydown", (e) => {
         if (e.key == "Enter") {
-            loadFromEyeControlElements();
+            if (prefMVC.eyeReadFromElements()) {
+                applyEyePreferences(prefMVC.eye);
+            }
         }
     });
 }
-resizeMainCanvasElement(
-    window.devicePixelRatio*document.getElementById("main_stack").clientWidth,
-    window.devicePixelRatio*document.getElementById("main_stack").clientHeight
-);
-
-resizeCanvasToDisplaySize(document.getElementById("progress_canvas"));
 
 // there's a bug in older versions of firefox that results in a blank image from "save as" if
 // we don't set preserveDrawingBuffer to true
@@ -707,21 +731,23 @@ if (!gl) {
 var game;
 
 function startWithNewGLContext() {
-    var prev = game;
     M.gl_resources.createPositionVAO(gl);
     game = new M.game.Game(gl, document.getElementById("canvas1"));
     game.initBuffer();
     if (customImage.width > 0) {
         M.gl_util.loadHTMLImage2Texture(game.gl, customImage, game.theme.customImageTexture);
     }
-    if (prev) {
-        game.setEye(prev.eye);
-    }
+    
+    applyEyePreferences(prefMVC.eye);
     updateGradientTexture();
     game.requestDraw();
 }
 
+prefMVC.eye.width = window.devicePixelRatio*document.getElementById("main_stack").clientWidth;
+prefMVC.eye.height = window.devicePixelRatio*document.getElementById("main_stack").clientHeight;
 startWithNewGLContext();
+
+applyEyePreferences(prefMVC.eye); //resizeMainCanvasElement(prefs.eye.width, prefs.eye.height);
 
 setInterval(function() {
   //document.getElementById("lblTiming").innerText = 'Timing: ' + M.Stat.Computer.lastTiming;
@@ -762,7 +788,6 @@ function newProgressWatcher(div, canvas, label) {
     return w;
 }
 
-
 updateElementVisibility();
 
 resizeCanvasToDisplaySize(document.getElementById("progress_canvas"));
@@ -785,7 +810,7 @@ requestAnimationFrame(raf);
 mainGradient.controller.selectionGroup.selectedPoint = mainGradient.controller.points[0];
 updateGradientTexture();
 gradientUpdateCallback(mainGradient);
-updateEyeControlElements();
+prefMVC.eyeUpdateElements();
 
 canvas.addEventListener("webglcontextlost", function(event) {
     event.preventDefault();
