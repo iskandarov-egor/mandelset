@@ -146,18 +146,11 @@ class Computer {
                 return;
             }
             var status = gl.getSyncParameter(sync, gl.SYNC_STATUS);
-            if (status != gl.SIGNALED) {
+            if (!that.job.done && status != gl.SIGNALED) {
                 trace('comp', 'zzz');
                 setTimeout(timerCb, waitPeriod);
             } else {
                 //const available = gl.getQueryParameter(timerQ, gl.QUERY_RESULT_AVAILABLE);
-                const available = false;
-                if (available) {
-                    M.Stat.Computer.GLTimer = gl.getQueryParameter(timerQ, gl.QUERY_RESULT) / 1e6;
-                    gl.deleteQuery(timerQ);
-                } else {
-                    M.Stat.Computer.GLTimer = 'unavail';
-                }
                 
                 gl.deleteSync(sync);
                 var now = performance.now();

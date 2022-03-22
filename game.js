@@ -112,8 +112,8 @@ class Game {
         this.screenDirty = true;
     }
     
-    toggleRefOrbit() {
-        this.showRefOrbit = !this.showRefOrbit;
+    setRefOrbitDisplay(enabled) {
+        this.showRefOrbit = enabled;
         this.screenDirty = true;
     }
     

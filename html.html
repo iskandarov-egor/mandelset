@@ -4,7 +4,8 @@
 <head>
   <meta charset="utf-8">
 
-  <title>BANANA</title>
+  <title>WebGL Mandelbrot set explorer</title>
+  <link rel="icon" href="favicon.png" type="image/png">
   
   <style type="text/css">
     input[type="number"]::-webkit-outer-spin-button,
@@ -113,6 +114,14 @@
         pointer-events:none;
     }
     
+    .fill {
+        left: 0px;
+        right: 0px;
+        top: 0px;
+        bottom: 0px;
+        position:absolute;
+    }
+    
     #progress {
         left:2em;
         top: 1em;
@@ -132,6 +141,15 @@
     
     #help {
         right: 2em;
+    }
+    
+    #source_link {
+        right: 1em;
+        bottom: 1em;
+        color: rgba(255, 254, 253, 0.75);
+        display: flex;
+        position:absolute;
+        padding: 0.5em;
     }
     
     html {
@@ -423,6 +441,8 @@
     <span id="lblGLTimer">O_O</span-->  
   </div>
   
+  <img id="default_texture" class="hide" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAeAB4AAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAEAAQADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD+f+iiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigAooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooAKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooAKKKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKACiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD/2Q=="/>
+  
   <div class="stack" style="width:100%; height: 100%" id="main_stack">
   <canvas id="canvas" style='height: 100%; user-select: none; image-rendering: pixelated'></canvas>
   <canvas id="canvas1" style='height: 100%; pointer-events: none; user-select: none;'></canvas>
@@ -435,6 +455,9 @@
     * scroll to zoom in and out</br>
     * to see more detail at deeper zooms, increase the "iterations" value and press the return key</br>
   </div>
+  <a id="source_link" target="_blank" rel="noopener noreferrer" href="https://github.com/iskandarov-egor/mandelset">
+    github
+  </a>
   
   </div>
   <script>var M = {}; </script>
@@ -458,6 +481,7 @@
   <script src="game.js"></script>
   <script src="colors.js"></script>
   <script src="palette.js"></script>
+  <script src="prefMVC.js"></script>
   <script src="js.js"></script>
 </body>
 </html>
