@@ -206,7 +206,6 @@ function applyColorPreferences(values) {
     
     game.theme.direction = values.direction ? 1 : 0;
     
-    console.log("PP", values.paintMode, values.customImage.width);
     if (values.paintMode == 'custom_image') {
         M.gl_util.loadHTMLImage2Texture(
             game.gl,
