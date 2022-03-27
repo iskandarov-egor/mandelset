@@ -237,8 +237,8 @@ function startWithNewGLContext() {
     game.requestDraw();
 }
 
-M.prefMVC.eye.width = window.devicePixelRatio*document.getElementById("main_stack").clientWidth;
-M.prefMVC.eye.height = window.devicePixelRatio*document.getElementById("main_stack").clientHeight;
+M.prefMVC.eye.width = Math.floor(window.devicePixelRatio*document.getElementById("main_stack").clientWidth);
+M.prefMVC.eye.height = Math.floor(window.devicePixelRatio*document.getElementById("main_stack").clientHeight);
 M.prefMVC.eyeUpdateElements();
 startWithNewGLContext();
 
