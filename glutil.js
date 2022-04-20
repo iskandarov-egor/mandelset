@@ -45,7 +45,7 @@ M.gl_util.preprocess = function (source) {
             throw new Error("bad include " + include);
         }
         dep = dep[1];
-        dep = loadFile(dep + '.glsl');
+        dep = M.utils.loadFile(dep + '.glsl');
         source = source.replace(re, `\$1${dep}\$3`);
     }
     return source;

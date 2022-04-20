@@ -249,13 +249,13 @@ M.prefMVC._saveViewClickListener = function() {
     js.offsetY = ns.tostring(js.offsetY);
     js.offsetX = ns.tostring(js.offsetX);
     
-    M.prefMVC._download("mandelbrot_view.txt", M.prefMVC._newlines2crlf(JSON.stringify(js, null, 2)));
+    M.utils.download("mandelbrot_view.txt", M.prefMVC._newlines2crlf(JSON.stringify(js, null, 2)));
 };
 
 M.prefMVC._saveColorsClickListener = function() {
     M.prefMVC.colorsReadFromElements();
     
-    M.prefMVC._download("mandelbrot_colors.txt",
+    M.utils.download("mandelbrot_colors.txt",
         M.prefMVC._newlines2crlf(JSON.stringify(M.prefMVC.colors, null, 2)));
 };
 
@@ -387,21 +387,6 @@ M.prefMVC._scaleControl2 = new M.palette.Slider(
     M.prefMVC._colorsUpdateCallback,
 );
 
-M.prefMVC._download = function(filename, text) {
-    // browser programming is hard
-    
-    var element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', filename);
-
-    element.style.display = 'none';
-    document.body.appendChild(element);
-
-    element.click();
-
-    document.body.removeChild(element);
-}
-
 M.prefMVC._newlines2crlf = function(s) {
     // aaaaa
     if (s.includes('\n') && !s.includes('\r\n')) {
@@ -505,7 +490,10 @@ M.prefMVC.colorElements.repeat2.addEventListener('change', M.prefMVC._colorsUpda
 M.prefMVC.colorElements.shade3d.addEventListener('change', M.prefMVC._colorsUpdateCallback);
 M.prefMVC.colorElements.scaleInvariant.addEventListener('change', M.prefMVC._colorsUpdateCallback);
 document.getElementById('preference_switch_eye').addEventListener('change', M.prefMVC._updateElementVisibility);
-document.getElementById('preference_switch_color').addEventListener('change', M.prefMVC._updateElementVisibility);
+document.getElementById('preference_switch_color').addEventListener('change', function() {
+    M.utils.usage_ping("color-prefs");
+    M.prefMVC._updateElementVisibility();
+});
 
 document.getElementById('load_view_input').onchange = M.prefMVC._loadViewInputOnChange;
 document.getElementById('load_colors_input').onchange = M.prefMVC._loadColorsInputOnChange;

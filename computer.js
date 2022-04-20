@@ -302,7 +302,7 @@ class Job {
         // TODO: ugly global game variable
         var aggressiveness = (game.aggressiveness >= 5) ? 1 + (game.aggressiveness - 5) * 2 : game.aggressiveness / 5;
         var window_size = Math.max(1, Math.floor(Math.sqrt(maxWorkTime * conservativePixelsPerMs * aggressiveness)));
-        this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, window_size);
+        this.scanner = M.utils.newBlockScanner(this.bufParam.w, this.bufParam.h, window_size);
         if (d.oneIter) {
             this.scanner = newBlockScanner(this.bufParam.w, this.bufParam.h, 1000000);
         }

@@ -2,6 +2,8 @@ var ns = M.ns.ns;
 // 2162819005114
 // 76619
 
+// warning for mobile users
+
 var canvas = document.getElementById("canvas");
 var canvas1 = document.getElementById("canvas1");
 
@@ -105,6 +107,7 @@ canvas.addEventListener("mousedown", e => {
         p: normalizeCanvasCoords(canvas, e.clientX, e.clientY),
         eye: game.eye.clone(),
     };
+    M.utils.usage_ping("mousedown");
 });
 
 
@@ -123,6 +126,7 @@ document.addEventListener("mouseleave", e => {
 });
 
 canvas.addEventListener("mousemove", e => {
+    M.utils.usage_ping("mousemove");
     if (e.buttons % 2 == 0 || canvasGrab == null) {
         return;
     }
@@ -135,7 +139,7 @@ canvas.addEventListener("mousemove", e => {
         canvasGrab.eye.offsetY,
         ns.mul(ns.init((p.y - canvasGrab.p.y)*2), ns.init(M.prefMVC.eye.scale)),
     );
-        
+    
     M.prefMVC.eyeUpdateElements();
     applyEyePreferences(M.prefMVC.eye);
 });
@@ -282,7 +286,8 @@ function newProgressWatcher(div, canvas, label) {
     return w;
 }
 
-resizeCanvasToDisplaySize(document.getElementById("progress_canvas"));
+M.utils.resizeCanvasToDisplaySize(document.getElementById("progress_canvas"));
+
 var progressWatcher = newProgressWatcher(
     document.getElementById("progress"),
     document.getElementById("progress_canvas"),
@@ -311,3 +316,7 @@ canvas.addEventListener("webglcontextrestored", function() {
     console.log('restored');
     startWithNewGLContext();
 }, false);
+
+document.getElementById('button_proceed_anyway').addEventListener('click', function() {
+    document.getElementById('fullpage_overlay').remove();
+});

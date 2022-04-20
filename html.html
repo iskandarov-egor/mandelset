@@ -7,6 +7,8 @@
   <title>WebGL Mandelbrot set explorer</title>
   <link rel="icon" href="favicon.png" type="image/png">
   
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  
   <style type="text/css">
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
@@ -195,11 +197,44 @@
     .flat_button {
         border: 0;
     }
+    
+    .fullpage_overlay {
+      height: 100%;
+      width: 100%;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: white;
+      #background-color: rgba(0,0,0, 0.9);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction:column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .mobile_only {
+    }
+    
+    @media not (hover: none) {        
+        .mobile_only {
+            display: none;
+        }
+    }
   </style>
 
 </head>
 
 <body>
+  <div class="fullpage_overlay mobile_only" id="fullpage_overlay">
+    <div style="margin: 1em">This app does not yet support mobile browsers</div>
+    <button style="margin: 1em" id="button_proceed_anyway">proceed anyway</button>
+    <div style="flex: 1 0 auto;width:100%">
+      <img src="cat.jpg" style="height: 100%;width:100%;object-fit: contain;">
+    </div>
+    <!--button style="margin: 1em" id="button_download_cat">download cat</button-->
+  </div>
   <div style="display: flex; flex-wrap: wrap" id="main_div">
     <div class="preference_cell_rows shrink0" id="preference_switch">
       <div style="display: flex">
@@ -469,9 +504,6 @@
   <script src="mandel.js"></script>
   <script src="util.js"></script>
   <script src="vertex.js"></script>
-  <script src="fragment.js"></script>
-  <script src="vertex2.js"></script>
-  <script src="fragment2.js"></script>
   <script src="glutil.js"></script>
   <script src="computer.js"></script>
   <script src="pyramid_computer.js"></script>

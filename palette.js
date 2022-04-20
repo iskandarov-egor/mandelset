@@ -288,7 +288,7 @@ class GradientController {
     
     paint() {
         var canvas = this.canvas;
-        resizeCanvasToDisplaySize(canvas);
+        M.utils.resizeCanvasToDisplaySize(canvas);
         var ctx = this.ctx;
         ctx.lineWidth = 1;
         ctx.clearRect(0, 0, canvas.width, canvas.height);

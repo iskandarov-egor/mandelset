@@ -14,7 +14,7 @@ class Mixer {
         this.multisampling_pass = 1;
         this.resultTexture = null;
         this.resetTime = 0;
-        this.textureUpdateRL = newRateLimiter(3);
+        this.textureUpdateRL = M.utils.newRateLimiter(3);
         this.firstPassTexture = M.gl_resources.createRenderTexture(gl, this.bufParam.w, this.bufParam.h);
     }
     
