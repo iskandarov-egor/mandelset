@@ -5,11 +5,11 @@
 ## Features:
 * Renders on the GPU using WebGL 2.0
 * Can zoom up to the depth of about 2e-30
-* Utilizes the perturbation method, which allows it render faster and create deeper zooms than what the default single presicion float of WebGL 2.0 would allow
+* Uses the perturbation method, which allows it render faster and create deeper zooms than what the default single presicion float of WebGL 2.0 would allow
 * Supports multisampling to get smoother images
 * Allows to color the fractal with a gradient or a custom image
 * The rendered fractal can be colored without completely re-rendering it
-* Smooth panning and zooming without waiting for the new view to render
+* Smooth panning and zooming without waiting for the new view to render completely
 
 ## Gallery
 [![](./gallery/preview/1.jpg)](./gallery/1.jpg)

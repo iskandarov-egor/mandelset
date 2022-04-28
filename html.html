@@ -215,11 +215,12 @@
     }
     
     .mobile_only {
+        display: none;
     }
     
-    @media not (hover: none) {        
+    @media (hover: none) {        
         .mobile_only {
-            display: none;
+            display: flex;
         }
     }
   </style>
