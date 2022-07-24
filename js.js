@@ -112,7 +112,15 @@ canvas.addEventListener("mousedown", e => {
 
 
 document.addEventListener("mousedown", e => {
-    document.getElementById("help").classList.add('hide');
+    window.setTimeout(function() {
+        document.getElementById("help").classList.add('hide');
+    }, 10000);    
+});
+
+document.getElementById("help").addEventListener("mouseover", e => {
+    window.setTimeout(function() {
+        document.getElementById("help").classList.add('hide');
+    }, 100);    
 });
 
 document.addEventListener("mouseup", e => {

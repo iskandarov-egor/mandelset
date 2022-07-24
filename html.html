@@ -113,7 +113,7 @@
         background-color: rgba(0, 0, 0, 0.5);
         padding: 0.5em;
         user-select: none;
-        pointer-events:none;
+        #pointer-events:none;
     }
     
     .fill {
@@ -218,10 +218,24 @@
         display: none;
     }
     
-    @media (hover: none) {        
+    @media (hover: none) {
         .mobile_only {
             display: flex;
+        } 
+        .desktop_only {
+            display: none !important; 
         }
+        .flat_button {
+            margin: 0.5rem;
+        }
+        * {
+            font-size:1.1rem;
+        }
+    }
+    
+    .catdiv {
+        background:   url("cat.jpg")no-repeat center;
+        background-size: contain;
     }
   </style>
 
@@ -229,10 +243,11 @@
 
 <body>
   <div class="fullpage_overlay mobile_only" id="fullpage_overlay">
-    <div style="margin: 1em">This app does not yet support mobile browsers</div>
-    <button style="margin: 1em" id="button_proceed_anyway">proceed anyway</button>
-    <div style="flex: 1 0 auto;width:100%">
-      <img src="cat.jpg" style="height: 100%;width:100%;object-fit: contain;">
+    <div style="margin: 1em;font-size:1.1rem">Mobile browsers are not supported yet</div>
+    <button style="margin: 1em;font-size:1.1rem" id="button_proceed_anyway">proceed anyway</button>
+    <div style="flex: 1 0 auto;width:100%" class="catdiv">
+      <!--img src="cat.jpg" style="height: 100%;width:100%;object-fit: contain;"-->
+      <!--img src="cat.jpg" style="max-width:100%;max-height: 100%;min-width:0;min-height:0"-->
     </div>
     <!--button style="margin: 1em" id="button_download_cat">download cat</button-->
   </div>
@@ -475,7 +490,7 @@
 
     <!--span id="lblTiming">O_O</span>
     <span id="lblGLTimer">O_O</span-->  
-  </div>
+
   
   <img id="default_texture" class="hide" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAeAB4AAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAEAAQADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD+f+iiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigAooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooAKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooAKKKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKAP7/ACiiigAooooA/gDooooAKKKKACiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigD+AOiiigAooooA/v8AKKKKACiiigAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD+/wAooooAKKKKAP4A6KKKACiiigD/2Q=="/>
   
